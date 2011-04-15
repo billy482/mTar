@@ -24,12 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 12:40:32 +0200                       *
+*  Last modified: Fri, 15 Apr 2011 22:54:46 +0200                       *
 \***********************************************************************/
 
 #include "option.h"
 
-void init_option(struct mtar_option * option) {
+void mtar_option_init(struct mtar_option * option) {
+	option->function = MTAR_NONE;
+	option->doWork = 0;
+
 	option->filename = 0;
+
+	option->verbose = 0;
 }
 

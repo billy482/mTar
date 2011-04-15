@@ -24,98 +24,27 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 23:14:13 +0200                       *
+*  Last modified: Fri, 15 Apr 2011 22:41:52 +0200                       *
 \***********************************************************************/
 
-// strlen, strrchr, strspn
-#include <string.h>
+#ifndef __MTAR_IO_H__
+#define __MTAR_IO_H__
 
-#include "io/io.h"
-#include "option.h"
-#include "verbose.h"
+// ssize_t
+#include <sys/types.h>
 
-static void showHelp(const char * path);
-static void showVersion(const char * path);
+struct mtar_option;
 
-int main(int argc, char ** argv) {
-	if (argc < 2) {
-		showHelp(*argv);
-		return 1;
-	}
+struct mtar_io {
+	struct mtar_io_ops {
+		void (*close)(struct mtar_io * io);
+		void (*free)(struct mtar_io * io);
+		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
+	} * ops;
+	void * data;
+};
 
-	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhvV");
-	if (length != goodArg) {
-		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
-		showHelp(*argv);
-		return 1;
-	}
+struct mtar_io * mtar_io_get(struct mtar_option * option);
 
-	static struct mtar_option option;
-	mtar_option_init(&option);
-
-	unsigned int i;
-	int optArg = 2;
-	for (i = 0; i < length; i++) {
-		switch (argv[1][i]) {
-			case 'c':
-				option.function = MTAR_CREATE;
-				//TODO: complete me
-				// option.doWork = 
-				break;
-
-			case 'f':
-				if (option.filename) {
-					mtar_verbose_printf("File is already defined (%s)\n", option.filename);
-					showHelp(*argv);
-					return 1;
-				}
-				if (optArg >= argc) {
-					mtar_verbose_printf("Argument 'f' require a parameter\n");
-					showHelp(*argv);
-					return 1;
-				}
-				option.filename = argv[optArg++];
-				break;
-
-			case 'h':
-				showHelp(*argv);
-				return 0;
-
-			case 'v':
-				if (option.verbose < 2)
-					option.verbose++;
-				break;
-
-			case 'V':
-				showVersion(*argv);
-				return 0;
-		}
-	}
-
-	static struct mtar_verbose verbose;
-	mtar_verbose_get(&verbose, &option);
-
-	return 0;
-}
-
-void showHelp(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf("%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
-}
-
-void showVersion(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf("%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
-}
+#endif
 

@@ -24,98 +24,83 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 23:14:13 +0200                       *
+*  Last modified: Fri, 15 Apr 2011 23:13:00 +0200                       *
 \***********************************************************************/
 
-// strlen, strrchr, strspn
+// dprintf, vdprintf
+#include <stdio.h>
+// signal
+#include <signal.h>
+// memset
 #include <string.h>
+// ioctl
+#include <sys/ioctl.h>
+// struct winsize
+#include <termios.h>
+// va_end, va_start
+#include <stdarg.h>
 
-#include "io/io.h"
 #include "option.h"
 #include "verbose.h"
 
-static void showHelp(const char * path);
-static void showVersion(const char * path);
+static void verbose_clean(void);
+static void verbose_init(void);
+static void verbose_noClean(void);
+static void verbose_noPrintf(const char * format, ...);
+static void verbose_updateSize(int signal);
 
-int main(int argc, char ** argv) {
-	if (argc < 2) {
-		showHelp(*argv);
-		return 1;
+static int verbose_terminalWidth = 72;
+
+
+void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option) {
+	switch (option->verbose) {
+		default:
+		case 0:
+			verbose->clean = verbose_noClean;
+			verbose->print = verbose_noPrintf;
+			break;
+
+		case 1:
+			verbose->clean = verbose_clean;
+			verbose->print = verbose_noPrintf;
+			break;
+
+		case 2:
+			verbose->clean = verbose_clean;
+			verbose->print = verbose_noPrintf;
+			break;
 	}
-
-	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhvV");
-	if (length != goodArg) {
-		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
-		showHelp(*argv);
-		return 1;
-	}
-
-	static struct mtar_option option;
-	mtar_option_init(&option);
-
-	unsigned int i;
-	int optArg = 2;
-	for (i = 0; i < length; i++) {
-		switch (argv[1][i]) {
-			case 'c':
-				option.function = MTAR_CREATE;
-				//TODO: complete me
-				// option.doWork = 
-				break;
-
-			case 'f':
-				if (option.filename) {
-					mtar_verbose_printf("File is already defined (%s)\n", option.filename);
-					showHelp(*argv);
-					return 1;
-				}
-				if (optArg >= argc) {
-					mtar_verbose_printf("Argument 'f' require a parameter\n");
-					showHelp(*argv);
-					return 1;
-				}
-				option.filename = argv[optArg++];
-				break;
-
-			case 'h':
-				showHelp(*argv);
-				return 0;
-
-			case 'v':
-				if (option.verbose < 2)
-					option.verbose++;
-				break;
-
-			case 'V':
-				showVersion(*argv);
-				return 0;
-		}
-	}
-
-	static struct mtar_verbose verbose;
-	mtar_verbose_get(&verbose, &option);
-
-	return 0;
 }
 
-void showHelp(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf("%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
+void mtar_verbose_printf(const char * format, ...) {
+	va_list args;
+	va_start(args, format);
+	vdprintf(1, format, args);
+	va_end(args);
 }
 
-void showVersion(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
+void verbose_clean() {
+	char buffer[verbose_terminalWidth];
+	memset(buffer, ' ', verbose_terminalWidth);
+	*buffer = buffer[verbose_terminalWidth - 1] = '\r';
 
-	mtar_verbose_printf("%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
+	dprintf(1, buffer);
+}
+
+__attribute__((constructor))
+void verbose_init() {
+	verbose_updateSize(0);
+	signal(SIGWINCH, verbose_updateSize);
+}
+
+void verbose_noClean() {}
+
+void verbose_noPrintf(const char * format __attribute__((unused)), ...) {}
+
+void verbose_updateSize(int signal __attribute__((unused))) {
+	static struct winsize size;
+	int status = ioctl(1, TIOCGWINSZ, &size);
+	if (!status)
+		verbose_terminalWidth = size.ws_col;
 }
 

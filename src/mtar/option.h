@@ -24,17 +24,29 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 12:40:26 +0200                       *
+*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
 #define __MTAR_OPTION_H__
 
-struct mtar_option {
-	const char * filename;
+struct mtar_io;
+struct mtar_verbose;
+
+enum mtar_function {
+	MTAR_CREATE,
+	MTAR_NONE,
 };
 
-void init_option(struct mtar_option * option);
+struct mtar_option {
+	enum mtar_function function;
+	int (*doWork)(struct mtar_io * io, struct mtar_verbose * verbose, struct mtar_option * option);
+
+	const char * filename;
+	int verbose;
+};
+
+void mtar_option_init(struct mtar_option * option);
 
 #endif
 
