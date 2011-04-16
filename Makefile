@@ -1,79 +1,119 @@
-MAKEFLAGS 		+= -rR --no-print-directory
+MAKEFLAGS 	+= -rR --no-print-directory
 
 # commands
-CC				:= ccache ${TARGET}gcc
-CSCOPE			:= cscope
-CTAGS			:= ctags
-GDB				:= gdb
-OBJCOPY			:= ${TARGET}objcopy
-STRIP			:= ${TARGET}strip
+CC			:= ccache ${TARGET}gcc
+CSCOPE		:= cscope
+CTAGS		:= ctags
+GDB			:= gdb
+OBJCOPY		:= ${TARGET}objcopy
+STRIP		:= ${TARGET}strip
+
 
 # variable
-NAME			:= mtar
-BIN				:= bin/${NAME}
-DIR_NAME		:= $(lastword $(subst /, , $(realpath .)))
-#VERSION			:= $(shell git describe)
-VERSION			:= 0.0.1
+NAME		:= mtar
+DIR_NAME	:= $(lastword $(subst /, , $(realpath .)))
+#VERSION		:= $(shell git describe)
+VERSION		:= 0.0.1
 
-BUILD_DIR		:= build
-DEPEND_DIR		:= depend
 
-SRC_FILES		:= $(sort $(shell test -d src && find src -name '*.c'))
-HEAD_FILES		:= $(sort $(shell test -d src && find src -name '*.h'))
+BINS		:=
+BIN_SYMS	:=
 
-OBJ_FILES		:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${SRC_FILES}))
-DEP_FILES		:= $(sort $(shell test -d ${DEPEND_DIR} && find ${DEPEND_DIR} -name '*.d'))
+BUILD_DIR	:= build
+DEPEND_DIR	:= depend
 
-BIN_DIRS		:= $(sort $(dir ${BIN}))
-OBJ_DIRS		:= $(sort $(dir ${OBJ_FILES}))
-DEP_DIRS		:= $(patsubst ${BUILD_DIR}/%,${DEPEND_DIR}/%,${OBJ_DIRS})
+SRC_FILES	:=
+HEAD_FILES	:= $(sort $(shell test -d include && find include -name '*.h'))
+DEP_FILES	:=
+OBJ_FILES	:=
+
 
 # compilation flags
-CFLAGS			:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -pedantic -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes -DMTAR_VERSION=\"${VERSION}\" -I include/
-LIBS			:=
+CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -pedantic -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes -DMTAR_VERSION=\"${VERSION}\" -I include/
+LDFLAGS		:=
 
-CSCOPE_OPT		:= -b -I include -R -s src -U
-CTAGS_OPT		:= -R src
+CSCOPE_OPT	:= -b -R -s src -U -I include
+CTAGS_OPT	:= -R src
+
+
+# sub makefiles
+SUB_MAKES	:= $(sort $(shell test -d src && find src -name Makefile.sub))
+ifeq (${SUB_MAKES},)
+$(error "No sub makefiles")
+endif
+include ${SUB_MAKES}
+
+define BIN_template
+$$($(1)_BIN): $$($(1)_LIB) $$($(1)_OBJ_FILES)
+	@echo " LD       $$@"
+	@${CC} -o $$@ $$($(1)_OBJ_FILES) ${LDFLAGS} $$($(1)_LD)
+	@echo " OBJCOPY  --only-keep-debug $$@ $$@.debug"
+	@objcopy --only-keep-debug $$@ $$@.debug
+	@echo " STRIP    $$@"
+	@strip $$@
+	@echo " OBJCOPY  --add-gnu-debuglink=$$@.debug $$@"
+	@objcopy --add-gnu-debuglink=$$@.debug $$@
+	@echo " CHMOD    -x $$@.debug"
+	@chmod -x $$@.debug
+
+$$($(1)_BUILD_DIR)/%.o: $$($(1)_SRC_DIR)/%.c
+	@echo " CC       $$@"
+	@${CC} -c $${CFLAGS} $$($(1)_CFLAG) -Wp,-MD,$$($(1)_DEPEND_DIR)/$$*.d,-MT,$$@ -o $$@ $$<
+
+BINS		+= $$($(1)_BIN)
+SRC_FILES	+= $$($(1)_SRC_FILES)
+HEAD_FILES	+= $$($(1)_HEAD_FILES)
+DEP_FILES	+= $$($(1)_DEP_FILES)
+OBJ_FILES	+= $$($(1)_OBJ_FILES)
+endef
+
+$(foreach prog,${BIN_SYMS},$(eval $(call BIN_template,${prog})))
+
+
+BIN_DIRS	:= $(sort $(dir ${BINS}))
+OBJ_DIRS	:= $(sort $(dir ${OBJ_FILES}))
+DEP_DIRS	:= $(patsubst ${BUILD_DIR}/%,${DEPEND_DIR}/%,${OBJ_DIRS})
 
 
 # phony target
-.PHONY: all binary clean cscope ctags debug distclean prepare realclean run stat stat-extra TAGS tar
+.DEFAULT_GOAL	:= all
+.PHONY: all binaries clean cscope ctags debug distclean lib prepare realclean stat stat-extra TAGS tar
 
-all: binary cscope ctags
+all: binaries tags
 
-binary: prepare ${BIN}
+binaries: prepare $(sort ${BINS})
 
 check:
 	@echo 'Checking source files...'
 	@${CC} -fsyntax-only ${CFLAGS} ${SRC_FILES}
 
 clean:
-	@echo ' RM       -Rf ${BUILD_DIR}'
-	@rm -Rf ${BUILD_DIR}
+	@echo ' RM       -Rf $(foreach dir,${BIN_DIRS},$(word 1,$(subst /, ,$(dir)))) ${BUILD_DIR}'
+	@rm -Rf $(foreach dir,${BIN_DIRS},$(word 1,$(subst /, ,$(dir)))) ${BUILD_DIR}
 
 cscope: cscope.out
 
 ctags TAGS: tags
 
-debug: ${BIN}
-	@echo ' GDB      ${BIN}'
-	@${GDB} ${BIN}
+debug: binaries
+	@echo ' GDB'
+	${GDB} bin/storiqArchiver
 
 distclean realclean: clean
-	@echo ' RM       -Rf ${BIN} ${BIN}.debug cscope.out ${DEPEND_DIR} tags'
-	@rm -Rf ${BIN_DIRS} cscope.out ${DEPEND_DIR} tags
+	@echo ' RM       -Rf cscope.out doc ${DEPEND_DIR} tags'
+	@rm -Rf cscope.out doc ${DEPEND_DIR} tags
+
+doc: Doxyfile ${LIBOBJECT_SRC_FILES} ${HEAD_FILES}
+	@echo ' DOXYGEN'
+	@doxygen
 
 prepare: ${BIN_DIRS} ${DEP_DIRS} ${OBJ_DIRS}
 
 rebuild: clean all
 
-run: binary
-	@echo ' ${BIN}'
-	@./${BIN}
-
 stat:
 	@wc $(sort ${SRC_FILES} ${HEAD_FILES})
-	@git diff --stat=${COLUMNS} --cached -M
+	@git diff -M --cached --stat=${COLUMNS}
 
 stat-extra:
 	@c_count -w 48 $(sort ${HEAD_FILES} ${SRC_FILES})
@@ -82,22 +122,9 @@ tar: ${NAME}.tar.bz2
 
 
 # real target
-${BIN} : ${OBJ_FILES}
-	@echo " LD       $@"
-	@${CC} -o ${BIN} ${OBJ_FILES} ${LIBS}
-	@echo " OBJCOPY  --only-keep-debug $@ $@.debug"
-	@${OBJCOPY} --only-keep-debug ${BIN} ${BIN}.debug
-	@echo " STRIP    $@"
-	@${STRIP} ${BIN}
-	@echo " OBJCOPY  --add-gnu-debuglink=$@.debug $@"
-	@${OBJCOPY} --add-gnu-debuglink=${BIN}.debug ${BIN}
-	@echo " CHMOD    -x $@.debug"
-	@chmod -x ${BIN}.debug
-
 ${BIN_DIRS} ${DEP_DIRS} ${OBJ_DIRS}:
 	@echo " MKDIR    $@"
 	@mkdir -p $@
-
 
 ${NAME}.tar.bz2:
 	git archive --format=tar --prefix=${DIR_NAME}/ master | bzip2 -9c > $@
@@ -109,12 +136,6 @@ cscope.out: ${SRC_FILES} ${HEAD_FILES}
 tags: ${SRC_FILES} ${HEAD_FILES}
 	@echo " CTAGS"
 	@${CTAGS} ${CTAGS_OPT}
-
-
-# implicit target
-${BUILD_DIR}/%.o: src/%.c
-	@echo " CC       $@"
-	@${CC} -c ${CFLAGS} -Wp,-MD,${DEPEND_DIR}/$*.d,-MT,$@ -o $@ $<
 
 ifneq (${DEP_FILES},)
 include ${DEP_FILES}
