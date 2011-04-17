@@ -24,17 +24,51 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:11:12 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:19:21 +0200                       *
 \***********************************************************************/
+
+// open
+#include <fcntl.h>
+// malloc
+#include <stdlib.h>
+// open
+#include <sys/stat.h>
+// open
+#include <sys/types.h>
 
 #include <mtar/option.h>
 
-void mtar_option_init(struct mtar_option * option) {
-	option->function = MTAR_NONE;
-	option->doWork = 0;
+#include "common.h"
 
-	option->filename = 0;
+static struct mtar_io_ops file_ops = {
+	.close = mtar_io_file_close,
+	.free  = 0,
+	.write = 0,
+};
 
-	option->verbose = 0;
+static struct mtar_io * mtar_io_file(struct mtar_option * option);
+
+
+struct mtar_io * mtar_io_file(struct mtar_option * option) {
+	int fd = 1;
+	if (option->filename) {
+		fd = open(option->filename, O_WRONLY | O_TRUNC);
+		if (fd < 0)
+			return 0;
+	}
+
+	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
+	data->fd = fd;
+
+	struct mtar_io * io = malloc(sizeof(struct mtar_io));
+	io->ops = &file_ops;
+	io->data = data;
+
+	return io;
+}
+
+__attribute__((constructor))
+static void mtar_io_file_init() {
+	mtar_io_register("file", mtar_io_file);
 }
 

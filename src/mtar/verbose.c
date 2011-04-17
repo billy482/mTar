@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 23:13:00 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:12:24 +0200                       *
 \***********************************************************************/
 
 // dprintf, vdprintf
@@ -40,7 +40,8 @@
 // va_end, va_start
 #include <stdarg.h>
 
-#include "option.h"
+#include <mtar/option.h>
+
 #include "verbose.h"
 
 static void verbose_clean(void);

@@ -24,17 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:11:12 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 20:12:25 +0200                       *
 \***********************************************************************/
 
-#include <mtar/option.h>
+#include "common.h"
 
-void mtar_option_init(struct mtar_option * option) {
-	option->function = MTAR_NONE;
-	option->doWork = 0;
-
-	option->filename = 0;
-
-	option->verbose = 0;
+int mtar_io_file_close(struct mtar_io * io) {
+	return 0;
 }
 

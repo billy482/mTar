@@ -97,7 +97,7 @@ ctags TAGS: tags
 
 debug: binaries
 	@echo ' GDB'
-	${GDB} bin/storiqArchiver
+	${GDB} bin/mtar
 
 distclean realclean: clean
 	@echo ' RM       -Rf cscope.out doc ${DEPEND_DIR} tags'

@@ -24,12 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 13:43:40 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:08:33 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
-// strerror
+// realloc
+#include <stdlib.h>
+// strerror, strcmp
 #include <string.h>
 // stat
 #include <sys/stat.h>
@@ -38,13 +40,36 @@
 // access, stat
 #include <unistd.h>
 
-#include <mtar/io.h>
+#include <mtar/option.h>
 
-#include "option.h"
+#include "io.h"
+#include "loader.h"
 #include "verbose.h"
 
+static struct io {
+	const char * name;
+	struct mtar_io * (*function)(struct mtar_option * option);
+} * ios = 0;
+unsigned int nbIos = 0;
+
+static struct mtar_io * io_get(const char * io, struct mtar_option * option);
 static int io_isWritable(enum mtar_function function);
 
+
+struct mtar_io * io_get(const char * io, struct mtar_option * option) {
+	unsigned int i;
+	for (i = 0; i < nbIos; i++) {
+		if (!strcmp(io, ios[i].name))
+			return ios[i].function(option);
+	}
+	if (loader_load("io", io))
+		return 0;
+	for (i = 0; i < nbIos; i++) {
+		if (!strcmp(io, ios[i].name))
+			return ios[i].function(option);
+	}
+	return 0;
+}
 
 int io_isWritable(enum mtar_function function) {
 	switch (function) {
@@ -55,6 +80,7 @@ int io_isWritable(enum mtar_function function) {
 			return 0;
 	}
 }
+
 
 struct mtar_io * mtar_io_get(struct mtar_option * option) {
 	if (option->filename) {
@@ -74,9 +100,19 @@ struct mtar_io * mtar_io_get(struct mtar_option * option) {
 		}
 
 		if (S_ISREG(st.st_mode)) {
+			return io_get("file", option);
 		}
 	}
 
 	return 0;
+}
+
+void mtar_io_register(const char * name, struct mtar_io * (*io)(struct mtar_option * option)) {
+	ios = realloc(ios, (nbIos + 1) * sizeof(struct io));
+	ios[nbIos].name = name;
+	ios[nbIos].function = io;
+	nbIos++;
+
+	loader_register_ok();
 }
 

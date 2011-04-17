@@ -24,17 +24,21 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:11:12 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 20:16:34 +0200                       *
 \***********************************************************************/
 
-#include <mtar/option.h>
+#ifndef __MTAR_IO_FILE_H__
+#define __MTAR_IO_FILE_H__
 
-void mtar_option_init(struct mtar_option * option) {
-	option->function = MTAR_NONE;
-	option->doWork = 0;
+#include <mtar/io.h>
 
-	option->filename = 0;
+struct mtar_io_file {
+	int fd;
+};
 
-	option->verbose = 0;
-}
+int mtar_io_file_close(struct mtar_io * io);
+void mtar_io_file_free(struct mtar_io * io);
+ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
+
+#endif
 
