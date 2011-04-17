@@ -24,28 +24,59 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 13:43:40 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// errno
+#include <errno.h>
+// strerror
+#include <string.h>
+// stat
+#include <sys/stat.h>
+// stat
+#include <sys/types.h>
+// access, stat
+#include <unistd.h>
 
-#include <mtar/function.h>
+#include <mtar/io.h>
 
-enum mtar_function {
-	MTAR_CREATE,
-	MTAR_NONE,
-};
+#include "option.h"
+#include "verbose.h"
 
-struct mtar_option {
-	enum mtar_function function;
-	mtar_function doWork;
+static int io_isWritable(enum mtar_function function);
 
-	const char * filename;
-	int verbose;
-};
 
-void mtar_option_init(struct mtar_option * option);
+int io_isWritable(enum mtar_function function) {
+	switch (function) {
+		case MTAR_CREATE:
+			return 1;
 
-#endif
+		default:
+			return 0;
+	}
+}
+
+struct mtar_io * mtar_io_get(struct mtar_option * option) {
+	if (option->filename) {
+		int mode = 0;
+		if (io_isWritable(option->function))
+			mode = F_OK | W_OK;
+
+		if (access(option->filename, mode)) {
+			mtar_verbose_printf("Access to file (%s) failed => %s\n", option->filename, strerror(errno));
+			return 0;
+		}
+
+		struct stat st;
+		if (stat(option->filename, &st)) {
+			mtar_verbose_printf("Getting information about file (%s) failed => %s\n", option->filename, strerror(errno));
+			return 0;
+		}
+
+		if (S_ISREG(st.st_mode)) {
+		}
+	}
+
+	return 0;
+}
 

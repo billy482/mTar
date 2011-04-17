@@ -24,28 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 12:11:50 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_LOADER_H__
+#define __MTAR_LOADER_H__
 
-#include <mtar/function.h>
-
-enum mtar_function {
-	MTAR_CREATE,
-	MTAR_NONE,
-};
-
-struct mtar_option {
-	enum mtar_function function;
-	mtar_function doWork;
-
-	const char * filename;
-	int verbose;
-};
-
-void mtar_option_init(struct mtar_option * option);
+int loader_load(const char * module, const char * name);
+void loader_register_ok(void);
 
 #endif
 

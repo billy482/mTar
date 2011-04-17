@@ -24,28 +24,41 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 11:38:37 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// realloc
+#include <stdlib.h>
+// strcmp
+#include <string.h>
 
-#include <mtar/function.h>
+#include "function.h"
+#include "loader.h"
 
-enum mtar_function {
-	MTAR_CREATE,
-	MTAR_NONE,
-};
+static struct function {
+	const char * name;
+	mtar_function function;
+} * functions = 0;
+static unsigned int nbFunctions = 0;
 
-struct mtar_option {
-	enum mtar_function function;
-	mtar_function doWork;
 
-	const char * filename;
-	int verbose;
-};
+mtar_function mtar_function_get(const char * name) {
+	unsigned int i;
+	for (i = 0; i < nbFunctions; i++) {
+		if (!strcmp(name, functions[i].name))
+			return functions[i].function;
+	}
+	if (loader_load("function", name))
+		return 0;
+	return mtar_function_get(name);
+}
 
-void mtar_option_init(struct mtar_option * option);
+void mtar_function_register(const char * name, mtar_function f) {
+	functions = realloc(functions, (nbFunctions + 1) * sizeof(struct function));
+	functions[nbFunctions].name = name;
+	functions[nbFunctions].function = f;
+	nbFunctions++;
 
-#endif
+	loader_register_ok();
+}
 

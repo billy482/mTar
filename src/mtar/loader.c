@@ -24,28 +24,47 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 13:27:58 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// dlclose, dlerror, dlopen
+#include <dlfcn.h>
+// snprintf
+#include <stdio.h>
+// access
+#include <unistd.h>
 
-#include <mtar/function.h>
+#include <config.h>
 
-enum mtar_function {
-	MTAR_CREATE,
-	MTAR_NONE,
-};
+#include "loader.h"
 
-struct mtar_option {
-	enum mtar_function function;
-	mtar_function doWork;
+static short loaded = 0;
 
-	const char * filename;
-	int verbose;
-};
 
-void mtar_option_init(struct mtar_option * option);
+int loader_load(const char * module, const char * name) {
+	if (!module || !name)
+		return 1;
 
-#endif
+	char path[256];
+	snprintf(path, 256, "%s/lib%s-%s.so", PLUGINS_PATH, module, name);
+
+	if (access(path, R_OK | X_OK)) {
+		return 2;
+	}
+
+	loaded = 0;
+
+	void * cookie = dlopen(path, RTLD_NOW);
+	if (!cookie) {
+		return 3;
+	} else if (!loaded) {
+		return 4;
+	}
+
+	return 0;
+}
+
+void loader_register_ok() {
+	loaded = 1;
+}
 

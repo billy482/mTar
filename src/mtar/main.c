@@ -24,13 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 23:14:13 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 13:44:04 +0200                       *
 \***********************************************************************/
 
 // strlen, strrchr, strspn
 #include <string.h>
 
-#include "io/io.h"
+#include <mtar/io.h>
+
+#include "function.h"
 #include "option.h"
 #include "verbose.h"
 
@@ -60,8 +62,7 @@ int main(int argc, char ** argv) {
 		switch (argv[1][i]) {
 			case 'c':
 				option.function = MTAR_CREATE;
-				//TODO: complete me
-				// option.doWork = 
+				option.doWork = mtar_function_get("create");
 				break;
 
 			case 'f':

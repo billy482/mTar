@@ -24,28 +24,20 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 11:32:09 +0200                       *
 \***********************************************************************/
-
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
 
 #include <mtar/function.h>
 
-enum mtar_function {
-	MTAR_CREATE,
-	MTAR_NONE,
-};
+static int mtar_function_create(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose);
 
-struct mtar_option {
-	enum mtar_function function;
-	mtar_function doWork;
+__attribute__((constructor))
+static void mtar_function_create_init() {
+	mtar_function_register("create", mtar_function_create);
+}
 
-	const char * filename;
-	int verbose;
-};
 
-void mtar_option_init(struct mtar_option * option);
-
-#endif
+int mtar_function_create(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose) {
+	return 0;
+}
 

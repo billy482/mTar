@@ -2,5 +2,6 @@ bin/
 build/
 cscope.out
 depend/
+lib/
 tags
 .*.swp
