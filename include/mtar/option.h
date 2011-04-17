@@ -24,13 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 22:54:11 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 22:22:18 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
 #define __MTAR_OPTION_H__
 
-#include <mtar/function.h>
+#include "function.h"
 
 enum mtar_function {
 	MTAR_CREATE,
@@ -42,9 +42,14 @@ struct mtar_option {
 	mtar_function doWork;
 
 	const char * filename;
+
+	const char ** files;
+	unsigned int nbFiles;
+
 	int verbose;
 };
 
+void mtar_option_add_file(struct mtar_option * option, const char * file);
 void mtar_option_init(struct mtar_option * option);
 
 #endif

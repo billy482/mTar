@@ -24,12 +24,48 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 20:12:25 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:48:15 +0200                       *
 \***********************************************************************/
+
+// free
+#include <stdlib.h>
+// close
+#include <unistd.h>
 
 #include "common.h"
 
 int mtar_io_file_close(struct mtar_io * io) {
-	return 0;
+	struct mtar_io_file * self = io->data;
+
+	if (self->fd < 0)
+		return 0;
+
+	int failed = close(self->fd);
+
+	if (!failed)
+		self->fd = -1;
+
+	return failed;
+}
+
+void mtar_io_file_free(struct mtar_io * io) {
+	struct mtar_io_file * self = io->data;
+
+	if (self->fd < 0)
+		mtar_io_file_close(io);
+
+	free(self);
+	free(io);
+}
+
+ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length) {
+	struct mtar_io_file * self = io->data;
+
+	ssize_t nbWrite = write(self->fd, data, length);
+
+	if (nbWrite > 0)
+		self->pos += nbWrite;
+
+	return nbWrite;
 }
 

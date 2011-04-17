@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:08:33 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 22:06:14 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -41,10 +41,10 @@
 #include <unistd.h>
 
 #include <mtar/option.h>
+#include <mtar/verbose.h>
 
 #include "io.h"
 #include "loader.h"
-#include "verbose.h"
 
 static struct io {
 	const char * name;
@@ -87,6 +87,10 @@ struct mtar_io * mtar_io_get(struct mtar_option * option) {
 		int mode = 0;
 		if (io_isWritable(option->function))
 			mode = F_OK | W_OK;
+
+		if (access(option->filename, F_OK)) {
+			return io_get("file", option);
+		}
 
 		if (access(option->filename, mode)) {
 			mtar_verbose_printf("Access to file (%s) failed => %s\n", option->filename, strerror(errno));

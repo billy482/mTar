@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 20:37:20 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:54:05 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -39,7 +39,7 @@ struct mtar_io {
 	struct mtar_io_ops {
 		int (*close)(struct mtar_io * io);
 		void (*free)(struct mtar_io * io);
-		ssize_t (*write)(const void * data, ssize_t length);
+		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
 	} * ops;
 	void * data;
 };

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 20:16:34 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 21:26:13 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_FILE_H__
@@ -34,6 +34,7 @@
 
 struct mtar_io_file {
 	int fd;
+	unsigned int pos;
 };
 
 int mtar_io_file_close(struct mtar_io * io);

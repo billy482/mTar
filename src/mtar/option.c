@@ -24,16 +24,28 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:11:12 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 22:22:21 +0200                       *
 \***********************************************************************/
 
+// realloc
+#include <stdlib.h>
+
 #include <mtar/option.h>
+
+void mtar_option_add_file(struct mtar_option * option, const char * file) {
+	option->files = realloc(option->files, (option->nbFiles + 1) * sizeof(char *));
+	option->files[option->nbFiles] = file;
+	option->nbFiles++;
+}
 
 void mtar_option_init(struct mtar_option * option) {
 	option->function = MTAR_NONE;
 	option->doWork = 0;
 
 	option->filename = 0;
+
+	option->files = 0;
+	option->nbFiles = 0;
 
 	option->verbose = 0;
 }

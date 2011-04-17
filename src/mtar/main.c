@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:10:43 +0200                       *
+*  Last modified: Sun, 17 Apr 2011 22:54:59 +0200                       *
 \***********************************************************************/
 
 // strlen, strrchr, strspn
@@ -32,10 +32,10 @@
 
 #include <mtar/io.h>
 #include <mtar/option.h>
+#include <mtar/verbose.h>
 
 #include "function.h"
 #include "io.h"
-#include "verbose.h"
 
 static void showHelp(const char * path);
 static void showVersion(const char * path);
@@ -57,8 +57,8 @@ int main(int argc, char ** argv) {
 	static struct mtar_option option;
 	mtar_option_init(&option);
 
-	unsigned int i;
-	int optArg = 2;
+	static unsigned int i;
+	static int optArg = 2;
 	for (i = 0; i < length; i++) {
 		switch (argv[1][i]) {
 			case 'c':
@@ -95,8 +95,17 @@ int main(int argc, char ** argv) {
 		}
 	}
 
+	static int j;
+	for (j = optArg; j < argc; j++)
+		mtar_option_add_file(&option, argv[j]);
+
 	static struct mtar_verbose verbose;
 	mtar_verbose_get(&verbose, &option);
+
+	if (!option.doWork) {
+		mtar_verbose_printf("No function defined\n");
+		return 1;
+	}
 
 	struct mtar_io * io = mtar_io_get(&option);
 	if (!io) {
@@ -104,7 +113,11 @@ int main(int argc, char ** argv) {
 		return 2;
 	}
 
-	return 0;
+	int failed = option.doWork(io, &option, &verbose);
+
+	io->ops->free(io);
+
+	return failed;
 }
 
 void showHelp(const char * path) {
