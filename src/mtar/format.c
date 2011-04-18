@@ -24,15 +24,37 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 22:53:32 +0200                       *
+*  Last modified: Mon, 18 Apr 2011 23:16:51 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_P_H__
-#define __MTAR_IO_P_H__
+// realloc
+#include <stdlib.h>
 
-#include <mtar/io.h>
+#include <mtar/format.h>
+#include <mtar/option.h>
 
-struct mtar_io * mtar_io_get(struct mtar_option * option, struct mtar_verbose * verbose);
+#include "loader.h"
 
-#endif
+static struct format {
+	const char * name;
+	mtar_format_f format;
+} * formats = 0;
+static int nbFormats = 0;
+
+
+struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose) {
+	switch (option->format) {
+		default:
+			return 0;
+	}
+}
+
+void mtar_format_register(const char * name, mtar_format_f f) {
+	formats = realloc(formats, (nbFormats + 1) * (sizeof(struct format)));
+	formats[nbFormats].name = name;
+	formats[nbFormats].format = f;
+	nbFormats++;
+
+	loader_register_ok();
+}
 

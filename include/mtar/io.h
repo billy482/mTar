@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:54:05 +0200                       *
+*  Last modified: Mon, 18 Apr 2011 23:37:03 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -34,17 +34,24 @@
 #include <sys/types.h>
 
 struct mtar_option;
+struct mtar_verbose;
 
 struct mtar_io {
 	struct mtar_io_ops {
+		int (*canSeek)(struct mtar_io * io);
 		int (*close)(struct mtar_io * io);
 		void (*free)(struct mtar_io * io);
+		off_t (*pos)(struct mtar_io * io);
+		ssize_t (*read)(struct mtar_io * io, void * data, ssize_t length);
+		off_t (*seek)(struct mtar_io * io, off_t offset, int whence);
 		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
 	} * ops;
 	void * data;
 };
 
-void mtar_io_register(const char * name, struct mtar_io * (*io)(struct mtar_option * option));
+typedef struct mtar_io * (*mtar_io_f)(struct mtar_option * option, struct mtar_verbose * verbose);
+
+void mtar_io_register(const char * name, mtar_io_f function);
 
 #endif
 

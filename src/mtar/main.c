@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 22:54:59 +0200                       *
+*  Last modified: Mon, 18 Apr 2011 22:58:57 +0200                       *
 \***********************************************************************/
 
 // strlen, strrchr, strspn
@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
 	for (i = 0; i < length; i++) {
 		switch (argv[1][i]) {
 			case 'c':
-				option.function = MTAR_CREATE;
+				option.function = MTAR_FUNCTION_CREATE;
 				option.doWork = mtar_function_get("create");
 				break;
 
@@ -102,18 +102,17 @@ int main(int argc, char ** argv) {
 	static struct mtar_verbose verbose;
 	mtar_verbose_get(&verbose, &option);
 
-	if (!option.doWork) {
-		mtar_verbose_printf("No function defined\n");
-		return 1;
-	}
+	int failed = mtar_option_check(&option, &verbose);
+	if (failed)
+		return failed;
 
-	struct mtar_io * io = mtar_io_get(&option);
+	struct mtar_io * io = mtar_io_get(&option, &verbose);
 	if (!io) {
 		mtar_verbose_printf("Failed to open file\n");
 		return 2;
 	}
 
-	int failed = option.doWork(io, &option, &verbose);
+	failed = option.doWork(io, &option, &verbose);
 
 	io->ops->free(io);
 

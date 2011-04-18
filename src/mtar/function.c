@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 11:38:37 +0200                       *
+*  Last modified: Mon, 18 Apr 2011 08:59:58 +0200                       *
 \***********************************************************************/
 
 // realloc
@@ -50,7 +50,11 @@ mtar_function mtar_function_get(const char * name) {
 	}
 	if (loader_load("function", name))
 		return 0;
-	return mtar_function_get(name);
+	for (i = 0; i < nbFunctions; i++) {
+		if (!strcmp(name, functions[i].name))
+			return functions[i].function;
+	}
+	return 0;
 }
 
 void mtar_function_register(const char * name, mtar_function f) {

@@ -24,13 +24,20 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 15 Apr 2011 23:09:10 +0200                       *
+*  Last modified: Mon, 18 Apr 2011 23:48:44 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_VERBOSE_H__
 #define __MTAR_VERBOSE_H__
 
 struct mtar_option;
+
+enum mtar_verbose_level {
+	MTAR_VERBOSE_LEVEL_DEBUG,
+	MTAR_VERBOSE_LEVEL_ERROR,
+	MTAR_VERBOSE_LEVEL_INFO,
+	MTAR_VERBOSE_LEVEL_WARNING,
+};
 
 struct mtar_verbose {
 	void (*clean)();
