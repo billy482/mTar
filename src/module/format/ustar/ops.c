@@ -24,26 +24,48 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:30 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 23:16:42 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+// malloc
+#include <stdlib.h>
+// strncpy
+#include <string.h>
+// access
+#include <unistd.h>
 
-#include <mtar/io.h>
+#include <mtar/verbose.h>
 
-struct mtar_io_file {
-	int fd;
-	unsigned int pos;
+#include "common.h"
+
+struct ustar {
+	char filename[100];
+	char filemode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char checksum[8];
+	char flag;
+	char linkname[100];
+	char magic[8];
+	char version[2];
+	char uname[32];
+	char gname[32];
+	char devmajor[8];
+	char devminor[8];
+	char prefix[155];
 };
 
-int mtar_io_file_can_seek(struct mtar_io * io);
-int mtar_io_file_close(struct mtar_io * io);
-void mtar_io_file_free(struct mtar_io * io);
-off_t mtar_io_file_pos(struct mtar_io * io);
-ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length);
-off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence);
-ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
 
-#endif
+int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
+	if (access(filename, F_OK)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", filename);
+		return 1;
+	}
+
+	struct ustar * header = malloc(512);
+
+	strncpy(header->filename, filename, 100);
+}
 

@@ -24,26 +24,26 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:30 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 23:04:39 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+#ifndef __MTAR_FORMAT_USTAR_H__
+#define __MTAR_FORMAT_USTAR_H__
 
-#include <mtar/io.h>
+#include <mtar/format.h>
 
-struct mtar_io_file {
-	int fd;
-	unsigned int pos;
+struct mtar_format_ustar {
+	struct mtar_io * io;
+	unsigned short pos;
 };
 
-int mtar_io_file_can_seek(struct mtar_io * io);
-int mtar_io_file_close(struct mtar_io * io);
-void mtar_io_file_free(struct mtar_io * io);
-off_t mtar_io_file_pos(struct mtar_io * io);
-ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length);
-off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence);
-ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
+int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename);
+int mtar_format_ustar_addLabel(struct mtar_format * f, const char * filename);
+int mtar_format_ustar_endOfFile(struct mtar_format * f);
+void mtar_format_ustar_free(struct mtar_format * f);
+int mtar_format_ustar_getHeader(struct mtar_format * f, struct mtar_format_header * header);
+ssize_t mtar_format_ustar_read(struct mtar_format * f, void * data, ssize_t length);
+ssize_t mtar_format_ustar_write(struct mtar_format * f, const void * data, ssize_t length);
 
 #endif
 

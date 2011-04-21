@@ -24,21 +24,25 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:56:40 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 16:53:27 +0200                       *
 \***********************************************************************/
 
+// va_end, va_start
+#include <stdarg.h>
 // dprintf, vdprintf
 #include <stdio.h>
 // signal
 #include <signal.h>
-// memset
+// memset, strcpy
 #include <string.h>
 // ioctl
 #include <sys/ioctl.h>
+// struct timeval, gettimeofday
+#include <sys/time.h>
 // struct winsize
 #include <termios.h>
-// va_end, va_start
-#include <stdarg.h>
+// difftime
+#include <time.h>
 
 #include <mtar/option.h>
 
@@ -49,6 +53,9 @@ static void verbose_updateSize(int signal);
 
 static enum mtar_verbose_level verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
 static int verbose_terminalWidth = 72;
+
+static struct timeval verbose_progress_begin;
+static struct timeval verbose_progress_end;
 
 
 void mtar_verbose_clean() {
@@ -73,6 +80,95 @@ void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...
 	va_end(args);
 }
 
+void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit) {
+	mtar_verbose_stop_timer();
+
+	double inter = difftime(verbose_progress_end.tv_sec, verbose_progress_begin.tv_sec) + difftime(verbose_progress_end.tv_usec, verbose_progress_begin.tv_usec) / 1000000;
+	double pct = ((double) current) / upperLimit;
+	double total = inter / pct - inter;
+	pct *= 100;
+
+	char buffer[verbose_terminalWidth];
+	strcpy(buffer, format);
+
+	char * ptr = 0;
+	if ((ptr = strstr(buffer, "%E"))) {
+		unsigned long long tmpTotal = total;
+		unsigned int totalMilli = 1000 * (total - tmpTotal);
+		short totalSecond = tmpTotal % 60;
+		tmpTotal /= 60;
+		short totalMinute = tmpTotal % 60;
+		unsigned int totalHour = tmpTotal / 60;
+
+		char tmp[16];
+		snprintf(tmp, 16, "%u:%02u:%02u.%03u", totalHour, totalMinute, totalSecond, totalMilli);
+		int length = strlen(tmp);
+
+		do {
+			if (length != 2)
+				memmove(ptr + length, ptr + 2, strlen(ptr + 2) + 1);
+			memcpy(ptr, tmp, length);
+		} while ((ptr = strstr(ptr + 1, "%E")));
+	}
+
+	if ((ptr = strstr(buffer, "%L"))) {
+		unsigned long long tmpInter = inter;
+		unsigned int interMilli = 1000 * (inter - tmpInter);
+		short interSecond = tmpInter % 60;
+		tmpInter /= 60;
+		short interMinute = tmpInter % 60;
+		unsigned int interHour = tmpInter / 60;
+
+		char tmp[16];
+		snprintf(tmp, 16, "%u:%02u:%02u.%03u", interHour, interMinute, interSecond, interMilli);
+		int length = strlen(tmp);
+
+		do {
+			if (length != 2)
+				memmove(ptr + length, ptr + 2, strlen(ptr + 2) + 1);
+			memcpy(ptr, tmp, length);
+		} while ((ptr = strstr(ptr + 1, "%L")));
+	}
+
+	if ((ptr = strstr(buffer, "%p"))) {
+		char tmp[16];
+		snprintf(tmp, 16, "% 6.3f%%%%", pct);
+		int length = strlen(tmp);
+
+		do {
+			if (length != 2)
+				memmove(ptr + length, ptr + 2, strlen(ptr + 2) + 1);
+			memcpy(ptr, tmp, length);
+		} while ((ptr = strstr(ptr + length, "%p")));
+	}
+
+	ptr = buffer;
+	while ((ptr = strchr(ptr, '%'))) {
+		int s = 0, t = 0;
+		if (sscanf(ptr + 1, "%db%n", &s, &t) > 0) {
+			t++;
+			int p = s * current / upperLimit;
+
+			if (s != t)
+				memmove(ptr + s, ptr + t, strlen(ptr + t) + 1);
+			memset(ptr, '#', p);
+			memset(ptr + p, '.', s - p);
+		}
+		ptr++;
+	}
+
+	dprintf(2, buffer);
+}
+
+void mtar_verbose_restart_timer() {
+	gettimeofday(&verbose_progress_begin, 0);
+}
+
+void mtar_verbose_stop_timer() {
+	gettimeofday(&verbose_progress_end, 0);
+}
+
+
 __attribute__((constructor))
 void verbose_init() {
 	verbose_updateSize(0);
@@ -84,16 +180,7 @@ void verbose_updateSize(int signal __attribute__((unused))) {
 	int status = ioctl(2, TIOCGWINSZ, &size);
 	if (!status)
 		verbose_terminalWidth = size.ws_col;
+	else
+		verbose_terminalWidth = 72;
 }
-
-
-
-
-
-static void verbose_noClean(void);
-static void verbose_noPrintf(const char * format, ...);
-
-void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option) {}
-
-void verbose_noPrintf(const char * format __attribute__((unused)), ...) {}
 

@@ -24,14 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 16:07:28 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:10:48 +0200                       *
 \***********************************************************************/
 
 // realloc
 #include <stdlib.h>
 
-#include <mtar/option.h>
 #include <mtar/verbose.h>
+
+#include "option.h"
 
 void mtar_option_add_file(struct mtar_option * option, const char * file) {
 	option->files = realloc(option->files, (option->nbFiles + 1) * sizeof(char *));
@@ -39,9 +40,9 @@ void mtar_option_add_file(struct mtar_option * option, const char * file) {
 	option->nbFiles++;
 }
 
-int mtar_option_check(struct mtar_option * option, struct mtar_verbose * verbose) {
+int mtar_option_check(struct mtar_option * option) {
 	if (!option->doWork) {
-		verbose->print("No function defined\n");
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No function defined\n");
 		return 1;
 	}
 	return 0;

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 23:37:03 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 10:03:40 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -34,7 +34,6 @@
 #include <sys/types.h>
 
 struct mtar_option;
-struct mtar_verbose;
 
 struct mtar_io {
 	struct mtar_io_ops {
@@ -49,7 +48,7 @@ struct mtar_io {
 	void * data;
 };
 
-typedef struct mtar_io * (*mtar_io_f)(struct mtar_option * option, struct mtar_verbose * verbose);
+typedef struct mtar_io * (*mtar_io_f)(struct mtar_option * option);
 
 void mtar_io_register(const char * name, mtar_io_f function);
 

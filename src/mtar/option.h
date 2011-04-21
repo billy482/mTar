@@ -24,26 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:30 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:10:35 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+#ifndef __MTAR_OPTION_P_H__
+#define __MTAR_OPTION_P_H__
 
-#include <mtar/io.h>
+#include <mtar/option.h>
 
-struct mtar_io_file {
-	int fd;
-	unsigned int pos;
-};
-
-int mtar_io_file_can_seek(struct mtar_io * io);
-int mtar_io_file_close(struct mtar_io * io);
-void mtar_io_file_free(struct mtar_io * io);
-off_t mtar_io_file_pos(struct mtar_io * io);
-ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length);
-off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence);
-ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
+void mtar_option_add_file(struct mtar_option * option, const char * file);
+int mtar_option_check(struct mtar_option * option);
+void mtar_option_init(struct mtar_option * option);
 
 #endif
 

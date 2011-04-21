@@ -24,26 +24,39 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:30 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:56:57 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+// malloc
+#include <stdlib.h>
 
-#include <mtar/io.h>
+#include "common.h"
 
-struct mtar_io_file {
-	int fd;
-	unsigned int pos;
-};
 
-int mtar_io_file_can_seek(struct mtar_io * io);
-int mtar_io_file_close(struct mtar_io * io);
-void mtar_io_file_free(struct mtar_io * io);
-off_t mtar_io_file_pos(struct mtar_io * io);
-ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length);
-off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence);
-ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
+static struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option);
 
-#endif
+static const char * format_ustar_name = "ustar";
+
+
+__attribute__((constructor))
+static void format_init() {
+	mtar_format_register(format_ustar_name, mtar_format_ustar);
+}
+
+
+struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option __attribute__((unused))) {
+	if (!io)
+		return 0;
+
+	struct mtar_format_ustar * data = malloc(sizeof(struct mtar_format_ustar));
+	data->io = io;
+	data->pos = 0;
+
+	struct mtar_format * self = malloc(sizeof(struct mtar_format));
+	self->format = format_ustar_name;
+	self->ops = 0;
+	self->data = data;
+
+	return self;
+}
 

@@ -24,17 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:56:14 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:11:15 +0200                       *
 \***********************************************************************/
 
 // strlen, strrchr, strspn
 #include <string.h>
 
 #include <mtar/io.h>
-#include <mtar/option.h>
 
 #include "function.h"
 #include "io.h"
+#include "option.h"
 #include "verbose.h"
 
 static void showHelp(const char * path);
@@ -101,20 +101,17 @@ int main(int argc, char ** argv) {
 
 	mtar_verbose_configure(&option);
 
-	static struct mtar_verbose verbose;
-	//mtar_verbose_get(&verbose, &option);
-
-	int failed = mtar_option_check(&option, &verbose);
+	int failed = mtar_option_check(&option);
 	if (failed)
 		return failed;
 
-	struct mtar_io * io = mtar_io_get(&option, &verbose);
+	struct mtar_io * io = mtar_io_get(&option);
 	if (!io) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to open file\n");
 		return 2;
 	}
 
-	failed = option.doWork(io, &option, &verbose);
+	failed = option.doWork(io, &option);
 
 	io->ops->free(io);
 

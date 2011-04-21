@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 22:53:32 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 10:04:10 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_P_H__
@@ -32,7 +32,7 @@
 
 #include <mtar/io.h>
 
-struct mtar_io * mtar_io_get(struct mtar_option * option, struct mtar_verbose * verbose);
+struct mtar_io * mtar_io_get(struct mtar_option * option);
 
 #endif
 

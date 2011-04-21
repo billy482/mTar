@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 23:43:32 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 10:05:59 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -52,22 +52,22 @@ static struct io {
 } * ios = 0;
 static unsigned int nbIos = 0;
 
-static struct mtar_io * io_get(const char * io, struct mtar_option * option, struct mtar_verbose * verbose);
+static struct mtar_io * io_get(const char * io, struct mtar_option * option);
 static int io_isReadable(mtar_function_enum function);
 static int io_isWritable(mtar_function_enum function);
 
 
-struct mtar_io * io_get(const char * io, struct mtar_option * option, struct mtar_verbose * verbose) {
+struct mtar_io * io_get(const char * io, struct mtar_option * option) {
 	unsigned int i;
 	for (i = 0; i < nbIos; i++) {
 		if (!strcmp(io, ios[i].name))
-			return ios[i].function(option, verbose);
+			return ios[i].function(option);
 	}
 	if (loader_load("io", io))
 		return 0;
 	for (i = 0; i < nbIos; i++) {
 		if (!strcmp(io, ios[i].name))
-			return ios[i].function(option, verbose);
+			return ios[i].function(option);
 	}
 	return 0;
 }
@@ -90,11 +90,11 @@ int io_isWritable(mtar_function_enum function) {
 }
 
 
-struct mtar_io * mtar_io_get(struct mtar_option * option, struct mtar_verbose * verbose) {
+struct mtar_io * mtar_io_get(struct mtar_option * option) {
 	if (option->filename) {
 		int mode = 0;
 		if (access(option->filename, F_OK))
-			return io_get("file", option, verbose);
+			return io_get("file", option);
 
 		if (io_isWritable(option->function))
 			mode = F_OK | W_OK;
@@ -102,18 +102,18 @@ struct mtar_io * mtar_io_get(struct mtar_option * option, struct mtar_verbose * 
 			mode = F_OK | R_OK;
 
 		if (access(option->filename, mode)) {
-			verbose->print("Access to file (%s) failed => %s\n", option->filename, strerror(errno));
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Access to file (%s) failed => %s\n", option->filename, strerror(errno));
 			return 0;
 		}
 
 		struct stat st;
 		if (stat(option->filename, &st)) {
-			verbose->print("Getting information about file (%s) failed => %s\n", option->filename, strerror(errno));
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Getting information about file (%s) failed => %s\n", option->filename, strerror(errno));
 			return 0;
 		}
 
 		if (S_ISREG(st.st_mode)) {
-			return io_get("file", option, verbose);
+			return io_get("file", option);
 		}
 	}
 

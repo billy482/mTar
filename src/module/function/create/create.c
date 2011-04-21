@@ -24,13 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 22:09:50 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:14:42 +0200                       *
 \***********************************************************************/
 
 #include <mtar/function.h>
 #include <mtar/verbose.h>
 
-static int mtar_function_create(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose);
+static int mtar_function_create(struct mtar_io * io, struct mtar_option * option);
 
 __attribute__((constructor))
 static void mtar_function_create_init() {
@@ -38,7 +38,7 @@ static void mtar_function_create_init() {
 }
 
 
-int mtar_function_create(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose) {
+int mtar_function_create(struct mtar_io * io, struct mtar_option * option) {
 	return 0;
 }
 

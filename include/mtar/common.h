@@ -31,7 +31,6 @@
 #define __MTAR_COMMON_H__
 
 struct mtar_option;
-struct mtar_verbose;
 
 typedef enum {
 	MTAR_FUNCTION_CREATE,

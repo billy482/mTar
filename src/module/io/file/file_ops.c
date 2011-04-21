@@ -24,15 +24,21 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 21:48:15 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:29:17 +0200                       *
 \***********************************************************************/
 
 // free
 #include <stdlib.h>
-// close
+// lseek
+#include <sys/types.h>
+// close, lseek
 #include <unistd.h>
 
 #include "common.h"
+
+int mtar_io_file_can_seek(struct mtar_io * io __attribute__((unused))) {
+	return 1;
+}
 
 int mtar_io_file_close(struct mtar_io * io) {
 	struct mtar_io_file * self = io->data;
@@ -51,11 +57,40 @@ int mtar_io_file_close(struct mtar_io * io) {
 void mtar_io_file_free(struct mtar_io * io) {
 	struct mtar_io_file * self = io->data;
 
-	if (self->fd < 0)
+	if (self->fd >= 0)
 		mtar_io_file_close(io);
 
 	free(self);
 	free(io);
+}
+
+off_t mtar_io_file_pos(struct mtar_io * io) {
+	struct mtar_io_file * self = io->data;
+
+	if (self->fd < 0)
+		return -1;
+
+	return lseek(self->fd, 0, SEEK_CUR);
+}
+
+ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length) {
+	struct mtar_io_file * self = io->data;
+
+	ssize_t nbRead = read(self->fd, data, length);
+
+	if (nbRead > 0)
+		self->pos += nbRead;
+
+	return nbRead;
+}
+
+off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence) {
+	struct mtar_io_file * self = io->data;
+
+	if (self->fd < 0)
+		return -1;
+
+	return lseek(self->fd, offset, whence);
 }
 
 ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length) {

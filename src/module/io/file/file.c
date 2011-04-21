@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 22:48:41 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:29:44 +0200                       *
 \***********************************************************************/
 
 // open
@@ -41,9 +41,13 @@
 #include "common.h"
 
 static struct mtar_io_ops file_ops = {
-	.close = mtar_io_file_close,
-	.free  = mtar_io_file_free,
-	.write = mtar_io_file_write,
+	.canSeek = mtar_io_file_can_seek,
+	.close   = mtar_io_file_close,
+	.free    = mtar_io_file_free,
+	.pos     = mtar_io_file_pos,
+	.read    = mtar_io_file_read,
+	.seek    = mtar_io_file_seek,
+	.write   = mtar_io_file_write,
 };
 
 static struct mtar_io * mtar_io_file(struct mtar_option * option);

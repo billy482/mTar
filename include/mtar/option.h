@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:37:37 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:10:32 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -46,10 +46,6 @@ struct mtar_option {
 
 	enum mtar_verbose_level verbose;
 };
-
-void mtar_option_add_file(struct mtar_option * option, const char * file);
-int mtar_option_check(struct mtar_option * option, struct mtar_verbose * verbose);
-void mtar_option_init(struct mtar_option * option);
 
 #endif
 

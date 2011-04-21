@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:34:17 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 22:12:15 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -33,7 +33,6 @@
 #include <stdlib.h>
 
 #include <mtar/format.h>
-#include <mtar/option.h>
 
 #include "loader.h"
 
@@ -44,17 +43,17 @@ static struct format {
 static unsigned int nbFormats = 0;
 
 
-struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose) {
+struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option) {
 	unsigned int i;
 	for (i = 0; i < nbFormats; i++) {
 		if (!strcmp(option->format, formats[i].name))
-			return formats[i].format(io, option, verbose);
+			return formats[i].format(io, option);
 	}
 	if (loader_load("format", option->format))
 		return 0;
 	for (i = 0; i < nbFormats; i++) {
 		if (!strcmp(option->format, formats[i].name))
-			return formats[i].format(io, option, verbose);
+			return formats[i].format(io, option);
 	}
 	return 0;
 }

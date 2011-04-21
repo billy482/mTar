@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 16:02:29 +0200                       *
+*  Last modified: Thu, 21 Apr 2011 23:00:48 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -48,6 +48,7 @@ struct mtar_format {
 	const char * format;
 	struct mtar_format_ops {
 		int (*addFile)(struct mtar_format * f, const char * filename);
+		int (*addLabel)(struct mtar_format * f, const char * label);
 		int (*endOfFile)(struct mtar_format * f);
 		void (*free)(struct mtar_format * f);
 		int (*getHeader)(struct mtar_format * f, struct mtar_format_header * header);
@@ -57,9 +58,9 @@ struct mtar_format {
 	void * data;
 };
 
-typedef struct mtar_format * (*mtar_format_f)(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose);
+typedef struct mtar_format * (*mtar_format_f)(struct mtar_io * io, struct mtar_option * option);
 
-struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose);
+struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option);
 void mtar_format_register(const char * name, mtar_format_f format);
 
 #endif
