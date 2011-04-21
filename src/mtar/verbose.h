@@ -24,32 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:37:37 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 22:26:06 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_VERBOSE_P_H__
+#define __MTAR_VERBOSE_P_H__
 
-#include "common.h"
-#include "function.h"
+#include <mtar/verbose.h>
 
-struct mtar_option {
-	mtar_function_enum function;
-	mtar_function doWork;
-
-	const char * format;
-
-	const char * filename;
-
-	const char ** files;
-	unsigned int nbFiles;
-
-	enum mtar_verbose_level verbose;
-};
-
-void mtar_option_add_file(struct mtar_option * option, const char * file);
-int mtar_option_check(struct mtar_option * option, struct mtar_verbose * verbose);
-void mtar_option_init(struct mtar_option * option);
+void mtar_verbose_configure(struct mtar_option * option);
 
 #endif
 

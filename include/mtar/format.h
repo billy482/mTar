@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 23:28:55 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 16:02:29 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -45,7 +45,7 @@ struct mtar_format_header {
 };
 
 struct mtar_format {
-	mtar_format_enum format;
+	const char * format;
 	struct mtar_format_ops {
 		int (*addFile)(struct mtar_format * f, const char * filename);
 		int (*endOfFile)(struct mtar_format * f);

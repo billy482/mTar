@@ -24,28 +24,22 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 23:48:44 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 22:50:31 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_VERBOSE_H__
 #define __MTAR_VERBOSE_H__
 
-struct mtar_option;
-
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG,
-	MTAR_VERBOSE_LEVEL_ERROR,
-	MTAR_VERBOSE_LEVEL_INFO,
-	MTAR_VERBOSE_LEVEL_WARNING,
-};
+#include "common.h"
 
 struct mtar_verbose {
-	void (*clean)();
-	void (*print)(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+	void (*clean)() __attribute__((deprecated));
+	void (*print)(const char * format, ...) __attribute__ ((format (printf, 1, 2))) __attribute__((deprecated));
 };
 
-void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option);
-void mtar_verbose_printf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+void mtar_verbose_clean(void);
+void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option) __attribute__((deprecated));
+void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
 
 #endif
 

@@ -24,9 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 23:16:51 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 22:34:17 +0200                       *
 \***********************************************************************/
 
+// strcmp
+#include <string.h>
 // realloc
 #include <stdlib.h>
 
@@ -39,14 +41,22 @@ static struct format {
 	const char * name;
 	mtar_format_f format;
 } * formats = 0;
-static int nbFormats = 0;
+static unsigned int nbFormats = 0;
 
 
 struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option, struct mtar_verbose * verbose) {
-	switch (option->format) {
-		default:
-			return 0;
+	unsigned int i;
+	for (i = 0; i < nbFormats; i++) {
+		if (!strcmp(option->format, formats[i].name))
+			return formats[i].format(io, option, verbose);
 	}
+	if (loader_load("format", option->format))
+		return 0;
+	for (i = 0; i < nbFormats; i++) {
+		if (!strcmp(option->format, formats[i].name))
+			return formats[i].format(io, option, verbose);
+	}
+	return 0;
 }
 
 void mtar_format_register(const char * name, mtar_format_f f) {

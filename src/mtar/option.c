@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 22:33:57 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 16:07:28 +0200                       *
 \***********************************************************************/
 
 // realloc
@@ -51,7 +51,7 @@ void mtar_option_init(struct mtar_option * option) {
 	option->function = MTAR_FUNCTION_NONE;
 	option->doWork = 0;
 
-	option->format = MTAR_FORMAT_NONE;
+	option->format = "ustar";
 
 	option->filename = 0;
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 22:07:00 +0200                       *
+*  Last modified: Wed, 20 Apr 2011 22:56:40 +0200                       *
 \***********************************************************************/
 
 // dprintf, vdprintf
@@ -41,50 +41,36 @@
 #include <stdarg.h>
 
 #include <mtar/option.h>
-#include <mtar/verbose.h>
 
-static void verbose_clean(void);
+#include "verbose.h"
+
 static void verbose_init(void);
-static void verbose_noClean(void);
-static void verbose_noPrintf(const char * format, ...);
 static void verbose_updateSize(int signal);
 
+static enum mtar_verbose_level verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
 static int verbose_terminalWidth = 72;
 
 
-void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option) {
-	switch (option->verbose) {
-		default:
-		case 0:
-			verbose->clean = verbose_noClean;
-			verbose->print = verbose_noPrintf;
-			break;
-
-		case 1:
-			verbose->clean = verbose_clean;
-			verbose->print = verbose_noPrintf;
-			break;
-
-		case 2:
-			verbose->clean = verbose_clean;
-			verbose->print = verbose_noPrintf;
-			break;
-	}
-}
-
-void mtar_verbose_printf(const char * format, ...) {
-	va_list args;
-	va_start(args, format);
-	vdprintf(1, format, args);
-	va_end(args);
-}
-
-void verbose_clean() {
+void mtar_verbose_clean() {
 	char buffer[verbose_terminalWidth];
 	memset(buffer, ' ', verbose_terminalWidth);
 	*buffer = buffer[verbose_terminalWidth - 1] = '\r';
 
-	dprintf(1, buffer);
+	dprintf(2, buffer);
+}
+
+void mtar_verbose_configure(struct mtar_option * option) {
+	verbose_level = option->verbose;
+}
+
+void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) {
+	if (verbose_level < level)
+		return;
+
+	va_list args;
+	va_start(args, format);
+	vdprintf(2, format, args);
+	va_end(args);
 }
 
 __attribute__((constructor))
@@ -93,14 +79,21 @@ void verbose_init() {
 	signal(SIGWINCH, verbose_updateSize);
 }
 
-void verbose_noClean() {}
-
-void verbose_noPrintf(const char * format __attribute__((unused)), ...) {}
-
 void verbose_updateSize(int signal __attribute__((unused))) {
 	static struct winsize size;
-	int status = ioctl(1, TIOCGWINSZ, &size);
+	int status = ioctl(2, TIOCGWINSZ, &size);
 	if (!status)
 		verbose_terminalWidth = size.ws_col;
 }
+
+
+
+
+
+static void verbose_noClean(void);
+static void verbose_noPrintf(const char * format, ...);
+
+void mtar_verbose_get(struct mtar_verbose * verbose, struct mtar_option * option) {}
+
+void verbose_noPrintf(const char * format __attribute__((unused)), ...) {}
 
