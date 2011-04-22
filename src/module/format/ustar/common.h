@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 23:04:39 +0200                       *
+*  Last modified: Fri, 22 Apr 2011 22:53:56 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_USTAR_H__
@@ -34,7 +34,8 @@
 
 struct mtar_format_ustar {
 	struct mtar_io * io;
-	unsigned short pos;
+	off_t position;
+	ssize_t size;
 };
 
 int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename);

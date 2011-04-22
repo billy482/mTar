@@ -24,46 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Apr 2011 23:27:31 +0200                       *
+*  Last modified: Fri, 22 Apr 2011 12:13:19 +0200                       *
 \***********************************************************************/
 
-// malloc
-#include <stdlib.h>
+#ifndef __MTAR_FILE_H__
+#define __MTAR_FILE_H__
 
-#include "common.h"
+// gid_t, ssize_t, uid_t
+#include <sys/types.h>
 
+void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
+void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
 
-static struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option);
-
-static const char * format_ustar_name = "ustar";
-static struct mtar_format_ops format_ustar_ops = {
-	.addFile   = mtar_format_ustar_addFile,
-	.endOfFile = mtar_format_ustar_endOfFile,
-	.free      = mtar_format_ustar_free,
-	.write     = mtar_format_ustar_write,
-};
-
-
-__attribute__((constructor))
-static void format_init() {
-	mtar_format_register(format_ustar_name, mtar_format_ustar);
-}
-
-
-struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option __attribute__((unused))) {
-	if (!io)
-		return 0;
-
-	struct mtar_format_ustar * data = malloc(sizeof(struct mtar_format_ustar));
-	data->io = io;
-	data->position = 0;
-	data->size = 0;
-
-	struct mtar_format * self = malloc(sizeof(struct mtar_format));
-	self->format = format_ustar_name;
-	self->ops = &format_ustar_ops;
-	self->data = data;
-
-	return self;
-}
+#endif
 
