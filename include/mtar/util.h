@@ -24,16 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 20:23:34 +0200                       *
+*  Last modified: Mon, 25 Apr 2011 22:04:01 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_P_H__
-#define __MTAR_OPTION_P_H__
+#ifndef __MTAR_UTIL_H__
+#define __MTAR_UTIL_H__
 
-#include <mtar/option.h>
-
-int mtar_option_check(struct mtar_option * option);
-int mtar_option_parse(struct mtar_option * option, int argc, char ** argv);
+unsigned long long mtar_util_compute_hashString(const void * key);
+void mtar_util_basic_free(void * key, void * value);
 
 #endif
 

@@ -24,13 +24,37 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:14:42 +0200                       *
+*  Last modified: Mon, 25 Apr 2011 22:36:48 +0200                       *
 \***********************************************************************/
 
+// open
+#include <fcntl.h>
+// malloc
+#include <stdlib.h>
+// open, stat
+#include <sys/stat.h>
+// open, stat
+#include <sys/types.h>
+// read, stat
+#include <unistd.h>
+
+#include <mtar/format.h>
 #include <mtar/function.h>
+#include <mtar/hashtable.h>
+#include <mtar/option.h>
+#include <mtar/util.h>
 #include <mtar/verbose.h>
 
+struct mtar_function_create_param {
+	const char * filename;
+	struct mtar_format * format;
+	struct mtar_io * io;
+	struct mtar_hashtable * inode;
+	struct mtar_option * option;
+};
+
 static int mtar_function_create(struct mtar_io * io, struct mtar_option * option);
+static int mtar_function_create2(struct mtar_function_create_param * param);
 
 __attribute__((constructor))
 static void mtar_function_create_init() {
@@ -39,6 +63,52 @@ static void mtar_function_create_init() {
 
 
 int mtar_function_create(struct mtar_io * io, struct mtar_option * option) {
+	struct mtar_function_create_param param = {
+		.filename = 0,
+		.format   = mtar_format_get(io, option),
+		.io       = io,
+		.inode    = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
+		.option   = option,
+	};
+
+	unsigned int i;
+	int failed = 0;
+	for (i = 0; i < option->nbFiles && !failed; i++) {
+		param.filename = option->files[i];
+		failed = mtar_function_create2(&param);
+	}
+
+	mtar_hashtable_free(param.inode);
+	return failed;
+}
+
+int mtar_function_create2(struct mtar_function_create_param * param) {
+	struct stat st;
+	if (stat(param->filename, &st))
+		return 1;
+
+	if (S_ISSOCK(st.st_mode))
+		return 0;
+
+	int failed = param->format->ops->addFile(param->format, param->filename);
+	if (failed)
+		return failed;
+
+	if (S_ISREG(st.st_mode)) {
+		int fd = open(param->filename, O_RDONLY);
+
+		char * buffer = malloc(1048576);
+
+		ssize_t nbRead;
+		while ((nbRead = read(fd, buffer, 1048576)) > 0) {
+			param->format->ops->write(param->format, buffer, nbRead);
+		}
+
+		param->format->ops->endOfFile(param->format);
+
+	} else if (S_ISDIR(st.st_mode)) {
+	}
+
 	return 0;
 }
 

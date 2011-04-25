@@ -24,16 +24,42 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 20:23:34 +0200                       *
+*  Last modified: Mon, 25 Apr 2011 22:01:30 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_P_H__
-#define __MTAR_OPTION_P_H__
+#ifndef __MTAR_HASHTABLE_H__
+#define __MTAR_HASHTABLE_H__
 
-#include <mtar/option.h>
+typedef unsigned long long (*mtar_hashtable_computeHash_f)(const void * key);
+typedef void (*mtar_hashtable_free_f)(void * key, void * value);
 
-int mtar_option_check(struct mtar_option * option);
-int mtar_option_parse(struct mtar_option * option, int argc, char ** argv);
+struct mtar_hashtable_node {
+	unsigned long long hash;
+	void * key;
+	void * value;
+	struct mtar_hashtable_node * next;
+};
+
+struct mtar_hashtable {
+	struct mtar_hashtable_node ** nodes;
+	unsigned int nbElements;
+	unsigned int sizeNode;
+
+	unsigned char allowRehash;
+
+	mtar_hashtable_computeHash_f computeHash;
+	mtar_hashtable_free_f releaseKeyValue;
+};
+
+struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_computeHash_f computeHash);
+struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_computeHash_f computeHash, mtar_hashtable_free_f releaseKeyValue);
+void mtar_hashtable_free(struct mtar_hashtable * hashtable);
+short mtar_hashtable_hasKey(struct mtar_hashtable * hashtable, const void * key);
+const void ** mtar_hashtable_keys(struct mtar_hashtable * hashtable);
+void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * value);
+void * mtar_hashtable_remove(struct mtar_hashtable * hashtable, const void * key);
+void * mtar_hashtable_value(struct mtar_hashtable * hashtable, const void * key);
+void ** mtar_hashtable_values(struct mtar_hashtable * hashtable);
 
 #endif
 
