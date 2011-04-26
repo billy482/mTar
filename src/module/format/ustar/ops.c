@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Apr 2011 23:18:45 +0200                       *
+*  Last modified: Tue, 26 Apr 2011 23:12:24 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -59,7 +59,6 @@ struct ustar {
 	char flag;
 	char linkname[100];
 	char magic[8];
-	char version[2];
 	char uname[32];
 	char gname[32];
 	char devmajor[8];
@@ -124,7 +123,7 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 
 	if (S_ISREG(sfile.st_mode)) {
-		current_header->flag = 0;
+		current_header->flag = '0';
 	} else if (S_ISLNK(sfile.st_mode)) {
 		current_header->flag = 1;
 		readlink(filename, current_header->linkname, 100);
@@ -150,7 +149,7 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 
 	struct mtar_format_ustar * format = f->data;
 	format->position = 0;
-	format->size = 0;
+	format->size = sfile.st_size;
 
 	ssize_t nbWrite = format->io->ops->write(format->io, header, block_size);
 
@@ -201,11 +200,13 @@ ssize_t mtar_format_ustar_write(struct mtar_format * f, const void * data, ssize
 void ustar_compute_checksum(const void * header, char * checksum) {
 	const unsigned char * ptr = header;
 
+	memset(checksum, ' ', 8);
+
 	unsigned int i, sum = 0;
 	for (i = 0; i < 512; i++)
 		sum += ptr[i];
 
-	snprintf(checksum, 8, "%07o", sum);
+	snprintf(checksum, 7, "%06o", sum);
 }
 
 void ustar_compute_size(char * csize, ssize_t size) {

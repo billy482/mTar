@@ -24,13 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 22:36:48 +0200                       *
+*  Last modified: Tue, 26 Apr 2011 22:31:21 +0200                       *
 \***********************************************************************/
 
 // open
 #include <fcntl.h>
 // malloc
 #include <stdlib.h>
+// snprintf
+#include <stdio.h>
+// strdup
+#include <string.h>
 // open, stat
 #include <sys/stat.h>
 // open, stat
@@ -89,6 +93,14 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 	if (S_ISSOCK(st.st_mode))
 		return 0;
+
+	char * key = malloc(16);
+	snprintf(key, 16, "%llx_%lx", st.st_dev, st.st_ino);
+	if (mtar_hashtable_hasKey(param->inode, key)) {
+		return 0;
+	}
+
+	mtar_hashtable_put(param->inode, key, strdup(param->filename));
 
 	int failed = param->format->ops->addFile(param->format, param->filename);
 	if (failed)
