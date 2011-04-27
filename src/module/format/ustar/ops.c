@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 17:28:22 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 18:33:29 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -81,9 +81,11 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	}
 
 	struct stat sfile;
-	if (stat(filename, &sfile)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", filename);
-		return 1;
+	if (lstat(filename, &sfile)) {
+		if (stat(filename, &sfile)) {
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", filename);
+			return 1;
+		}
 	}
 
 	ssize_t block_size = 512;
@@ -119,13 +121,13 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
 	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
 	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
-	ustar_compute_size(current_header->size, sfile.st_size);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 
 	if (S_ISREG(sfile.st_mode)) {
+		ustar_compute_size(current_header->size, sfile.st_size);
 		current_header->flag = '0';
 	} else if (S_ISLNK(sfile.st_mode)) {
-		current_header->flag = '1';
+		current_header->flag = '2';
 		readlink(filename, current_header->linkname, 100);
 	} else if (S_ISCHR(sfile.st_mode)) {
 		current_header->flag = '3';
