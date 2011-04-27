@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Apr 2011 22:31:21 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 10:37:50 +0200                       *
 \***********************************************************************/
 
 // open
@@ -95,9 +95,12 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		return 0;
 
 	char * key = malloc(16);
-	snprintf(key, 16, "%llx_%lx", st.st_dev, st.st_ino);
+	snprintf(key, 16, "%llx_%lx", (long long int) st.st_dev, st.st_ino);
 	if (mtar_hashtable_hasKey(param->inode, key)) {
-		return 0;
+		const char * target = mtar_hashtable_value(param->inode, key);
+		int failed = param->format->ops->addLink(param->format, param->filename, target);
+		free(key);
+		return failed;
 	}
 
 	mtar_hashtable_put(param->inode, key, strdup(param->filename));

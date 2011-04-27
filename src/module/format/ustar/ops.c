@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Apr 2011 23:12:24 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 10:28:19 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -158,6 +158,47 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	return block_size != nbWrite;
 }
 
+int mtar_format_ustar_addLink(struct mtar_format * f, const char * src, const char * target) {
+	if (access(src, F_OK)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", src);
+		return 1;
+	}
+
+	struct stat sfile;
+	if (stat(src, &sfile)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", src);
+		return 1;
+	}
+
+	ssize_t block_size = 512;
+	struct ustar * header = malloc(block_size);
+	struct ustar * current_header = header;
+
+	bzero(current_header, 512);
+	strncpy(header->filename, src, 100);
+	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
+	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
+	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
+	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
+	current_header->flag = '1';
+	strncpy(header->linkname, target, 100);
+	strcpy(current_header->magic, "ustar  ");
+	mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
+	mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
+
+	ustar_compute_checksum(current_header, current_header->checksum);
+
+	struct mtar_format_ustar * format = f->data;
+	format->position = 0;
+	format->size = 0;
+
+	ssize_t nbWrite = format->io->ops->write(format->io, header, block_size);
+
+	free(header);
+
+	return block_size != nbWrite;
+}
+
 int mtar_format_ustar_endOfFile(struct mtar_format * f) {
 	struct mtar_format_ustar * format = f->data;
 
@@ -218,7 +259,7 @@ void ustar_compute_size(char * csize, ssize_t size) {
 			size >>= 8;
 		}
 	} else {
-		snprintf(csize, 12, "%0*o", 11, size);
+		snprintf(csize, 12, "%0*lo", 11, size);
 	}
 }
 

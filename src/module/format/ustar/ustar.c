@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Apr 2011 23:27:31 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 10:30:35 +0200                       *
 \***********************************************************************/
 
 // malloc
@@ -38,6 +38,7 @@ static struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_o
 static const char * format_ustar_name = "ustar";
 static struct mtar_format_ops format_ustar_ops = {
 	.addFile   = mtar_format_ustar_addFile,
+	.addLink   = mtar_format_ustar_addLink,
 	.endOfFile = mtar_format_ustar_endOfFile,
 	.free      = mtar_format_ustar_free,
 	.write     = mtar_format_ustar_write,
