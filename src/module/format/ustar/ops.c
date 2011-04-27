@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 18:33:29 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 19:10:29 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -39,6 +39,8 @@
 #include <sys/stat.h>
 // stat
 #include <sys/types.h>
+// time
+#include <time.h>
 // access, readlink, stat
 #include <unistd.h>
 
@@ -160,6 +162,31 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	return block_size != nbWrite;
 }
 
+int mtar_format_ustar_addLabel(struct mtar_format * f, const char * label) {
+	if (!label) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Label should be defined\n");
+		return 1;
+	}
+
+	struct ustar * header = malloc(512);
+	bzero(header, 512);
+	strncpy(header->filename, label, 100);
+	snprintf(header->mtime, 12, "%0*o", 11, (unsigned int) time(0));
+	header->flag = 'V';
+
+	ustar_compute_checksum(header, header->checksum);
+
+	struct mtar_format_ustar * format = f->data;
+	format->position = 0;
+	format->size = 0;
+
+	ssize_t nbWrite = format->io->ops->write(format->io, header, 512);
+
+	free(header);
+
+	return 512 != nbWrite;
+}
+
 int mtar_format_ustar_addLink(struct mtar_format * f, const char * src, const char * target) {
 	if (access(src, F_OK)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", src);
@@ -177,13 +204,13 @@ int mtar_format_ustar_addLink(struct mtar_format * f, const char * src, const ch
 	struct ustar * current_header = header;
 
 	bzero(current_header, 512);
-	strncpy(header->filename, src, 100);
+	strncpy(current_header->filename, src, 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
 	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
 	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 	current_header->flag = '1';
-	strncpy(header->linkname, target, 100);
+	strncpy(current_header->linkname, target, 100);
 	strcpy(current_header->magic, "ustar  ");
 	mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
 	mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);

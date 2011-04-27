@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 10:02:00 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 19:04:23 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_USTAR_H__
@@ -39,7 +39,7 @@ struct mtar_format_ustar {
 };
 
 int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename);
-int mtar_format_ustar_addLabel(struct mtar_format * f, const char * filename);
+int mtar_format_ustar_addLabel(struct mtar_format * f, const char * label);
 int mtar_format_ustar_addLink(struct mtar_format * f, const char * src, const char * target);
 int mtar_format_ustar_endOfFile(struct mtar_format * f);
 void mtar_format_ustar_free(struct mtar_format * f);
