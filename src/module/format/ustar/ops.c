@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 10:28:19 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 17:28:22 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -125,20 +125,20 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	if (S_ISREG(sfile.st_mode)) {
 		current_header->flag = '0';
 	} else if (S_ISLNK(sfile.st_mode)) {
-		current_header->flag = 1;
+		current_header->flag = '1';
 		readlink(filename, current_header->linkname, 100);
 	} else if (S_ISCHR(sfile.st_mode)) {
-		current_header->flag = 3;
+		current_header->flag = '3';
 		snprintf(current_header->devmajor, 8, "%07o", (unsigned int) (sfile.st_rdev >> 8));
 		snprintf(current_header->devminor, 8, "%07o", (unsigned int) (sfile.st_rdev & 0xFF));
 	} else if (S_ISBLK(sfile.st_mode)) {
-		current_header->flag = 4;
+		current_header->flag = '4';
 		snprintf(current_header->devmajor, 8, "%07o", (unsigned int) (sfile.st_rdev >> 8));
 		snprintf(current_header->devminor, 8, "%07o", (unsigned int) (sfile.st_rdev & 0xFF));
 	} else if (S_ISDIR(sfile.st_mode)) {
-		current_header->flag = 5;
+		current_header->flag = '5';
 	} else if (S_ISFIFO(sfile.st_mode)) {
-		current_header->flag = 6;
+		current_header->flag = '6';
 	}
 
 	strcpy(current_header->magic, "ustar  ");

@@ -24,16 +24,19 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 10:37:50 +0200                       *
+*  Last modified: Wed, 27 Apr 2011 17:26:05 +0200                       *
 \***********************************************************************/
 
+#define _GNU_SOURCE
+// scandir
+#include <dirent.h>
 // open
 #include <fcntl.h>
 // malloc
 #include <stdlib.h>
-// snprintf
+// snprintf, sprintf
 #include <stdio.h>
-// strdup
+// strcmp, strdup, strlen
 #include <string.h>
 // open, stat
 #include <sys/stat.h>
@@ -59,6 +62,7 @@ struct mtar_function_create_param {
 
 static int mtar_function_create(struct mtar_io * io, struct mtar_option * option);
 static int mtar_function_create2(struct mtar_function_create_param * param);
+static int mtar_function_create_filter(const struct dirent * d);
 
 __attribute__((constructor))
 static void mtar_function_create_init() {
@@ -122,8 +126,27 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		param->format->ops->endOfFile(param->format);
 
 	} else if (S_ISDIR(st.st_mode)) {
+		const char * dirname = param->filename;
+
+		struct dirent ** namelist = 0;
+		int i, nbFiles = scandir(dirname, &namelist, mtar_function_create_filter, versionsort);
+		for (i = 0; i < nbFiles; i++) {
+			char * subfile = malloc(strlen(dirname) + strlen(namelist[i]->d_name) + 2);
+			sprintf(subfile, "%s/%s", dirname, namelist[i]->d_name);
+			free(namelist[i]);
+
+			param->filename = subfile;
+			failed = mtar_function_create2(param);
+		}
+		free(namelist);
+
+		param->filename = dirname;
 	}
 
 	return 0;
+}
+
+int mtar_function_create_filter(const struct dirent * d) {
+	return !strcmp(".", d->d_name) || !strcmp("..", d->d_name) ? 0 : 1;
 }
 
