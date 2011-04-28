@@ -24,15 +24,16 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Apr 2011 12:13:19 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 12:46:17 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILE_H__
 #define __MTAR_FILE_H__
 
-// gid_t, ssize_t, uid_t
+// gid_t, mode_t, ssize_t, uid_t
 #include <sys/types.h>
 
+void mtar_file_convert_mode(char * buffer, mode_t mode);
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
 

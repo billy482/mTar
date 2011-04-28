@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Apr 2011 12:11:48 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 12:50:50 +0200                       *
 \***********************************************************************/
 
 // getgrgid
@@ -33,10 +33,56 @@
 #include <pwd.h>
 // strncpy
 #include <string.h>
+// mode_t
+#include <sys/stat.h>
 // getpwuid
 #include <sys/types.h>
 
 #include <mtar/file.h>
+
+void mtar_file_convert_mode(char * buffer, mode_t mode) {
+	strcpy(buffer, "----------");
+
+	if (S_ISDIR(mode))
+		buffer[0] = 'd';
+	else if (S_ISCHR(mode))
+		buffer[0] = 'c';
+	else if (S_ISBLK(mode))
+		buffer[0] = 'b';
+	else if (S_ISFIFO(mode))
+		buffer[0] = 'p';
+	else if (S_ISLNK(mode))
+		buffer[0] = 'l';
+	else if (S_ISSOCK(mode))
+		buffer[0] = 's';
+
+	if (mode & S_IRUSR)
+		buffer[1] = 'r';
+	if (mode & S_IWUSR)
+		buffer[2] = 'w';
+	if (mode & S_ISUID)
+		buffer[3] = 'S';
+	else if (mode & S_IXUSR)
+		buffer[3] = 'x';
+
+	if (mode & S_IRGRP)
+		buffer[4] = 'r';
+	if (mode & S_IWGRP)
+		buffer[5] = 'w';
+	if (mode & S_ISGID)
+		buffer[6] = 'S';
+	else if (mode & S_IXGRP)
+		buffer[6] = 'x';
+
+	if (mode & S_IROTH)
+		buffer[7] = 'r';
+	if (mode & S_IWOTH)
+		buffer[8] = 'w';
+	if (mode & S_ISVTX)
+		buffer[9] = 'T';
+	else if (mode & S_IXOTH)
+		buffer[9] = 'x';
+}
 
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid) {
 	struct group * p = getgrgid(gid);

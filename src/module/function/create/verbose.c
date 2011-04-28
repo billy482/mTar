@@ -24,15 +24,25 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 12:29:59 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 13:58:02 +0200                       *
 \***********************************************************************/
+
+// snprintf
+#include <stdio.h>
+// free, malloc
+#include <stdlib.h>
+// strlen, strncpy
+#include <string.h>
 // stat
 #include <sys/stat.h>
 // stat
 #include <sys/types.h>
+// localtime_r
+#include <time.h>
 // stat
 #include <unistd.h>
 
+#include <mtar/file.h>
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
@@ -68,7 +78,35 @@ void mtar_function_create_display2(const char * filename, struct stat * st __att
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", filename);
 }
 
-void mtar_function_create_display3(const char * filename, struct stat * st __attribute__((unused))) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", filename);
+void mtar_function_create_display3(const char * filename, struct stat * st) {
+	char * buffer = malloc(128);
+	char * pos = buffer + 10;
+	struct tm tmval;
+
+	mtar_file_convert_mode(buffer, st->st_mode);
+
+	*pos = ' ';
+	pos++;
+
+	mtar_file_uid2name(pos, 128 - (pos - buffer), st->st_uid);
+	pos += strlen(pos);
+
+	*pos = '/';
+	pos++;
+
+	mtar_file_gid2name(pos, 128 - (pos - buffer), st->st_gid);
+	pos += strlen(pos);
+
+	snprintf(pos, 128 - (pos - buffer), " %lld ", (long long) st->st_size);
+	pos += strlen(pos);
+
+	localtime_r(&st->st_mtime, &tmval);
+	strftime(pos, 128 - (pos - buffer), "%y-%m-%d %R ", &tmval);
+	pos += strlen(pos);
+
+	strncpy(pos, filename, 128 - (pos - buffer));
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", buffer);
+	free(buffer);
 }
 
