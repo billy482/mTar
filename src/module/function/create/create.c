@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 10:03:57 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 10:37:30 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -36,7 +36,7 @@
 #include <stdlib.h>
 // snprintf, sprintf
 #include <stdio.h>
-// strcmp, strdup, strlen
+// strcmp, strcpy, strdup, strlen
 #include <string.h>
 // open, stat
 #include <sys/stat.h>
@@ -134,8 +134,13 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		struct dirent ** namelist = 0;
 		int i, nbFiles = scandir(dirname, &namelist, mtar_function_create_filter, versionsort);
 		for (i = 0; i < nbFiles; i++) {
-			char * subfile = malloc(strlen(dirname) + strlen(namelist[i]->d_name) + 2);
-			sprintf(subfile, "%s/%s", dirname, namelist[i]->d_name);
+			size_t dirlength = strlen(dirname);
+			char * subfile = malloc(dirlength + strlen(namelist[i]->d_name) + 2);
+
+			strcpy(subfile, dirname);
+			for (dirlength--; dirlength > 0 && subfile[dirlength] == '/'; dirlength--)
+				subfile[dirlength] = '\0';
+			sprintf(subfile + dirlength + 1, "/%s", namelist[i]->d_name);
 			free(namelist[i]);
 
 			param->filename = subfile;
