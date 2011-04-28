@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 10:39:11 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 12:39:21 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -52,6 +52,8 @@
 #include <mtar/util.h>
 #include <mtar/verbose.h>
 
+#include "verbose.h"
+
 struct mtar_function_create_param {
 	const char * filename;
 	struct mtar_format * format;
@@ -71,6 +73,8 @@ static void mtar_function_create_init() {
 
 
 int mtar_function_create(struct mtar_io * io, struct mtar_option * option) {
+	mtar_function_create_configure(option);
+
 	struct mtar_function_create_param param = {
 		.filename = 0,
 		.format   = mtar_format_get(io, option),
@@ -97,6 +101,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 	if (S_ISSOCK(st.st_mode))
 		return 0;
+
+	mtar_function_create_display(param->filename, &st);
 
 	char * key = malloc(16);
 	snprintf(key, 16, "%llx_%lx", (long long int) st.st_dev, st.st_ino);
