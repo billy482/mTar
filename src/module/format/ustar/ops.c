@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 10:02:38 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 10:39:09 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -84,10 +84,8 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
-		if (stat(filename, &sfile)) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", filename);
-			return 1;
-		}
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", filename);
+		return 1;
 	}
 
 	ssize_t block_size = 512;

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 10:37:30 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 10:39:11 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -93,8 +93,7 @@ int mtar_function_create(struct mtar_io * io, struct mtar_option * option) {
 int mtar_function_create2(struct mtar_function_create_param * param) {
 	struct stat st;
 	if (lstat(param->filename, &st))
-		if (stat(param->filename, &st))
-			return 1;
+		return 1;
 
 	if (S_ISSOCK(st.st_mode))
 		return 0;
