@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 12:39:21 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 19:01:49 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -125,11 +125,17 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		char * buffer = malloc(1048576);
 
 		ssize_t nbRead;
+		ssize_t totalNbRead = 0;
 		while ((nbRead = read(fd, buffer, 1048576)) > 0) {
 			param->format->ops->write(param->format, buffer, nbRead);
+
+			totalNbRead += nbRead;
+
+			mtar_function_create_progress(param->filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
 		}
 
 		param->format->ops->endOfFile(param->format);
+		mtar_verbose_clean();
 
 		free(buffer);
 

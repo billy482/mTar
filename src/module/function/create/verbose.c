@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 13:58:02 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 18:49:43 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -51,23 +51,29 @@
 static void mtar_function_create_display1(const char * filename, struct stat * st);
 static void mtar_function_create_display2(const char * filename, struct stat * st);
 static void mtar_function_create_display3(const char * filename, struct stat * st);
+static void mtar_function_create_progress1(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
+static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 
 void (*mtar_function_create_display)(const char * filename, struct stat * st) = mtar_function_create_display1;
+void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
 
 void mtar_function_create_configure(struct mtar_option * option) {
 	switch (option->verbose) {
 		case MTAR_VERBOSE_LEVEL_ERROR:
 			mtar_function_create_display = mtar_function_create_display1;
+			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		case MTAR_VERBOSE_LEVEL_WARNING:
 			mtar_function_create_display = mtar_function_create_display2;
+			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		default:
 			mtar_function_create_display = mtar_function_create_display3;
+			mtar_function_create_progress = mtar_function_create_progress2;
 			break;
 	}
 }
@@ -108,5 +114,21 @@ void mtar_function_create_display3(const char * filename, struct stat * st) {
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", buffer);
 	free(buffer);
+}
+
+void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
+
+void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
+	static const char * current_file = 0;
+	//static time_t last_start = 0;
+
+	if (filename != current_file) {
+		current_file = filename;
+		//last_start = time(0);
+		mtar_verbose_restart_timer();
+		return;
+	}
+
+	mtar_verbose_progress(format, current, upperLimit);
 }
 

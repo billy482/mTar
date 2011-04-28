@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 16:53:27 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 19:48:55 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -49,6 +49,7 @@
 #include "verbose.h"
 
 static void verbose_init(void);
+static size_t verbose_strlen(const char * str);
 static void verbose_updateSize(int signal);
 
 static enum mtar_verbose_level verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
@@ -59,11 +60,14 @@ static struct timeval verbose_progress_end;
 
 
 void mtar_verbose_clean() {
-	char buffer[verbose_terminalWidth];
+	char buffer[verbose_terminalWidth + 1];
 	memset(buffer, ' ', verbose_terminalWidth);
 	*buffer = buffer[verbose_terminalWidth - 1] = '\r';
+	buffer[verbose_terminalWidth] = '\0';
 
 	dprintf(2, buffer);
+
+	*buffer = '\0';
 }
 
 void mtar_verbose_configure(struct mtar_option * option) {
@@ -130,31 +134,27 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 		} while ((ptr = strstr(ptr + 1, "%L")));
 	}
 
-	if ((ptr = strstr(buffer, "%p"))) {
+	if ((ptr = strstr(buffer, "%P"))) {
 		char tmp[16];
-		snprintf(tmp, 16, "% 6.3f%%%%", pct);
+		snprintf(tmp, 16, "%7.3f%%%%", pct);
 		int length = strlen(tmp);
 
 		do {
-			if (length != 2)
-				memmove(ptr + length, ptr + 2, strlen(ptr + 2) + 1);
+			memmove(ptr + length, ptr + 2, strlen(ptr + 2) + 1);
 			memcpy(ptr, tmp, length);
 		} while ((ptr = strstr(ptr + length, "%p")));
 	}
 
 	ptr = buffer;
-	while ((ptr = strchr(ptr, '%'))) {
-		int s = 0, t = 0;
-		if (sscanf(ptr + 1, "%db%n", &s, &t) > 0) {
-			t++;
-			int p = s * current / upperLimit;
+	if ((ptr = strstr(buffer, "%b"))) {
+		size_t length = verbose_terminalWidth - strlen(buffer) + 1;
+		unsigned int p = length * current / upperLimit;
 
-			if (s != t)
-				memmove(ptr + s, ptr + t, strlen(ptr + t) + 1);
-			memset(ptr, '#', p);
-			memset(ptr + p, '.', s - p);
-		}
-		ptr++;
+		memmove(ptr + length, ptr + 2, verbose_strlen(ptr + 2) + 1);
+		memset(ptr, '=', p);
+		memset(ptr + p, '.', length - p);
+		if (p < length)
+			ptr[p] = '>';
 	}
 
 	dprintf(2, buffer);
@@ -173,6 +173,20 @@ __attribute__((constructor))
 void verbose_init() {
 	verbose_updateSize(0);
 	signal(SIGWINCH, verbose_updateSize);
+}
+
+size_t verbose_strlen(const char * str) {
+	if (!str)
+		return 0;
+
+	size_t size = 0;
+	const char * ptr;
+	for (ptr = str; *ptr; ptr++, size++) {
+		if (*ptr == '\r' || *ptr == '\n')
+			continue;
+	}
+
+	return size;
 }
 
 void verbose_updateSize(int signal __attribute__((unused))) {
