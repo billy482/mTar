@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 18:27:21 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 10:03:57 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -126,6 +126,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 		param->format->ops->endOfFile(param->format);
 
+		free(buffer);
+
 	} else if (S_ISDIR(st.st_mode)) {
 		const char * dirname = param->filename;
 
@@ -138,6 +140,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 			param->filename = subfile;
 			failed = mtar_function_create2(param);
+
+			free(subfile);
 		}
 		free(namelist);
 

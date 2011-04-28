@@ -1,7 +1,7 @@
 MAKEFLAGS 	+= -rR --no-print-directory
 
 # commands
-CC			:= ccache ${TARGET}gcc
+CC			:= ccache ${TARGET}gcc-4.6
 CSCOPE		:= cscope
 CTAGS		:= ctags
 GDB			:= gdb

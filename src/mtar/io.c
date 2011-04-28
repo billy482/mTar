@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 10:05:59 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 08:28:12 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -91,6 +91,8 @@ int io_isWritable(mtar_function_enum function) {
 
 
 struct mtar_io * mtar_io_get(struct mtar_option * option) {
+	struct stat st;
+
 	if (option->filename) {
 		int mode = 0;
 		if (access(option->filename, F_OK))
@@ -106,7 +108,6 @@ struct mtar_io * mtar_io_get(struct mtar_option * option) {
 			return 0;
 		}
 
-		struct stat st;
 		if (stat(option->filename, &st)) {
 			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Getting information about file (%s) failed => %s\n", option->filename, strerror(errno));
 			return 0;

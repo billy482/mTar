@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 19:10:29 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 10:02:38 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -237,6 +237,7 @@ int mtar_format_ustar_endOfFile(struct mtar_format * f) {
 		bzero(buffer, 512 - mod);
 
 		ssize_t nbWrite = format->io->ops->write(format->io, buffer, 512 - mod);
+		free(buffer);
 		if (nbWrite < 0)
 			return -1;
 	}
