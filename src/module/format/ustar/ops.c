@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 10:39:09 +0200                       *
+*  Last modified: Thu, 28 Apr 2011 11:39:30 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -70,6 +70,7 @@ struct ustar {
 
 static void ustar_compute_checksum(const void * header, char * checksum);
 static void ustar_compute_size(char * csize, ssize_t size);
+static const char * ustar_skip_leading_slash(const char * str);
 
 
 int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
@@ -117,7 +118,7 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 	}
 
 	bzero(current_header, 512);
-	strncpy(header->filename, filename, 100);
+	strncpy(header->filename, ustar_skip_leading_slash(filename), 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
 	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
 	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
@@ -289,5 +290,16 @@ void ustar_compute_size(char * csize, ssize_t size) {
 	} else {
 		snprintf(csize, 12, "%0*lo", 11, size);
 	}
+}
+
+const char * ustar_skip_leading_slash(const char * str) {
+	if (!str)
+		return 0;
+
+	const char * ptr;
+	size_t i = 0, length = strlen(str);
+	for (ptr = str; *ptr == '/' && i < length; i++, ptr++);
+
+	return ptr;
 }
 
