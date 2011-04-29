@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 08:28:12 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 15:02:28 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -55,6 +55,7 @@ static unsigned int nbIos = 0;
 static struct mtar_io * io_get(const char * io, struct mtar_option * option);
 static int io_isReadable(mtar_function_enum function);
 static int io_isWritable(mtar_function_enum function);
+static void mtar_io_exit(void);
 
 
 struct mtar_io * io_get(const char * io, struct mtar_option * option) {
@@ -128,5 +129,12 @@ void mtar_io_register(const char * name, mtar_io_f function) {
 	nbIos++;
 
 	loader_register_ok();
+}
+
+__attribute__((destructor))
+void mtar_io_exit() {
+	if (nbIos > 0)
+		free(ios);
+	ios = 0;
 }
 

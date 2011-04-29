@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:12:15 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 14:58:15 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -36,12 +36,21 @@
 
 #include "loader.h"
 
+static void mtar_format_exit(void);
+
 static struct format {
 	const char * name;
 	mtar_format_f format;
 } * formats = 0;
 static unsigned int nbFormats = 0;
 
+
+__attribute__((destructor))
+void mtar_format_exit() {
+	if (nbFormats > 0)
+		free(formats);
+	formats = 0;
+}
 
 struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option) {
 	unsigned int i;

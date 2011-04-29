@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Apr 2011 08:59:58 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 14:59:41 +0200                       *
 \***********************************************************************/
 
 // realloc
@@ -35,12 +35,21 @@
 #include "function.h"
 #include "loader.h"
 
+static void mtar_function_exit(void);
+
 static struct function {
 	const char * name;
 	mtar_function function;
 } * functions = 0;
 static unsigned int nbFunctions = 0;
 
+
+__attribute__((destructor))
+void mtar_function_exit() {
+	if (nbFunctions > 0)
+		free(functions);
+	functions = 0;
+}
 
 mtar_function mtar_function_get(const char * name) {
 	unsigned int i;
