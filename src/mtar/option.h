@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 20:23:34 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 09:58:35 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_P_H__
@@ -33,6 +33,7 @@
 #include <mtar/option.h>
 
 int mtar_option_check(struct mtar_option * option);
+void mtar_option_free(struct mtar_option * option);
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv);
 
 #endif

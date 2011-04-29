@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 19:01:49 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 10:41:16 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -91,6 +91,7 @@ int mtar_function_create(struct mtar_io * io, struct mtar_option * option) {
 	}
 
 	mtar_hashtable_free(param.inode);
+	param.format->ops->free(param.format);
 	return failed;
 }
 

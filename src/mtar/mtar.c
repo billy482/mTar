@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Apr 2011 22:46:35 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 10:00:55 +0200                       *
 \***********************************************************************/
 
 #include "function.h"
@@ -53,6 +53,7 @@ int main(int argc, char ** argv) {
 	failed = option.doWork(io, &option);
 
 	io->ops->free(io);
+	mtar_option_free(&option);
 
 	return failed;
 }

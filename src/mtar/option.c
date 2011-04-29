@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 20:23:30 +0200                       *
+*  Last modified: Fri, 29 Apr 2011 10:00:30 +0200                       *
 \***********************************************************************/
 
 // strlen, strrchr, strspn
 #include <string.h>
-// realloc
+// calloc, free
 #include <stdlib.h>
 
 #include "function.h"
@@ -67,6 +67,18 @@ int mtar_option_check(struct mtar_option * option) {
 		return 1;
 	}
 	return 0;
+}
+
+void mtar_option_free(struct mtar_option * option) {
+	option->doWork = 0;
+	option->format = 0;
+	option->filename = 0;
+
+	if (option->nbFiles > 0) {
+		free(option->files);
+		option->files = 0;
+		option->nbFiles = 0;
+	}
 }
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
