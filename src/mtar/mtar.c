@@ -24,11 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 29 Apr 2011 10:00:55 +0200                       *
+*  Last modified: Mon, 02 May 2011 09:11:26 +0200                       *
 \***********************************************************************/
 
 #include "function.h"
-#include "io.h"
 #include "option.h"
 #include "verbose.h"
 
@@ -44,15 +43,8 @@ int main(int argc, char ** argv) {
 	if (failed)
 		return failed;
 
-	struct mtar_io * io = mtar_io_get(&option);
-	if (!io) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to open file\n");
-		return 2;
-	}
+	failed = option.doWork(&option);
 
-	failed = option.doWork(io, &option);
-
-	io->ops->free(io);
 	mtar_option_free(&option);
 
 	return failed;

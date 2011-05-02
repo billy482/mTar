@@ -24,17 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:44 +0200                       *
+*  Last modified: Mon, 02 May 2011 11:59:07 +0200                       *
 \***********************************************************************/
 
-// open
-#include <fcntl.h>
 // malloc
 #include <stdlib.h>
-// open
-#include <sys/stat.h>
-// open
-#include <sys/types.h>
 
 #include <mtar/option.h>
 
@@ -50,17 +44,10 @@ static struct mtar_io_ops file_ops = {
 	.write   = mtar_io_file_write,
 };
 
-static struct mtar_io * mtar_io_file(struct mtar_option * option);
+static struct mtar_io * mtar_io_file(int fd, mode_t mode, struct mtar_option * option);
 
 
-struct mtar_io * mtar_io_file(struct mtar_option * option) {
-	int fd = 1;
-	if (option->filename) {
-		fd = open(option->filename, O_WRONLY | O_CREAT | O_TRUNC, DEFFILEMODE);
-		if (fd < 0)
-			return 0;
-	}
-
+struct mtar_io * mtar_io_file(int fd, mode_t mode __attribute__((unused)), struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
 	data->fd = fd;
 	data->pos = 0;

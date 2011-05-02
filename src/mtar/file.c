@@ -24,21 +24,35 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 12:50:50 +0200                       *
+*  Last modified: Mon, 02 May 2011 17:04:41 +0200                       *
 \***********************************************************************/
 
-// getgrgid
-#include <grp.h>
-// getpwuid
-#include <pwd.h>
-// strncpy
+// open
+#include <fcntl.h>
+// snprintf
+#include <stdio.h>
+// strcpy, strlen, strncpy
 #include <string.h>
-// mode_t
+// mmap
+#include <sys/mman.h>
+// fstat, mode_t, open
 #include <sys/stat.h>
-// getpwuid
+// fstat, open
 #include <sys/types.h>
+// fstat
+#include <unistd.h>
 
 #include <mtar/file.h>
+#include <mtar/hashtable.h>
+#include <mtar/util.h>
+
+static void mtar_file_exit(void);
+static void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, const char * id);
+static void mtar_file_init(void);
+
+static struct mtar_hashtable * gidCached = 0;
+static struct mtar_hashtable * uidCached = 0;
+
 
 void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	strcpy(buffer, "----------");
@@ -84,13 +98,67 @@ void mtar_file_convert_mode(char * buffer, mode_t mode) {
 		buffer[9] = 'x';
 }
 
+__attribute__((destructor))
+void mtar_file_exit() {
+	mtar_hashtable_free(gidCached);
+	mtar_hashtable_free(uidCached);
+}
+
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid) {
-	struct group * p = getgrgid(gid);
-	strncpy(name, p->gr_name, namelength);
+	char cid[16];
+	snprintf(cid, 16, "%u", gid);
+
+	if (!mtar_hashtable_hasKey(gidCached, cid)) {
+		mtar_file_lookup("/etc/group", name, namelength, cid);
+		mtar_hashtable_put(gidCached, strdup(cid), strdup(name));
+		return;
+	}
+
+	char * value = mtar_hashtable_value(gidCached, cid);
+	strncpy(name, value, namelength);
+}
+
+__attribute__((constructor))
+void mtar_file_init(void) {
+	gidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
+	uidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
+}
+
+void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, const char * id) {
+	int fd = open(filename, O_RDONLY);
+
+	struct stat fs;
+	fstat(fd, &fs);
+
+	char * buffer = mmap(0, fs.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+	size_t l = strlen(id) + 3;
+	char cid[l];
+	snprintf(cid, l, ":%s:", id);
+
+	char * ptr = strstr(buffer, cid);
+	char * rptr = ptr;
+	while (rptr > buffer && rptr[-1] != '\n')
+		rptr--;
+
+	char * dot = strchr(rptr, ':');
+	strncpy(name, rptr, (dot - rptr) < namelength ? dot - rptr : namelength);
+
+	munmap(buffer, fs.st_size);
+	close(fd);
 }
 
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid) {
-	struct passwd * p = getpwuid(uid);
-	strncpy(name, p->pw_name, namelength);
+	char cid[16];
+	snprintf(cid, 16, "%u", uid);
+
+	if (!mtar_hashtable_hasKey(uidCached, cid)) {
+		mtar_file_lookup("/etc/passwd", name, namelength, cid);
+		mtar_hashtable_put(uidCached, strdup(cid), strdup(name));
+		return;
+	}
+
+	char * value = mtar_hashtable_value(uidCached, cid);
+	strncpy(name, value, namelength);
 }
 

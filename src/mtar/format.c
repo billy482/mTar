@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 29 Apr 2011 14:58:15 +0200                       *
+*  Last modified: Mon, 02 May 2011 13:22:45 +0200                       *
 \***********************************************************************/
 
 // strcmp
 #include <string.h>
-// realloc
+// free, realloc
 #include <stdlib.h>
 
 #include <mtar/format.h>
