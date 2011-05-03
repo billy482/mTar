@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 13:22:45 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:38:32 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -52,7 +52,7 @@ void mtar_format_exit() {
 	formats = 0;
 }
 
-struct mtar_format * mtar_format_get(struct mtar_io * io, struct mtar_option * option) {
+struct mtar_format * mtar_format_get(struct mtar_io * io, const struct mtar_option * option) {
 	unsigned int i;
 	for (i = 0; i < nbFormats; i++) {
 		if (!strcmp(option->format, formats[i].name))

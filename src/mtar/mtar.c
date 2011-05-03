@@ -24,15 +24,16 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 09:11:26 +0200                       *
+*  Last modified: Tue, 03 May 2011 19:00:38 +0200                       *
 \***********************************************************************/
 
-#include "function.h"
 #include "option.h"
+#include "plugin.h"
 #include "verbose.h"
 
 int main(int argc, char ** argv) {
 	static struct mtar_option option;
+
 	int failed = mtar_option_parse(&option, argc, argv);
 	if (failed)
 		return failed;
@@ -42,6 +43,9 @@ int main(int argc, char ** argv) {
 	failed = mtar_option_check(&option);
 	if (failed)
 		return failed;
+
+	if (option.nbPlugins > 0)
+		mtar_plugin_load(&option);
 
 	failed = option.doWork(&option);
 

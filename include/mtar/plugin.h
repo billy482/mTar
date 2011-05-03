@@ -24,31 +24,36 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 14:03:50 +0200                       *
+*  Last modified: Tue, 03 May 2011 17:13:43 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_PLUGIN_H__
+#define __MTAR_PLUGIN_H__
 
-#include "common.h"
-#include "function.h"
+// ssize_t
+#include <sys/types.h>
 
-struct mtar_option {
-	mtar_function_enum function;
-	mtar_function doWork;
+struct mtar_option;
 
-	const char * format;
-
-	const char * filename;
-
-	const char ** files;
-	unsigned int nbFiles;
-
-	enum mtar_verbose_level verbose;
-
-	const char ** plugins;
-	unsigned int nbPlugins;
+struct mtar_plugin {
+	const char * name;
+	struct mtar_plugin_ops {
+		int (*addFile)(struct mtar_plugin * p, const char * filename);
+		int (*addLabel)(struct mtar_plugin * p, const char * label);
+		int (*addLink)(struct mtar_plugin * p, const char * src, const char * target);
+		int (*endOfFile)(struct mtar_plugin * p);
+		void (*free)(struct mtar_plugin * p);
+		ssize_t (*read)(struct mtar_plugin * p, const void * data, ssize_t length);
+		ssize_t (*write)(struct mtar_plugin * p, const void * data, ssize_t length);
+	} * ops;
+	void * data;
 };
+
+typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option);
+
+void mtar_plugin_register(const char * name, mtar_plugin_f format);
+
+void mtar_plugin_addFile(const char * filename);
 
 #endif
 

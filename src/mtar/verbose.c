@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 19:48:55 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:31:12 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -70,7 +70,7 @@ void mtar_verbose_clean() {
 	*buffer = '\0';
 }
 
-void mtar_verbose_configure(struct mtar_option * option) {
+void mtar_verbose_configure(const struct mtar_option * option) {
 	verbose_level = option->verbose;
 }
 

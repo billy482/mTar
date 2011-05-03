@@ -24,31 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 14:03:50 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:50:28 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_PLUGIN_P_H__
+#define __MTAR_PLUGIN_P_H__
 
-#include "common.h"
-#include "function.h"
+#include <mtar/plugin.h>
 
-struct mtar_option {
-	mtar_function_enum function;
-	mtar_function doWork;
-
-	const char * format;
-
-	const char * filename;
-
-	const char ** files;
-	unsigned int nbFiles;
-
-	enum mtar_verbose_level verbose;
-
-	const char ** plugins;
-	unsigned int nbPlugins;
-};
+void mtar_plugin_load(const struct mtar_option * option);
 
 #endif
 

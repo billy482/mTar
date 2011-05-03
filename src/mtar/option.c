@@ -24,10 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 29 Apr 2011 10:00:30 +0200                       *
+*  Last modified: Tue, 03 May 2011 18:57:36 +0200                       *
 \***********************************************************************/
 
-// strlen, strrchr, strspn
+// strcmp, strlen, strncmp, strrchr, strspn
 #include <string.h>
 // calloc, free
 #include <stdlib.h>
@@ -79,6 +79,12 @@ void mtar_option_free(struct mtar_option * option) {
 		option->files = 0;
 		option->nbFiles = 0;
 	}
+
+	if (option->nbPlugins > 0) {
+		free(option->plugins);
+		option->plugins = 0;
+		option->nbPlugins = 0;
+	}
 }
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
@@ -93,6 +99,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->nbFiles = 0;
 
 	option->verbose = 0;
+
+	option->plugins = 0;
+	option->nbPlugins = 0;
 
 	if (argc < 2) {
 		option_showHelp(*argv);
@@ -142,6 +151,25 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case 'V':
 				option_showVersion(*argv);
 				return 0;
+		}
+	}
+
+	if (!strncmp(argv[optArg], "--", 2)) {
+		while (optArg < argc) {
+			if (!strcmp(argv[optArg], "--plugin")) {
+				optArg++;
+
+				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
+				option->plugins[option->nbPlugins] = argv[optArg];
+				option->nbPlugins++;
+
+				optArg++;
+			} else if (!strcmp(argv[optArg], "--")) {
+				optArg++;
+				break;
+			}
+
+			optArg++;
 		}
 	}
 

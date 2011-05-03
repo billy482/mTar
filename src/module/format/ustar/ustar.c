@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Apr 2011 10:30:35 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:31:48 +0200                       *
 \***********************************************************************/
 
 // malloc
@@ -33,7 +33,7 @@
 #include "common.h"
 
 
-static struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option);
+static struct mtar_format * mtar_format_ustar(struct mtar_io * io, const struct mtar_option * option);
 
 static const char * format_ustar_name = "ustar";
 static struct mtar_format_ops format_ustar_ops = {
@@ -51,7 +51,7 @@ static void format_init() {
 }
 
 
-struct mtar_format * mtar_format_ustar(struct mtar_io * io, struct mtar_option * option __attribute__((unused))) {
+struct mtar_format * mtar_format_ustar(struct mtar_io * io, const struct mtar_option * option __attribute__((unused))) {
 	if (!io)
 		return 0;
 

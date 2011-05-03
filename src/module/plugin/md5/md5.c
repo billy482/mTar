@@ -24,31 +24,38 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 14:03:50 +0200                       *
+*  Last modified: Tue, 03 May 2011 18:17:01 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// malloc
+#include <stdlib.h>
 
-#include "common.h"
-#include "function.h"
+#include <mtar/plugin.h>
 
-struct mtar_option {
-	mtar_function_enum function;
-	mtar_function doWork;
+static void mtar_pluing_md5_init(void);
+struct mtar_plugin * mtar_plugin_md5_new(const struct mtar_option * option);
 
-	const char * format;
+int md5_addFile(struct mtar_plugin * p, const char * filename);
 
-	const char * filename;
-
-	const char ** files;
-	unsigned int nbFiles;
-
-	enum mtar_verbose_level verbose;
-
-	const char ** plugins;
-	unsigned int nbPlugins;
+static struct mtar_plugin_ops md5_ops = {
+	.addFile = md5_addFile,
 };
 
-#endif
+__attribute__((constructor))
+void mtar_pluing_md5_init() {
+	mtar_plugin_register("md5", mtar_plugin_md5_new);
+}
+
+struct mtar_plugin * mtar_plugin_md5_new(const struct mtar_option * option __attribute__((unused))) {
+	struct mtar_plugin * plugin = malloc(sizeof(struct mtar_plugin));
+	plugin->name = "md5";
+	plugin->ops = &md5_ops,
+	plugin->data = 0;
+	return plugin;
+}
+
+
+int md5_addFile(struct mtar_plugin * p, const char * filename) {
+	return 0;
+}
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Apr 2011 22:26:06 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:31:02 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_VERBOSE_P_H__
@@ -32,7 +32,7 @@
 
 #include <mtar/verbose.h>
 
-void mtar_verbose_configure(struct mtar_option * option);
+void mtar_verbose_configure(const struct mtar_option * option);
 
 #endif
 

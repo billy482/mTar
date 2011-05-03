@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 12:10:10 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:30:04 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -54,27 +54,27 @@ static struct io {
 } * ios = 0;
 static unsigned int nbIos = 0;
 
-static struct mtar_io * io_get(int fd, mode_t mode, const char * io, struct mtar_option * option);
+static struct mtar_io * io_get(int fd, int flags, const char * io, const struct mtar_option * option);
 static void mtar_io_exit(void);
 
 
-struct mtar_io * io_get(int fd, mode_t mode, const char * io, struct mtar_option * option) {
+struct mtar_io * io_get(int fd, int flags, const char * io, const struct mtar_option * option) {
 	unsigned int i;
 	for (i = 0; i < nbIos; i++) {
 		if (!strcmp(io, ios[i].name))
-			return ios[i].function(fd, mode, option);
+			return ios[i].function(fd, flags, option);
 	}
 	if (loader_load("io", io))
 		return 0;
 	for (i = 0; i < nbIos; i++) {
 		if (!strcmp(io, ios[i].name))
-			return ios[i].function(fd, mode, option);
+			return ios[i].function(fd, flags, option);
 	}
 	return 0;
 }
 
 
-struct mtar_io * mtar_io_get_fd(int fd, mode_t mode, struct mtar_option * option) {
+struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option) {
 	struct stat st;
 
 	if (fstat(fd, &st)) {
@@ -83,30 +83,30 @@ struct mtar_io * mtar_io_get_fd(int fd, mode_t mode, struct mtar_option * option
 	}
 
 	if (S_ISREG(st.st_mode))
-		return io_get(fd, mode, "file", option);
+		return io_get(fd, flags, "file", option);
 
 	return 0;
 }
 
-struct mtar_io * mtar_io_get_file(const char * filename, mode_t mode, struct mtar_option * option) {
+struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option) {
 	int m = F_OK;
-	if (mode & O_RDWR)
+	if (flags & O_RDWR)
 		m |= R_OK | W_OK;
-	else if (mode & O_RDONLY)
+	else if (flags & O_RDONLY)
 		m |= R_OK;
-	else if (mode & O_WRONLY)
+	else if (flags & O_WRONLY)
 		m |= W_OK;
 
 	if (access(filename, m))
-		mode |= O_CREAT;
+		flags |= O_CREAT;
 
-	int fd = open(filename, mode, 0644);
+	int fd = open(filename, flags, 0644);
 	if (fd < 0) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to open (%s) => %s\n", filename, strerror(errno));
 		return 0;
 	}
 
-	return mtar_io_get_fd(fd, mode, option);
+	return mtar_io_get_fd(fd, flags, option);
 }
 
 void mtar_io_register(const char * name, mtar_io_f function) {

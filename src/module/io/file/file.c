@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 11:59:07 +0200                       *
+*  Last modified: Tue, 03 May 2011 16:35:59 +0200                       *
 \***********************************************************************/
 
 // malloc
@@ -44,10 +44,10 @@ static struct mtar_io_ops file_ops = {
 	.write   = mtar_io_file_write,
 };
 
-static struct mtar_io * mtar_io_file(int fd, mode_t mode, struct mtar_option * option);
+static struct mtar_io * mtar_io_file(int fd, int flags, const struct mtar_option * option);
 
 
-struct mtar_io * mtar_io_file(int fd, mode_t mode __attribute__((unused)), struct mtar_option * option __attribute__((unused))) {
+struct mtar_io * mtar_io_file(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
 	data->fd = fd;
 	data->pos = 0;

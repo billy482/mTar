@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 18:49:43 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:36:53 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -59,7 +59,7 @@ void (*mtar_function_create_display)(const char * filename, struct stat * st) = 
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
 
-void mtar_function_create_configure(struct mtar_option * option) {
+void mtar_function_create_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
 		case MTAR_VERBOSE_LEVEL_ERROR:
 			mtar_function_create_display = mtar_function_create_display1;
@@ -120,7 +120,17 @@ void mtar_function_create_progress1(const char * filename __attribute__((unused)
 
 void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
-	//static time_t last_start = 0;
+	static time_t start = 0, last = 0;
+
+	time_t curtime = time(0);
+
+	if (start + 2 > curtime)
+		return;
+
+	if (last >= curtime)
+		return;
+
+	last = curtime;
 
 	if (filename != current_file) {
 		current_file = filename;

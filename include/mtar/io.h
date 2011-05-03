@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 10:06:55 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:29:21 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -48,10 +48,10 @@ struct mtar_io {
 	void * data;
 };
 
-typedef struct mtar_io * (*mtar_io_f)(int fd, mode_t mode, struct mtar_option * option);
+typedef struct mtar_io * (*mtar_io_f)(int fd, int flags, const struct mtar_option * option);
 
-struct mtar_io * mtar_io_get_fd(int fd, mode_t mode, struct mtar_option * option);
-struct mtar_io * mtar_io_get_file(const char * filename, mode_t mode, struct mtar_option * option);
+struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option);
+struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option);
 void mtar_io_register(const char * name, mtar_io_f function);
 
 #endif

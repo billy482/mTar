@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 10:49:47 +0200                       *
+*  Last modified: Tue, 03 May 2011 13:26:58 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FUNTION_H__
@@ -32,7 +32,7 @@
 
 struct mtar_option;
 
-typedef int (*mtar_function)(struct mtar_option * option);
+typedef int (*mtar_function)(const struct mtar_option * option);
 
 void mtar_function_register(const char * name, mtar_function f);
 

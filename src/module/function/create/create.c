@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 02 May 2011 18:41:08 +0200                       *
+*  Last modified: Tue, 03 May 2011 18:10:17 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -50,6 +50,7 @@
 #include <mtar/hashtable.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
+#include <mtar/plugin.h>
 #include <mtar/util.h>
 #include <mtar/verbose.h>
 
@@ -60,10 +61,10 @@ struct mtar_function_create_param {
 	struct mtar_format * format;
 	struct mtar_io * io;
 	struct mtar_hashtable * inode;
-	struct mtar_option * option;
+	const struct mtar_option * option;
 };
 
-static int mtar_function_create(struct mtar_option * option);
+static int mtar_function_create(const struct mtar_option * option);
 static int mtar_function_create2(struct mtar_function_create_param * param);
 static int mtar_function_create_filter(const struct dirent * d);
 
@@ -73,7 +74,7 @@ static void mtar_function_create_init() {
 }
 
 
-int mtar_function_create(struct mtar_option * option) {
+int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
 	struct mtar_function_create_param param = {
@@ -131,6 +132,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	if (failed)
 		return failed;
 
+	mtar_plugin_addFile(param->filename);
+
 	if (S_ISREG(st.st_mode)) {
 		int fd = open(param->filename, O_RDONLY);
 
@@ -150,6 +153,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		mtar_verbose_clean();
 
 		free(buffer);
+		close(fd);
 
 	} else if (S_ISDIR(st.st_mode)) {
 		const char * dirname = param->filename;
