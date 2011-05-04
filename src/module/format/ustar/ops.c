@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 11:39:30 +0200                       *
+*  Last modified: Wed, 04 May 2011 11:27:07 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -65,7 +65,7 @@ struct ustar {
 	char gname[32];
 	char devmajor[8];
 	char devminor[8];
-	char prefix[155];
+	char prefix[167];
 };
 
 static void ustar_compute_checksum(const void * header, char * checksum);
@@ -95,8 +95,8 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 
 	int filename_length = strlen(filename);
 	if (filename_length >= 100) {
-		block_size += 512 + filename_length - filename_length % 512;
-		header = realloc(current_header, block_size);
+		block_size += 1024 + filename_length - filename_length % 512;
+		current_header = header = realloc(header, block_size);
 
 		bzero(current_header, 1024);
 		strcpy(current_header->filename, "././@LongLink");
@@ -112,13 +112,13 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 
 		ustar_compute_checksum(current_header, current_header->checksum);
 
-		strncpy((char *) header + 1, filename, 512);
+		strncpy((char *) (header + 1), filename, 512);
 
 		current_header += 2;
 	}
 
 	bzero(current_header, 512);
-	strncpy(header->filename, ustar_skip_leading_slash(filename), 100);
+	strncpy(current_header->filename, ustar_skip_leading_slash(filename), 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
 	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
 	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
