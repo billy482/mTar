@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 04 May 2011 11:27:07 +0200                       *
+*  Last modified: Wed, 04 May 2011 18:50:14 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -69,6 +69,7 @@ struct ustar {
 };
 
 static void ustar_compute_checksum(const void * header, char * checksum);
+static void ustar_compute_link(struct ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
 static void ustar_compute_size(char * csize, ssize_t size);
 static const char * ustar_skip_leading_slash(const char * str);
 
@@ -99,20 +100,7 @@ int mtar_format_ustar_addFile(struct mtar_format * f, const char * filename) {
 		current_header = header = realloc(header, block_size);
 
 		bzero(current_header, 1024);
-		strcpy(current_header->filename, "././@LongLink");
-		memset(current_header->filemode, '0', 7);
-		memset(current_header->uid, '0', 7);
-		memset(current_header->gid, '0', 7);
-		ustar_compute_size(current_header->size, filename_length);
-		memset(current_header->mtime, '0', 11);
-		current_header->flag = 'L';
-		strcpy(current_header->magic, "ustar  ");
-		mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
-		mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
-
-		ustar_compute_checksum(current_header, current_header->checksum);
-
-		strncpy((char *) (header + 1), filename, 512);
+		ustar_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
 
 		current_header += 2;
 	}
@@ -277,6 +265,23 @@ void ustar_compute_checksum(const void * header, char * checksum) {
 		sum += ptr[i];
 
 	snprintf(checksum, 7, "%06o", sum);
+}
+
+void ustar_compute_link(struct ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile) {
+	strcpy(header->filename, "././@LongLink");
+	memset(header->filemode, '0', 7);
+	memset(header->uid, '0', 7);
+	memset(header->gid, '0', 7);
+	ustar_compute_size(header->size, filename_length);
+	memset(header->mtime, '0', 11);
+	header->flag = flag;
+	strcpy(header->magic, "ustar  ");
+	mtar_file_uid2name(header->uname, 32, sfile->st_uid);
+	mtar_file_gid2name(header->gname, 32, sfile->st_gid);
+
+	ustar_compute_checksum(header, header->checksum);
+
+	strcpy(link, filename);
 }
 
 void ustar_compute_size(char * csize, ssize_t size) {
