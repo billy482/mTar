@@ -8,7 +8,7 @@ MTAR_IO_FILE_OBJ_FILES		:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${MTAR_IO_
 MTAR_IO_FILE_DEP_FILES		:= $(sort $(shell test -d ${MTAR_IO_FILE_DEPEND_DIR} && find ${MTAR_IO_FILE_DEPEND_DIR} -name '*.d'))
 
 MTAR_IO_FILE_BIN			:= lib/libio-file.so
-MTAR_IO_FILE_CFLAG			:= -I. -fPIC
+MTAR_IO_FILE_CFLAG			:= -I. -fPIC -fvisibility=hidden
 MTAR_IO_FILE_LD				:= -shared
 
 MTAR_IO_FILE_LIB			:=

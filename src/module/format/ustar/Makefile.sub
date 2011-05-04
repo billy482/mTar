@@ -8,7 +8,7 @@ MTAR_FONCTION_USTAR_OBJ_FILES	:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${MT
 MTAR_FONCTION_USTAR_DEP_FILES	:= $(sort $(shell test -d ${MTAR_FONCTION_USTAR_DEPEND_DIR} && find ${MTAR_FONCTION_USTAR_DEPEND_DIR} -name '*.d'))
 
 MTAR_FONCTION_USTAR_BIN			:= lib/libformat-ustar.so
-MTAR_FONCTION_USTAR_CFLAG		:= -I. -fPIC
+MTAR_FONCTION_USTAR_CFLAG		:= -I. -fPIC -fvisibility=hidden
 MTAR_FONCTION_USTAR_LD			:= -shared
 
 MTAR_FONCTION_USTAR_LIB			:=

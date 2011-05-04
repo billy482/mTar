@@ -8,7 +8,7 @@ MTAR_FUNCTION_CREATE_OBJ_FILES		:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${
 MTAR_FUNCTION_CREATE_DEP_FILES		:= $(sort $(shell test -d ${MTAR_FUNCTION_CREATE_DEPEND_DIR} && find ${MTAR_FUNCTION_CREATE_DEPEND_DIR} -name '*.d'))
 
 MTAR_FUNCTION_CREATE_BIN			:= lib/libfunction-create.so
-MTAR_FUNCTION_CREATE_CFLAG			:= -I. -fPIC
+MTAR_FUNCTION_CREATE_CFLAG			:= -I. -fPIC -fvisibility=hidden
 MTAR_FUNCTION_CREATE_LD				:= -shared
 
 MTAR_FUNCTION_CREATE_LIB			:=

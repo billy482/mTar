@@ -8,7 +8,7 @@ MTAR_PLUGIN_MD5_OBJ_FILES	:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${MTAR_P
 MTAR_PLUGIN_MD5_DEP_FILES	:= $(sort $(shell test -d ${MTAR_PLUGIN_MD5_DEPEND_DIR} && find ${MTAR_PLUGIN_MD5_DEPEND_DIR} -name '*.d'))
 
 MTAR_PLUGIN_MD5_BIN			:= lib/libplugin-md5.so
-MTAR_PLUGIN_MD5_CFLAG		:= -I. -fPIC
+MTAR_PLUGIN_MD5_CFLAG		:= -I. -fPIC -fvisibility=hidden
 MTAR_PLUGIN_MD5_LD			:= -shared
 
 MTAR_PLUGIN_MD5_LIB			:=
