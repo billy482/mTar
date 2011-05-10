@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:30:04 +0200                       *
+*  Last modified: Tue, 10 May 2011 11:00:02 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -84,6 +84,8 @@ struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * op
 
 	if (S_ISREG(st.st_mode))
 		return io_get(fd, flags, "file", option);
+	else if (S_ISFIFO(st.st_mode))
+		return io_get(fd, flags, "pipe", option);
 
 	return 0;
 }
