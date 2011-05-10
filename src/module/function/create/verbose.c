@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:36:53 +0200                       *
+*  Last modified: Tue, 10 May 2011 10:40:34 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -85,7 +85,7 @@ void mtar_function_create_display2(const char * filename, struct stat * st __att
 }
 
 void mtar_function_create_display3(const char * filename, struct stat * st) {
-	char * buffer = malloc(128);
+	char * buffer = malloc(256);
 	char * pos = buffer + 10;
 	struct tm tmval;
 
@@ -94,23 +94,23 @@ void mtar_function_create_display3(const char * filename, struct stat * st) {
 	*pos = ' ';
 	pos++;
 
-	mtar_file_uid2name(pos, 128 - (pos - buffer), st->st_uid);
+	mtar_file_uid2name(pos, 256 - (pos - buffer), st->st_uid);
 	pos += strlen(pos);
 
 	*pos = '/';
 	pos++;
 
-	mtar_file_gid2name(pos, 128 - (pos - buffer), st->st_gid);
+	mtar_file_gid2name(pos, 256 - (pos - buffer), st->st_gid);
 	pos += strlen(pos);
 
-	snprintf(pos, 128 - (pos - buffer), " %lld ", (long long) st->st_size);
+	snprintf(pos, 256 - (pos - buffer), " %lld ", (long long) st->st_size);
 	pos += strlen(pos);
 
 	localtime_r(&st->st_mtime, &tmval);
-	strftime(pos, 128 - (pos - buffer), "%y-%m-%d %R ", &tmval);
+	strftime(pos, 256 - (pos - buffer), "%y-%m-%d %R ", &tmval);
 	pos += strlen(pos);
 
-	strncpy(pos, filename, 128 - (pos - buffer));
+	strncpy(pos, filename, 256 - (pos - buffer));
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", buffer);
 	free(buffer);
