@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 17:30:56 +0200                       *
+*  Last modified: Tue, 10 May 2011 17:19:39 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -98,5 +98,17 @@ void mtar_plugin_addFile(const char * filename) {
 	unsigned int i;
 	for (i = 0; i < nbPlugins; i++)
 		plugins[i]->ops->addFile(plugins[i], filename);
+}
+
+void mtar_plugin_endOfFile() {
+	unsigned int i;
+	for (i = 0; i < nbPlugins; i++)
+		plugins[i]->ops->endOfFile(plugins[i]);
+}
+
+void mtar_plugin_write(const void * data, ssize_t length) {
+	unsigned int i;
+	for (i = 0; i < nbPlugins; i++)
+		plugins[i]->ops->write(plugins[i], data, length);
 }
 

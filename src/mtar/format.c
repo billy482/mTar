@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:38:32 +0200                       *
+*  Last modified: Tue, 10 May 2011 22:19:53 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -41,37 +41,37 @@ static void mtar_format_exit(void);
 static struct format {
 	const char * name;
 	mtar_format_f format;
-} * formats = 0;
-static unsigned int nbFormats = 0;
+} * mtar_format_formats = 0;
+static unsigned int mtar_format_nbFormats = 0;
 
 
 __attribute__((destructor))
 void mtar_format_exit() {
-	if (nbFormats > 0)
-		free(formats);
-	formats = 0;
+	if (mtar_format_nbFormats > 0)
+		free(mtar_format_formats);
+	mtar_format_formats = 0;
 }
 
 struct mtar_format * mtar_format_get(struct mtar_io * io, const struct mtar_option * option) {
 	unsigned int i;
-	for (i = 0; i < nbFormats; i++) {
-		if (!strcmp(option->format, formats[i].name))
-			return formats[i].format(io, option);
+	for (i = 0; i < mtar_format_nbFormats; i++) {
+		if (!strcmp(option->format, mtar_format_formats[i].name))
+			return mtar_format_formats[i].format(io, option);
 	}
 	if (loader_load("format", option->format))
 		return 0;
-	for (i = 0; i < nbFormats; i++) {
-		if (!strcmp(option->format, formats[i].name))
-			return formats[i].format(io, option);
+	for (i = 0; i < mtar_format_nbFormats; i++) {
+		if (!strcmp(option->format, mtar_format_formats[i].name))
+			return mtar_format_formats[i].format(io, option);
 	}
 	return 0;
 }
 
 void mtar_format_register(const char * name, mtar_format_f f) {
-	formats = realloc(formats, (nbFormats + 1) * (sizeof(struct format)));
-	formats[nbFormats].name = name;
-	formats[nbFormats].format = f;
-	nbFormats++;
+	mtar_format_formats = realloc(mtar_format_formats, (mtar_format_nbFormats + 1) * (sizeof(struct format)));
+	mtar_format_formats[mtar_format_nbFormats].name = name;
+	mtar_format_formats[mtar_format_nbFormats].format = f;
+	mtar_format_nbFormats++;
 
 	loader_register_ok();
 }

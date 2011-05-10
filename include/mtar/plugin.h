@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 17:13:43 +0200                       *
+*  Last modified: Tue, 10 May 2011 17:19:00 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_PLUGIN_H__
@@ -54,6 +54,8 @@ typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option)
 void mtar_plugin_register(const char * name, mtar_plugin_f format);
 
 void mtar_plugin_addFile(const char * filename);
+void mtar_plugin_endOfFile(void);
+void mtar_plugin_write(const void * data, ssize_t length);
 
 #endif
 

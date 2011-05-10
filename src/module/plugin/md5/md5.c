@@ -24,21 +24,26 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 18:17:01 +0200                       *
+*  Last modified: Tue, 10 May 2011 17:42:42 +0200                       *
 \***********************************************************************/
 
 // malloc
 #include <stdlib.h>
 
 #include <mtar/plugin.h>
+#include <mtar/verbose.h>
 
 static void mtar_pluing_md5_init(void);
 struct mtar_plugin * mtar_plugin_md5_new(const struct mtar_option * option);
 
 int md5_addFile(struct mtar_plugin * p, const char * filename);
+int md5_endOfFile(struct mtar_plugin * p);
+ssize_t md5_write(struct mtar_plugin * p, const void * data, ssize_t length);
 
 static struct mtar_plugin_ops md5_ops = {
-	.addFile = md5_addFile,
+	.addFile   = md5_addFile,
+	.endOfFile = md5_endOfFile,
+	.write     = md5_write,
 };
 
 __attribute__((constructor))
@@ -55,7 +60,18 @@ struct mtar_plugin * mtar_plugin_md5_new(const struct mtar_option * option __att
 }
 
 
-int md5_addFile(struct mtar_plugin * p, const char * filename) {
+int md5_addFile(struct mtar_plugin * p __attribute__((unused)), const char * filename) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "MD5 addFile: %s\n", filename);
+	return 0;
+}
+
+int md5_endOfFile(struct mtar_plugin * p __attribute__((unused))) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "MD5 end of file\n");
+	return 0;
+}
+
+ssize_t md5_write(struct mtar_plugin * p __attribute__((unused)), const void * data __attribute__((unused)), ssize_t length) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "MD5 write data: length => %llu\n", (unsigned long long int) length);
 	return 0;
 }
 

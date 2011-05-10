@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 18:57:36 +0200                       *
+*  Last modified: Tue, 10 May 2011 21:58:21 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
 #include <string.h>
-// calloc, free
+// calloc, free, realloc
 #include <stdlib.h>
 
 #include "function.h"
@@ -162,8 +162,6 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
 				option->plugins[option->nbPlugins] = argv[optArg];
 				option->nbPlugins++;
-
-				optArg++;
 			} else if (!strcmp(argv[optArg], "--")) {
 				optArg++;
 				break;

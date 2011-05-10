@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 19:00:38 +0200                       *
+*  Last modified: Tue, 10 May 2011 21:49:22 +0200                       *
 \***********************************************************************/
 
 #include "option.h"
@@ -33,8 +33,9 @@
 
 int main(int argc, char ** argv) {
 	static struct mtar_option option;
+	static int failed = 0;
 
-	int failed = mtar_option_parse(&option, argc, argv);
+	failed = mtar_option_parse(&option, argc, argv);
 	if (failed)
 		return failed;
 

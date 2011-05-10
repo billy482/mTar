@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 18:10:17 +0200                       *
+*  Last modified: Tue, 10 May 2011 17:20:32 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -147,6 +147,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 			totalNbRead += nbRead;
 
 			mtar_function_create_progress(param->filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
+
+			mtar_plugin_write(buffer, nbRead);
 		}
 
 		param->format->ops->endOfFile(param->format);
@@ -154,6 +156,8 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 		free(buffer);
 		close(fd);
+
+		mtar_plugin_endOfFile();
 
 	} else if (S_ISDIR(st.st_mode)) {
 		const char * dirname = param->filename;
