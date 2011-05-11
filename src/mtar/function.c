@@ -24,10 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 29 Apr 2011 14:59:41 +0200                       *
+*  Last modified: Wed, 11 May 2011 13:59:35 +0200                       *
 \***********************************************************************/
 
-// realloc
+// free, realloc
 #include <stdlib.h>
 // strcmp
 #include <string.h>
@@ -40,38 +40,38 @@ static void mtar_function_exit(void);
 static struct function {
 	const char * name;
 	mtar_function function;
-} * functions = 0;
-static unsigned int nbFunctions = 0;
+} * mtar_function_functions = 0;
+static unsigned int mtar_function_nbFunctions = 0;
 
 
 __attribute__((destructor))
 void mtar_function_exit() {
-	if (nbFunctions > 0)
-		free(functions);
-	functions = 0;
+	if (mtar_function_nbFunctions > 0)
+		free(mtar_function_functions);
+	mtar_function_functions = 0;
 }
 
 mtar_function mtar_function_get(const char * name) {
 	unsigned int i;
-	for (i = 0; i < nbFunctions; i++) {
-		if (!strcmp(name, functions[i].name))
-			return functions[i].function;
+	for (i = 0; i < mtar_function_nbFunctions; i++) {
+		if (!strcmp(name, mtar_function_functions[i].name))
+			return mtar_function_functions[i].function;
 	}
-	if (loader_load("function", name))
+	if (mtar_loader_load("function", name))
 		return 0;
-	for (i = 0; i < nbFunctions; i++) {
-		if (!strcmp(name, functions[i].name))
-			return functions[i].function;
+	for (i = 0; i < mtar_function_nbFunctions; i++) {
+		if (!strcmp(name, mtar_function_functions[i].name))
+			return mtar_function_functions[i].function;
 	}
 	return 0;
 }
 
 void mtar_function_register(const char * name, mtar_function f) {
-	functions = realloc(functions, (nbFunctions + 1) * sizeof(struct function));
-	functions[nbFunctions].name = name;
-	functions[nbFunctions].function = f;
-	nbFunctions++;
+	mtar_function_functions = realloc(mtar_function_functions, (mtar_function_nbFunctions + 1) * sizeof(struct function));
+	mtar_function_functions[mtar_function_nbFunctions].name = name;
+	mtar_function_functions[mtar_function_nbFunctions].function = f;
+	mtar_function_nbFunctions++;
 
-	loader_register_ok();
+	mtar_loader_register_ok();
 }
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 11:00:02 +0200                       *
+*  Last modified: Wed, 11 May 2011 13:59:04 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -51,24 +51,24 @@
 static struct io {
 	const char * name;
 	mtar_io_f function;
-} * ios = 0;
-static unsigned int nbIos = 0;
+} * mtar_io_ios = 0;
+static unsigned int mtar_io_nbIos = 0;
 
-static struct mtar_io * io_get(int fd, int flags, const char * io, const struct mtar_option * option);
+static struct mtar_io * mtar_io_io_get(int fd, int flags, const char * io, const struct mtar_option * option);
 static void mtar_io_exit(void);
 
 
-struct mtar_io * io_get(int fd, int flags, const char * io, const struct mtar_option * option) {
+struct mtar_io * mtar_io_io_get(int fd, int flags, const char * io, const struct mtar_option * option) {
 	unsigned int i;
-	for (i = 0; i < nbIos; i++) {
-		if (!strcmp(io, ios[i].name))
-			return ios[i].function(fd, flags, option);
+	for (i = 0; i < mtar_io_nbIos; i++) {
+		if (!strcmp(io, mtar_io_ios[i].name))
+			return mtar_io_ios[i].function(fd, flags, option);
 	}
-	if (loader_load("io", io))
+	if (mtar_loader_load("io", io))
 		return 0;
-	for (i = 0; i < nbIos; i++) {
-		if (!strcmp(io, ios[i].name))
-			return ios[i].function(fd, flags, option);
+	for (i = 0; i < mtar_io_nbIos; i++) {
+		if (!strcmp(io, mtar_io_ios[i].name))
+			return mtar_io_ios[i].function(fd, flags, option);
 	}
 	return 0;
 }
@@ -83,9 +83,9 @@ struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * op
 	}
 
 	if (S_ISREG(st.st_mode))
-		return io_get(fd, flags, "file", option);
+		return mtar_io_io_get(fd, flags, "file", option);
 	else if (S_ISFIFO(st.st_mode))
-		return io_get(fd, flags, "pipe", option);
+		return mtar_io_io_get(fd, flags, "pipe", option);
 
 	return 0;
 }
@@ -112,18 +112,18 @@ struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct
 }
 
 void mtar_io_register(const char * name, mtar_io_f function) {
-	ios = realloc(ios, (nbIos + 1) * sizeof(struct io));
-	ios[nbIos].name = name;
-	ios[nbIos].function = function;
-	nbIos++;
+	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct io));
+	mtar_io_ios[mtar_io_nbIos].name = name;
+	mtar_io_ios[mtar_io_nbIos].function = function;
+	mtar_io_nbIos++;
 
-	loader_register_ok();
+	mtar_loader_register_ok();
 }
 
 __attribute__((destructor))
 void mtar_io_exit() {
-	if (nbIos > 0)
-		free(ios);
-	ios = 0;
+	if (mtar_io_nbIos > 0)
+		free(mtar_io_ios);
+	mtar_io_ios = 0;
 }
 

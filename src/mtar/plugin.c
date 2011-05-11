@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 17:19:39 +0200                       *
+*  Last modified: Wed, 11 May 2011 14:05:35 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -42,73 +42,72 @@ static void mtar_plugin_exit(void);
 static struct plugin {
 	const char * name;
 	mtar_plugin_f plugin;
-} * pluginHandlers = 0;
-static unsigned int nbPluginHandlers = 0;
+} * mtar_plugin_pluginHandlers = 0;
+static unsigned int mtar_plugin_nbPluginHandlers = 0;
 
-static struct mtar_plugin ** plugins = 0;
-static unsigned int nbPlugins = 0;
+static struct mtar_plugin ** mtar_plugin_plugins = 0;
+static unsigned int mtar_plugin_nbPlugins = 0;
 
-static struct mtar_plugin * plugin_get(const char * name, const struct mtar_option * option);
+static struct mtar_plugin * mtar_plugin_get(const char * name, const struct mtar_option * option);
 
 
 __attribute__((destructor))
 void mtar_plugin_exit() {
-	if (nbPluginHandlers > 0)
-		free(pluginHandlers);
-	pluginHandlers = 0;
+	if (mtar_plugin_nbPluginHandlers > 0)
+		free(mtar_plugin_pluginHandlers);
+	mtar_plugin_pluginHandlers = 0;
+}
+
+struct mtar_plugin * mtar_plugin_get(const char * name, const struct mtar_option * option) {
+	unsigned int i;
+	for (i = 0; i < mtar_plugin_nbPluginHandlers; i++)
+		if (!strcmp(name, mtar_plugin_pluginHandlers[i].name))
+			return mtar_plugin_pluginHandlers[i].plugin(option);
+	if (mtar_loader_load("plugin", name))
+		return 0;
+	for (i = 0; i < mtar_plugin_nbPluginHandlers; i++)
+		if (!strcmp(name, mtar_plugin_pluginHandlers[i].name))
+			return mtar_plugin_pluginHandlers[i].plugin(option);
+	return 0;
 }
 
 void mtar_plugin_load(const struct mtar_option * option) {
 	if (!option || option->nbPlugins == 0)
 		return;
 
-	plugins = calloc(sizeof(struct mtar_plugin *), option->nbPlugins);
-	nbPlugins = option->nbPlugins;
+	mtar_plugin_plugins = calloc(sizeof(struct mtar_plugin *), option->nbPlugins);
+	mtar_plugin_nbPlugins = option->nbPlugins;
 
 	unsigned int i;
 	for (i = 0; i < option->nbPlugins; i++)
-		plugins[i] = plugin_get(option->plugins[i], option);
+		mtar_plugin_plugins[i] = mtar_plugin_get(option->plugins[i], option);
 }
 
 void mtar_plugin_register(const char * name, mtar_plugin_f f) {
-	pluginHandlers = realloc(pluginHandlers, (nbPluginHandlers + 1) * (sizeof(struct plugin)));
-	pluginHandlers[nbPluginHandlers].name = name;
-	pluginHandlers[nbPluginHandlers].plugin = f;
-	nbPluginHandlers++;
+	mtar_plugin_pluginHandlers = realloc(mtar_plugin_pluginHandlers, (mtar_plugin_nbPluginHandlers + 1) * (sizeof(struct plugin)));
+	mtar_plugin_pluginHandlers[mtar_plugin_nbPluginHandlers].name = name;
+	mtar_plugin_pluginHandlers[mtar_plugin_nbPluginHandlers].plugin = f;
+	mtar_plugin_nbPluginHandlers++;
 
-	loader_register_ok();
-}
-
-
-struct mtar_plugin * plugin_get(const char * name, const struct mtar_option * option) {
-	unsigned int i;
-	for (i = 0; i < nbPluginHandlers; i++)
-		if (!strcmp(name, pluginHandlers[i].name))
-			return pluginHandlers[i].plugin(option);
-	if (loader_load("plugin", name))
-		return 0;
-	for (i = 0; i < nbPluginHandlers; i++)
-		if (!strcmp(name, pluginHandlers[i].name))
-			return pluginHandlers[i].plugin(option);
-	return 0;
+	mtar_loader_register_ok();
 }
 
 
 void mtar_plugin_addFile(const char * filename) {
 	unsigned int i;
-	for (i = 0; i < nbPlugins; i++)
-		plugins[i]->ops->addFile(plugins[i], filename);
+	for (i = 0; i < mtar_plugin_nbPlugins; i++)
+		mtar_plugin_plugins[i]->ops->addFile(mtar_plugin_plugins[i], filename);
 }
 
 void mtar_plugin_endOfFile() {
 	unsigned int i;
-	for (i = 0; i < nbPlugins; i++)
-		plugins[i]->ops->endOfFile(plugins[i]);
+	for (i = 0; i < mtar_plugin_nbPlugins; i++)
+		mtar_plugin_plugins[i]->ops->endOfFile(mtar_plugin_plugins[i]);
 }
 
 void mtar_plugin_write(const void * data, ssize_t length) {
 	unsigned int i;
-	for (i = 0; i < nbPlugins; i++)
-		plugins[i]->ops->write(plugins[i], data, length);
+	for (i = 0; i < mtar_plugin_nbPlugins; i++)
+		mtar_plugin_plugins[i]->ops->write(mtar_plugin_plugins[i], data, length);
 }
 

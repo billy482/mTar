@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 21:58:21 +0200                       *
+*  Last modified: Wed, 11 May 2011 14:06:29 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -36,11 +36,11 @@
 #include "option.h"
 #include "verbose.h"
 
-static void option_showHelp(const char * path);
-static void option_showVersion(const char * path);
+static void mtar_option_showHelp(const char * path);
+static void mtar_option_showVersion(const char * path);
 
 
-void option_showHelp(const char * path) {
+void mtar_option_showHelp(const char * path) {
 	const char * ptr = strrchr(path, '/');
 	if (ptr)
 		ptr++;
@@ -50,7 +50,7 @@ void option_showHelp(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
 }
 
-void option_showVersion(const char * path) {
+void mtar_option_showVersion(const char * path) {
 	const char * ptr = strrchr(path, '/');
 	if (ptr)
 		ptr++;
@@ -104,7 +104,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->nbPlugins = 0;
 
 	if (argc < 2) {
-		option_showHelp(*argv);
+		mtar_option_showHelp(*argv);
 		return 1;
 	}
 
@@ -112,7 +112,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	size_t goodArg = strspn(argv[1], "-cfhvV");
 	if (length != goodArg) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
-		option_showHelp(*argv);
+		mtar_option_showHelp(*argv);
 		return 1;
 	}
 
@@ -128,19 +128,19 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case 'f':
 				if (option->filename) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
-					option_showHelp(*argv);
+					mtar_option_showHelp(*argv);
 					return 1;
 				}
 				if (optArg >= argc) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
-					option_showHelp(*argv);
+					mtar_option_showHelp(*argv);
 					return 1;
 				}
 				option->filename = argv[optArg++];
 				break;
 
 			case 'h':
-				option_showHelp(*argv);
+				mtar_option_showHelp(*argv);
 				return 0;
 
 			case 'v':
@@ -149,7 +149,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case 'V':
-				option_showVersion(*argv);
+				mtar_option_showVersion(*argv);
 				return 0;
 		}
 	}

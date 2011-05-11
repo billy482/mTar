@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:31:12 +0200                       *
+*  Last modified: Wed, 11 May 2011 14:09:37 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -48,22 +48,22 @@
 
 #include "verbose.h"
 
-static void verbose_init(void);
-static size_t verbose_strlen(const char * str);
-static void verbose_updateSize(int signal);
+static void mtar_verbose_init(void);
+static size_t mtar_verbose_strlen(const char * str);
+static void mtar_verbose_updateSize(int signal);
 
-static enum mtar_verbose_level verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
-static int verbose_terminalWidth = 72;
+static enum mtar_verbose_level mtar_verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
+static int mtar_verbose_terminalWidth = 72;
 
-static struct timeval verbose_progress_begin;
-static struct timeval verbose_progress_end;
+static struct timeval mtar_verbose_progress_begin;
+static struct timeval mtar_verbose_progress_end;
 
 
 void mtar_verbose_clean() {
-	char buffer[verbose_terminalWidth + 1];
-	memset(buffer, ' ', verbose_terminalWidth);
-	*buffer = buffer[verbose_terminalWidth - 1] = '\r';
-	buffer[verbose_terminalWidth] = '\0';
+	char buffer[mtar_verbose_terminalWidth + 1];
+	memset(buffer, ' ', mtar_verbose_terminalWidth);
+	*buffer = buffer[mtar_verbose_terminalWidth - 1] = '\r';
+	buffer[mtar_verbose_terminalWidth] = '\0';
 
 	dprintf(2, buffer);
 
@@ -71,11 +71,17 @@ void mtar_verbose_clean() {
 }
 
 void mtar_verbose_configure(const struct mtar_option * option) {
-	verbose_level = option->verbose;
+	mtar_verbose_level = option->verbose;
+}
+
+__attribute__((constructor))
+void mtar_verbose_init() {
+	mtar_verbose_updateSize(0);
+	signal(SIGWINCH, mtar_verbose_updateSize);
 }
 
 void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) {
-	if (verbose_level < level)
+	if (mtar_verbose_level < level)
 		return;
 
 	va_list args;
@@ -87,12 +93,12 @@ void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...
 void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit) {
 	mtar_verbose_stop_timer();
 
-	double inter = difftime(verbose_progress_end.tv_sec, verbose_progress_begin.tv_sec) + difftime(verbose_progress_end.tv_usec, verbose_progress_begin.tv_usec) / 1000000;
+	double inter = difftime(mtar_verbose_progress_end.tv_sec, mtar_verbose_progress_begin.tv_sec) + difftime(mtar_verbose_progress_end.tv_usec, mtar_verbose_progress_begin.tv_usec) / 1000000;
 	double pct = ((double) current) / upperLimit;
 	double total = inter / pct - inter;
 	pct *= 100;
 
-	char buffer[verbose_terminalWidth];
+	char buffer[mtar_verbose_terminalWidth];
 	strcpy(buffer, format);
 
 	char * ptr = 0;
@@ -147,10 +153,10 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 
 	ptr = buffer;
 	if ((ptr = strstr(buffer, "%b"))) {
-		size_t length = verbose_terminalWidth - strlen(buffer) + 1;
+		size_t length = mtar_verbose_terminalWidth - strlen(buffer) + 1;
 		unsigned int p = length * current / upperLimit;
 
-		memmove(ptr + length, ptr + 2, verbose_strlen(ptr + 2) + 1);
+		memmove(ptr + length, ptr + 2, mtar_verbose_strlen(ptr + 2) + 1);
 		memset(ptr, '=', p);
 		memset(ptr + p, '.', length - p);
 		if (p < length)
@@ -161,21 +167,10 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 }
 
 void mtar_verbose_restart_timer() {
-	gettimeofday(&verbose_progress_begin, 0);
+	gettimeofday(&mtar_verbose_progress_begin, 0);
 }
 
-void mtar_verbose_stop_timer() {
-	gettimeofday(&verbose_progress_end, 0);
-}
-
-
-__attribute__((constructor))
-void verbose_init() {
-	verbose_updateSize(0);
-	signal(SIGWINCH, verbose_updateSize);
-}
-
-size_t verbose_strlen(const char * str) {
+size_t mtar_verbose_strlen(const char * str) {
 	if (!str)
 		return 0;
 
@@ -189,12 +184,16 @@ size_t verbose_strlen(const char * str) {
 	return size;
 }
 
-void verbose_updateSize(int signal __attribute__((unused))) {
+void mtar_verbose_stop_timer() {
+	gettimeofday(&mtar_verbose_progress_end, 0);
+}
+
+void mtar_verbose_updateSize(int signal __attribute__((unused))) {
 	static struct winsize size;
 	int status = ioctl(2, TIOCGWINSZ, &size);
 	if (!status)
-		verbose_terminalWidth = size.ws_col;
+		mtar_verbose_terminalWidth = size.ws_col;
 	else
-		verbose_terminalWidth = 72;
+		mtar_verbose_terminalWidth = 72;
 }
 

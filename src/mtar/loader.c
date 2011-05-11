@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 13:27:58 +0200                       *
+*  Last modified: Wed, 11 May 2011 14:00:54 +0200                       *
 \***********************************************************************/
 
 // dlclose, dlerror, dlopen
@@ -38,10 +38,10 @@
 
 #include "loader.h"
 
-static short loaded = 0;
+static short mtar_loader_loaded = 0;
 
 
-int loader_load(const char * module, const char * name) {
+int mtar_loader_load(const char * module, const char * name) {
 	if (!module || !name)
 		return 1;
 
@@ -52,19 +52,19 @@ int loader_load(const char * module, const char * name) {
 		return 2;
 	}
 
-	loaded = 0;
+	mtar_loader_loaded = 0;
 
 	void * cookie = dlopen(path, RTLD_NOW);
 	if (!cookie) {
 		return 3;
-	} else if (!loaded) {
+	} else if (!mtar_loader_loaded) {
 		return 4;
 	}
 
 	return 0;
 }
 
-void loader_register_ok() {
-	loaded = 1;
+void mtar_loader_register_ok() {
+	mtar_loader_loaded = 1;
 }
 

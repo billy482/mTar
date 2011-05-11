@@ -24,13 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 22:19:53 +0200                       *
+*  Last modified: Wed, 11 May 2011 13:59:16 +0200                       *
 \***********************************************************************/
 
-// strcmp
-#include <string.h>
 // free, realloc
 #include <stdlib.h>
+// strcmp
+#include <string.h>
 
 #include <mtar/format.h>
 
@@ -58,7 +58,7 @@ struct mtar_format * mtar_format_get(struct mtar_io * io, const struct mtar_opti
 		if (!strcmp(option->format, mtar_format_formats[i].name))
 			return mtar_format_formats[i].format(io, option);
 	}
-	if (loader_load("format", option->format))
+	if (mtar_loader_load("format", option->format))
 		return 0;
 	for (i = 0; i < mtar_format_nbFormats; i++) {
 		if (!strcmp(option->format, mtar_format_formats[i].name))
@@ -73,6 +73,6 @@ void mtar_format_register(const char * name, mtar_format_f f) {
 	mtar_format_formats[mtar_format_nbFormats].format = f;
 	mtar_format_nbFormats++;
 
-	loader_register_ok();
+	mtar_loader_register_ok();
 }
 
