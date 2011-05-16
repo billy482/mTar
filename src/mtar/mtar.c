@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 21:49:22 +0200                       *
+*  Last modified: Wed, 11 May 2011 18:21:11 +0200                       *
 \***********************************************************************/
 
 #include "option.h"
@@ -37,7 +37,7 @@ int main(int argc, char ** argv) {
 
 	failed = mtar_option_parse(&option, argc, argv);
 	if (failed)
-		return failed;
+		return failed - 1;
 
 	mtar_verbose_configure(&option);
 

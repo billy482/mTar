@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 14:06:29 +0200                       *
+*  Last modified: Thu, 12 May 2011 08:53:01 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -38,27 +38,6 @@
 
 static void mtar_option_showHelp(const char * path);
 static void mtar_option_showVersion(const char * path);
-
-
-void mtar_option_showHelp(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
-}
-
-void mtar_option_showVersion(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
-}
 
 
 int mtar_option_check(struct mtar_option * option) {
@@ -88,7 +67,6 @@ void mtar_option_free(struct mtar_option * option) {
 }
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
-	option->function = MTAR_FUNCTION_NONE;
 	option->doWork = 0;
 
 	option->format = "ustar";
@@ -103,60 +81,81 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->plugins = 0;
 	option->nbPlugins = 0;
 
+
 	if (argc < 2) {
 		mtar_option_showHelp(*argv);
-		return 1;
+		return 2;
 	}
 
 	size_t length = strlen(argv[1]);
 	size_t goodArg = strspn(argv[1], "-cfhvV");
-	if (length != goodArg) {
+	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_showHelp(*argv);
-		return 1;
+		return 2;
 	}
 
-	static unsigned int i;
-	static int optArg = 2;
-	for (i = 0; i < length; i++) {
-		switch (argv[1][i]) {
-			case 'c':
-				option->function = MTAR_FUNCTION_CREATE;
-				option->doWork = mtar_function_get("create");
-				break;
+	unsigned int i;
+	int optArg = 2;
+	if (strncmp(argv[1], "--", 2)) {
+		for (i = 0; i < length; i++) {
+			switch (argv[1][i]) {
+				case 'c':
+					option->doWork = mtar_function_get("create");
+					break;
 
-			case 'f':
-				if (option->filename) {
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
+				case 'f':
+					if (option->filename) {
+						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
+						mtar_option_showHelp(*argv);
+						return 2;
+					}
+					if (optArg >= argc) {
+						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
+						mtar_option_showHelp(*argv);
+						return 2;
+					}
+					option->filename = argv[optArg++];
+					break;
+
+				case 'h':
 					mtar_option_showHelp(*argv);
 					return 1;
-				}
-				if (optArg >= argc) {
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
-					mtar_option_showHelp(*argv);
+
+				case 'v':
+					if (option->verbose < 2)
+						option->verbose++;
+					break;
+
+				case 'V':
+					mtar_option_showVersion(*argv);
 					return 1;
-				}
-				option->filename = argv[optArg++];
-				break;
-
-			case 'h':
-				mtar_option_showHelp(*argv);
-				return 0;
-
-			case 'v':
-				if (option->verbose < 2)
-					option->verbose++;
-				break;
-
-			case 'V':
-				mtar_option_showVersion(*argv);
-				return 0;
+			}
 		}
+	} else {
+		optArg = 1;
 	}
 
 	if (!strncmp(argv[optArg], "--", 2)) {
 		while (optArg < argc) {
-			if (!strcmp(argv[optArg], "--plugin")) {
+			if (!strcmp(argv[optArg], "--create")) {
+				option->doWork = mtar_function_get("create");
+			} else if (!strcmp(argv[optArg], "--file")) {
+				if (option->filename) {
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
+					mtar_option_showHelp(*argv);
+					return 2;
+				}
+				if (optArg >= argc) {
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
+					mtar_option_showHelp(*argv);
+					return 2;
+				}
+				option->filename = argv[++optArg];
+			} else if (!strcmp(argv[optArg], "--help")) {
+				mtar_option_showHelp(*argv);
+				return 1;
+			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;
 
 				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
@@ -179,5 +178,26 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	return 0;
+}
+
+void mtar_option_showHelp(const char * path) {
+	const char * ptr = strrchr(path, '/');
+	if (ptr)
+		ptr++;
+	else
+		ptr = path;
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
+}
+
+void mtar_option_showVersion(const char * path) {
+	const char * ptr = strrchr(path, '/');
+	if (ptr)
+		ptr++;
+	else
+		ptr = path;
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
 }
 
