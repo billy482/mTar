@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 13:59:35 +0200                       *
+*  Last modified: Tue, 24 May 2011 17:12:18 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -34,12 +34,13 @@
 
 #include "function.h"
 #include "loader.h"
+#include "verbose.h"
 
 static void mtar_function_exit(void);
 
 static struct function {
 	const char * name;
-	mtar_function function;
+	struct mtar_function * function;
 } * mtar_function_functions = 0;
 static unsigned int mtar_function_nbFunctions = 0;
 
@@ -51,27 +52,36 @@ void mtar_function_exit() {
 	mtar_function_functions = 0;
 }
 
-mtar_function mtar_function_get(const char * name) {
+mtar_function_f mtar_function_get(const char * name) {
 	unsigned int i;
 	for (i = 0; i < mtar_function_nbFunctions; i++) {
 		if (!strcmp(name, mtar_function_functions[i].name))
-			return mtar_function_functions[i].function;
+			return mtar_function_functions[i].function->doWork;
 	}
 	if (mtar_loader_load("function", name))
 		return 0;
 	for (i = 0; i < mtar_function_nbFunctions; i++) {
 		if (!strcmp(name, mtar_function_functions[i].name))
-			return mtar_function_functions[i].function;
+			return mtar_function_functions[i].function->doWork;
 	}
 	return 0;
 }
 
-void mtar_function_register(const char * name, mtar_function f) {
+void mtar_function_register(const char * name, struct mtar_function * f) {
 	mtar_function_functions = realloc(mtar_function_functions, (mtar_function_nbFunctions + 1) * sizeof(struct function));
 	mtar_function_functions[mtar_function_nbFunctions].name = name;
 	mtar_function_functions[mtar_function_nbFunctions].function = f;
 	mtar_function_nbFunctions++;
 
 	mtar_loader_register_ok();
+}
+
+void mtar_function_showDescription() {
+	mtar_loader_loadAll("function");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available functions :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_function_nbFunctions; i++)
+		mtar_function_functions[i].function->showDescription();
 }
 

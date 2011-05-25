@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 12 May 2011 08:53:01 +0200                       *
+*  Last modified: Tue, 24 May 2011 16:47:57 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -140,18 +140,38 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		while (optArg < argc) {
 			if (!strcmp(argv[optArg], "--create")) {
 				option->doWork = mtar_function_get("create");
-			} else if (!strcmp(argv[optArg], "--file")) {
+			} else if (!strncmp(argv[optArg], "--file", 6)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
 				if (option->filename) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
 					mtar_option_showHelp(*argv);
 					return 2;
 				}
-				if (optArg >= argc) {
+				if (!opt) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
 					mtar_option_showHelp(*argv);
 					return 2;
 				}
-				option->filename = argv[++optArg];
+				option->filename = opt;
+			} else if (!strncmp(argv[optArg], "--function", 10)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (!strcmp(opt, "help")) {
+					mtar_option_showVersion(*argv);
+					mtar_function_showDescription();
+					return 1;
+				} else {
+					option->doWork = mtar_function_get(opt);
+				}
 			} else if (!strcmp(argv[optArg], "--help")) {
 				mtar_option_showHelp(*argv);
 				return 1;

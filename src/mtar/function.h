@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Apr 2011 11:22:04 +0200                       *
+*  Last modified: Mon, 23 May 2011 10:49:09 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FUNTION_P_H__
@@ -32,7 +32,8 @@
 
 #include <mtar/function.h>
 
-mtar_function mtar_function_get(const char * name);
+mtar_function_f mtar_function_get(const char * name);
+void mtar_function_showDescription(void);
 
 #endif
 

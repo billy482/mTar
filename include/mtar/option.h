@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 12 May 2011 08:52:42 +0200                       *
+*  Last modified: Mon, 23 May 2011 10:19:05 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -34,7 +34,7 @@
 #include "function.h"
 
 struct mtar_option {
-	mtar_function doWork;
+	mtar_function_f doWork;
 
 	const char * format;
 
