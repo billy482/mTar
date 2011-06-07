@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 24 May 2011 16:45:58 +0200                       *
+*  Last modified: Wed, 25 May 2011 15:57:29 +0200                       *
 \***********************************************************************/
 
 // dlclose, dlerror, dlopen
@@ -85,6 +85,7 @@ int mtar_loader_load_file(const char * filename) {
 	if (!cookie) {
 		return 3;
 	} else if (!mtar_loader_loaded) {
+		dlclose(cookie);
 		return 4;
 	}
 

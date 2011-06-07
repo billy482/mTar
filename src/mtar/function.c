@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 24 May 2011 17:12:18 +0200                       *
+*  Last modified: Wed, 25 May 2011 13:01:37 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -83,5 +83,32 @@ void mtar_function_showDescription() {
 	unsigned int i;
 	for (i = 0; i < mtar_function_nbFunctions; i++)
 		mtar_function_functions[i].function->showDescription();
+}
+
+void mtar_function_showHelp(const char * function) {
+	unsigned int i;
+	struct function * f = 0;
+	for (i = 0; i < mtar_function_nbFunctions; i++)
+		if (!strcmp(mtar_function_functions[i].name, function)) {
+			f = mtar_function_functions + i;
+			break;
+		}
+
+	if (!f) {
+		mtar_loader_load("function", function);
+
+		for (i = 0; i < mtar_function_nbFunctions; i++)
+			if (!strcmp(mtar_function_functions[i].name, function)) {
+				f = mtar_function_functions + i;
+				break;
+			}
+	}
+
+	if (f) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Help for function: %s\n", function);
+		f->function->showHelp();
+	} else {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No help found for function: %s\n", function);
+	}
 }
 

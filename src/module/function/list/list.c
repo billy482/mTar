@@ -24,61 +24,67 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 03 Jun 2011 22:50:09 +0200                       *
+*  Last modified: Thu, 26 May 2011 13:11:19 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_H__
-#define __MTAR_IO_H__
-
-// ssize_t
+// open
+#include <fcntl.h>
+// open
+#include <sys/stat.h>
+// open
 #include <sys/types.h>
 
-struct mtar_option;
+#include <mtar/format.h>
+#include <mtar/function.h>
+#include <mtar/io.h>
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
-struct mtar_io {
-	struct mtar_io_ops {
-		int (*canSeek)(struct mtar_io * io);
-		int (*close)(struct mtar_io * io);
-		void (*free)(struct mtar_io * io);
-		off_t (*pos)(struct mtar_io * io);
-		ssize_t (*read)(struct mtar_io * io, void * data, ssize_t length);
-		off_t (*seek)(struct mtar_io * io, off_t offset, int whence);
-		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
-	} * ops;
-	void * data;
+static int mtar_function_list(const struct mtar_option * option);
+static void mtar_function_list_showDescription(void);
+static void mtar_function_list_showHelp(void);
+
+static struct mtar_function mtar_function_list_functions = {
+	.doWork          = mtar_function_list,
+	.showDescription = mtar_function_list_showDescription,
+	.showHelp        = mtar_function_list_showHelp,
 };
 
-typedef struct mtar_io * (*mtar_io_f)(int fd, int flags, const struct mtar_option * option);
+__attribute__((constructor))
+static void mtar_function_list_init() {
+	mtar_function_register("list", &mtar_function_list_functions);
+}
 
-struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option);
-struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option);
-void mtar_io_register(const char * name, mtar_io_f function);
 
+int mtar_function_list(const struct mtar_option * option) {
+	struct mtar_io * io = 0;
+	if (option->filename)
+		io = mtar_io_get_file(option->filename, O_RDONLY, option);
+	else
+		io = mtar_io_get_file(0, O_RDONLY, option);
+	if (!io)
+		return 1;
 
-struct mtar_io_in {
-	struct mtar_io_in_ops {
-		int (*close)(struct mtar_io_in * io);
-		void (*free)(struct mtar_io_in * io);
-		off_t (*pos)(struct mtar_io_in * io);
-		ssize_t (*read)(struct mtar_io_in * io, void * data, ssize_t length);
-	} * ops;
-	void * data;
-};
+	struct mtar_format * format = mtar_format_get(io, option);
+	struct mtar_format_header header;
+	int failed;
 
-struct mtar_io_out {
-	struct mtar_io_out_ops {
-		int (*close)(struct mtar_io * io);
-		void (*free)(struct mtar_io * io);
-		off_t (*pos)(struct mtar_io * io);
-		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
-	} * ops;
-	void * data;
-};
+	while (!(failed = format->ops->getHeader(format, &header))) {
 
-struct mtar_io2 {
-	const char * name;
-	struct mtar_io_in * (*newIn)(struct mtar_io_in * io, const struct mtar_option * option);
-};
+		//format->ops->skipFile(format);
+	}
 
-#endif
+	format->ops->free(format);
+	io->ops->free(io);
+
+	return failed;
+}
+
+void mtar_function_list_showDescription() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  list : List files from tar archive\n");
+}
+
+void mtar_function_list_showHelp() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
+}
 

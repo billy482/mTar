@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 06 May 2011 11:41:04 +0200                       *
+*  Last modified: Thu, 26 May 2011 13:07:11 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -266,6 +266,10 @@ int mtar_format_ustar_endOfFile(struct mtar_format * f) {
 void mtar_format_ustar_free(struct mtar_format * f) {
 	free(f->data);
 	free(f);
+}
+
+int mtar_format_ustar_getHeader(struct mtar_format * f, struct mtar_format_header * header) {
+	return 0;
 }
 
 ssize_t mtar_format_ustar_write(struct mtar_format * f, const void * data, ssize_t length) {

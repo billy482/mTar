@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:31:48 +0200                       *
+*  Last modified: Thu, 26 May 2011 13:07:47 +0200                       *
 \***********************************************************************/
 
 // malloc
@@ -41,6 +41,7 @@ static struct mtar_format_ops format_ustar_ops = {
 	.addLink   = mtar_format_ustar_addLink,
 	.endOfFile = mtar_format_ustar_endOfFile,
 	.free      = mtar_format_ustar_free,
+	.getHeader = mtar_format_ustar_getHeader,
 	.write     = mtar_format_ustar_write,
 };
 

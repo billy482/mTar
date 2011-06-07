@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 24 May 2011 17:09:46 +0200                       *
+*  Last modified: Wed, 25 May 2011 14:02:13 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -68,11 +68,12 @@ static int mtar_function_create(const struct mtar_option * option);
 static int mtar_function_create2(struct mtar_function_create_param * param);
 static int mtar_function_create_filter(const struct dirent * d);
 static void mtar_function_create_showDescription(void);
+static void mtar_function_create_showHelp(void);
 
 static struct mtar_function mtar_function_create_functions = {
 	.doWork          = mtar_function_create,
 	.showDescription = mtar_function_create_showDescription,
-	.showHelp        = 0,
+	.showHelp        = mtar_function_create_showHelp,
 };
 
 __attribute__((constructor))
@@ -200,5 +201,10 @@ int mtar_function_create_filter(const struct dirent * d) {
 
 void mtar_function_create_showDescription() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  create : Create new archive\n");
+}
+
+void mtar_function_create_showHelp() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Create new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    f, --file: name of archive\n");
 }
 

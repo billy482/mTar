@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 24 May 2011 16:47:57 +0200                       *
+*  Last modified: Thu, 26 May 2011 12:32:39 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -88,7 +88,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhvV");
+	size_t goodArg = strspn(argv[1], "-cfhtvV");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_showHelp(*argv);
@@ -122,6 +122,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					mtar_option_showHelp(*argv);
 					return 1;
 
+				case 't':
+					option->doWork = mtar_function_get("list");
+					break;
+
 				case 'v':
 					if (option->verbose < 2)
 						option->verbose++;
@@ -136,7 +140,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		optArg = 1;
 	}
 
-	if (!strncmp(argv[optArg], "--", 2)) {
+	if (optArg < argc && !strncmp(argv[optArg], "--", 2)) {
 		while (optArg < argc) {
 			if (!strcmp(argv[optArg], "--create")) {
 				option->doWork = mtar_function_get("create");
@@ -169,12 +173,18 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					mtar_option_showVersion(*argv);
 					mtar_function_showDescription();
 					return 1;
+				} else if (!strncmp(opt, "help=", 5)) {
+					mtar_option_showVersion(*argv);
+					mtar_function_showHelp(strchr(opt, '=') + 1);
+					return 1;
 				} else {
 					option->doWork = mtar_function_get(opt);
 				}
 			} else if (!strcmp(argv[optArg], "--help")) {
 				mtar_option_showHelp(*argv);
 				return 1;
+			} else if (!strcmp(argv[optArg], "--list")) {
+				option->doWork = mtar_function_get("create");
 			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;
 
@@ -208,7 +218,17 @@ void mtar_option_showHelp(const char * path) {
 		ptr = path;
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create          : create new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE    : use ARCHIVE file or device ARCHIVE\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION * : use FUNCTION as action\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help               : list available function\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help=FUNCTION      : show specific help from function FUNCTION\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -h, --help            : show this and exit\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *     : load a plugin which will interact with an function\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list            : list files from tar archive\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
 }
 
 void mtar_option_showVersion(const char * path) {
