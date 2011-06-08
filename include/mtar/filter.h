@@ -24,35 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:29:21 +0200                       *
+*  Last modified: Tue, 07 Jun 2011 19:05:01 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_H__
-#define __MTAR_IO_H__
+#ifndef __MTAR_FILTER_H__
+#define __MTAR_FILTER_H__
 
-// ssize_t
-#include <sys/types.h>
+#include "io.h"
 
-struct mtar_option;
-
-struct mtar_io {
-	struct mtar_io_ops {
-		int (*canSeek)(struct mtar_io * io);
-		int (*close)(struct mtar_io * io);
-		void (*free)(struct mtar_io * io);
-		off_t (*pos)(struct mtar_io * io);
-		ssize_t (*read)(struct mtar_io * io, void * data, ssize_t length);
-		off_t (*seek)(struct mtar_io * io, off_t offset, int whence);
-		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
-	} * ops;
-	void * data;
-};
-
-typedef struct mtar_io * (*mtar_io_f)(int fd, int flags, const struct mtar_option * option);
-
-struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option);
-struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option);
-void mtar_io_register(const char * name, mtar_io_f function);
+void mtar_filter_register(const char * name, mtar_io_f function);
 
 #endif
 
