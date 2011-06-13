@@ -24,24 +24,85 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:59 +0200                       *
+*  Last modified: Fri, 10 Jun 2011 19:24:00 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+// free
+#include <stdlib.h>
+// lseek
+#include <sys/types.h>
+// lseek, read
+#include <unistd.h>
 
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG   = 0x3,
-	MTAR_VERBOSE_LEVEL_ERROR   = 0x0,
-	MTAR_VERBOSE_LEVEL_INFO    = 0x2,
-	MTAR_VERBOSE_LEVEL_WARNING = 0x1,
+#include "common.h"
+
+static int mtar_io_file_in_close(struct mtar_io_in * io);
+static off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset);
+static void mtar_io_file_in_free(struct mtar_io_in * io);
+static off_t mtar_io_file_in_pos(struct mtar_io_in * io);
+static ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length);
+
+static struct mtar_io_in_ops mtar_io_file_in_ops = {
+	.close   = mtar_io_file_in_close,
+	.forward = mtar_io_file_in_forward,
+	.free    = mtar_io_file_in_free,
+	.pos     = mtar_io_file_in_pos,
+	.read    = mtar_io_file_in_read,
 };
 
-void mtar_verbose_clean(void);
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
 
-#endif
+int mtar_io_file_in_close(struct mtar_io_in * io) {
+	struct mtar_io_file * self = io->data;
+
+	if (self->fd < 0)
+		return 0;
+
+	int failed = close(self->fd);
+
+	if (!failed)
+		self->fd = -1;
+
+	return failed;
+}
+
+off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
+	struct mtar_io_file * self = io->data;
+
+	return lseek(self->fd, offset, SEEK_CUR);
+}
+
+void mtar_io_file_in_free(struct mtar_io_in * io) {
+	mtar_io_file_in_close(io);
+
+	free(io->data);
+	free(io);
+}
+
+off_t mtar_io_file_in_pos(struct mtar_io_in * io) {
+	struct mtar_io_file * self = io->data;
+	return self->pos;
+}
+
+ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
+	struct mtar_io_file * self = io->data;
+
+	ssize_t nbRead = read(self->fd, data, length);
+
+	if (nbRead > 0)
+		self->pos += nbRead;
+
+	return nbRead;
+}
+
+struct mtar_io_in * mtar_io_file_newIn(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
+	data->fd = fd;
+	data->pos = 0;
+
+	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
+	io->ops = &mtar_io_file_in_ops;
+	io->data = data;
+
+	return io;
+}
 

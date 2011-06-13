@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 13:59:04 +0200                       *
+*  Last modified: Tue, 07 Jun 2011 11:24:04 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -48,33 +48,22 @@
 
 #include "loader.h"
 
-static struct io {
-	const char * name;
-	mtar_io_f function;
-} * mtar_io_ios = 0;
+static struct mtar_io ** mtar_io_ios = 0;
 static unsigned int mtar_io_nbIos = 0;
 
-static struct mtar_io * mtar_io_io_get(int fd, int flags, const char * io, const struct mtar_option * option);
 static void mtar_io_exit(void);
+struct mtar_io * mtar_io_get(int fd);
+int mtar_io_open(const char * filename, int flags);
 
 
-struct mtar_io * mtar_io_io_get(int fd, int flags, const char * io, const struct mtar_option * option) {
-	unsigned int i;
-	for (i = 0; i < mtar_io_nbIos; i++) {
-		if (!strcmp(io, mtar_io_ios[i].name))
-			return mtar_io_ios[i].function(fd, flags, option);
-	}
-	if (mtar_loader_load("io", io))
-		return 0;
-	for (i = 0; i < mtar_io_nbIos; i++) {
-		if (!strcmp(io, mtar_io_ios[i].name))
-			return mtar_io_ios[i].function(fd, flags, option);
-	}
-	return 0;
+__attribute__((destructor))
+void mtar_io_exit() {
+	if (mtar_io_nbIos > 0)
+		free(mtar_io_ios);
+	mtar_io_ios = 0;
 }
 
-
-struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option) {
+struct mtar_io * mtar_io_get(int fd) {
 	struct stat st;
 
 	if (fstat(fd, &st)) {
@@ -82,15 +71,44 @@ struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * op
 		return 0;
 	}
 
+	const char * module = 0;
 	if (S_ISREG(st.st_mode))
-		return mtar_io_io_get(fd, flags, "file", option);
+		module = "file";
 	else if (S_ISFIFO(st.st_mode))
-		return mtar_io_io_get(fd, flags, "pipe", option);
+		module = "pipe";
+
+	if (!module)
+		return 0;
+
+	unsigned int i;
+	for (i = 0; i < mtar_io_nbIos; i++)
+		if (!strcmp(module, mtar_io_ios[i]->name))
+			return mtar_io_ios[i];
+	if (mtar_loader_load("io", module))
+		return 0;
+	for (i = 0; i < mtar_io_nbIos; i++)
+		if (!strcmp(module, mtar_io_ios[i]->name))
+			return mtar_io_ios[i];
+	return 0;
+}
+
+struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_option * option) {
+	struct mtar_io * io = mtar_io_get(fd);
+	if (io)
+		return io->newIn(fd, flags, option);
 
 	return 0;
 }
 
-struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option) {
+struct mtar_io_in * mtar_io_in_get_file(const char * filename, int flags, const struct mtar_option * option) {
+	int fd = mtar_io_open(filename, flags);
+	if (fd < 0)
+		return 0;
+
+	return mtar_io_in_get_fd(fd, flags, option);;
+}
+
+int mtar_io_open(const char * filename, int flags) {
 	int m = F_OK;
 	if (flags & O_RDWR)
 		m |= R_OK | W_OK;
@@ -103,27 +121,33 @@ struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct
 		flags |= O_CREAT;
 
 	int fd = open(filename, flags, 0644);
-	if (fd < 0) {
+	if (fd < 0)
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to open (%s) => %s\n", filename, strerror(errno));
-		return 0;
-	}
 
-	return mtar_io_get_fd(fd, flags, option);
+	return fd;
 }
 
-void mtar_io_register(const char * name, mtar_io_f function) {
-	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct io));
-	mtar_io_ios[mtar_io_nbIos].name = name;
-	mtar_io_ios[mtar_io_nbIos].function = function;
+struct mtar_io_out * mtar_io_out_get_fd(int fd, int flags, const struct mtar_option * option) {
+	struct mtar_io * io = mtar_io_get(fd);
+	if (io)
+		return io->newOut(fd, flags, option);
+
+	return 0;
+}
+
+struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, const struct mtar_option * option) {
+	int fd = mtar_io_open(filename, flags);
+	if (fd < 0)
+		return 0;
+
+	return mtar_io_out_get_fd(fd, flags, option);
+}
+
+void mtar_io_register(struct mtar_io * function) {
+	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
+	mtar_io_ios[mtar_io_nbIos] = function;
 	mtar_io_nbIos++;
 
 	mtar_loader_register_ok();
-}
-
-__attribute__((destructor))
-void mtar_io_exit() {
-	if (mtar_io_nbIos > 0)
-		free(mtar_io_ios);
-	mtar_io_ios = 0;
 }
 

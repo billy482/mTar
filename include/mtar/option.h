@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 23 May 2011 10:19:05 +0200                       *
+*  Last modified: Wed, 08 Jun 2011 08:37:45 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
 #define __MTAR_OPTION_H__
 
-#include "common.h"
 #include "function.h"
+#include "verbose.h"
 
 struct mtar_option {
 	mtar_function_f doWork;

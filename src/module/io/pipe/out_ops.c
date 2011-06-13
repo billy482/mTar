@@ -24,24 +24,81 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:59 +0200                       *
+*  Last modified: Mon, 13 Jun 2011 11:43:32 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+// free
+#include <stdlib.h>
+// read
+#include <unistd.h>
 
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG   = 0x3,
-	MTAR_VERBOSE_LEVEL_ERROR   = 0x0,
-	MTAR_VERBOSE_LEVEL_INFO    = 0x2,
-	MTAR_VERBOSE_LEVEL_WARNING = 0x1,
+#include "common.h"
+
+static int mtar_io_pipe_out_close(struct mtar_io_out * io);
+static int mtar_io_pipe_out_flush(struct mtar_io_out * io);
+static void mtar_io_pipe_out_free(struct mtar_io_out * io);
+static off_t mtar_io_pipe_out_pos(struct mtar_io_out * io);
+static ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
+
+static struct mtar_io_out_ops mtar_io_pipe_out_ops = {
+	.close = mtar_io_pipe_out_close,
+	.flush = mtar_io_pipe_out_flush,
+	.free  = mtar_io_pipe_out_free,
+	.pos   = mtar_io_pipe_out_pos,
+	.write = mtar_io_pipe_out_write,
 };
 
-void mtar_verbose_clean(void);
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
 
-#endif
+int mtar_io_pipe_out_close(struct mtar_io_out * io) {
+	struct mtar_io_pipe * self = io->data;
+
+	if (self->fd < 0)
+		return 0;
+
+	int failed = close(self->fd);
+
+	if (!failed)
+		self->fd = -1;
+
+	return failed;
+}
+
+int mtar_io_pipe_out_flush(struct mtar_io_out * io __attribute__((unused))) {
+	return 0;
+}
+
+void mtar_io_pipe_out_free(struct mtar_io_out * io) {
+	mtar_io_pipe_out_close(io);
+
+	free(io->data);
+	free(io);
+}
+
+off_t mtar_io_pipe_out_pos(struct mtar_io_out * io) {
+	struct mtar_io_pipe * self = io->data;
+	return self->pos;
+}
+
+ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
+	struct mtar_io_pipe * self = io->data;
+
+	ssize_t nbWrite = write(self->fd, data, length);
+
+	if (nbWrite > 0)
+		self->pos += nbWrite;
+
+	return nbWrite;
+}
+
+struct mtar_io_out * mtar_io_pipe_newOut(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+	struct mtar_io_pipe * data = malloc(sizeof(struct mtar_io_pipe));
+	data->fd = fd;
+	data->pos = 0;
+
+	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
+	io->ops = &mtar_io_pipe_out_ops;
+	io->data = data;
+
+	return io;
+}
 

@@ -24,35 +24,53 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:29:21 +0200                       *
+*  Last modified: Wed, 08 Jun 2011 13:34:38 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
 #define __MTAR_IO_H__
 
-// ssize_t
+// off_t, ssize_t
 #include <sys/types.h>
 
 struct mtar_option;
 
-struct mtar_io {
-	struct mtar_io_ops {
-		int (*canSeek)(struct mtar_io * io);
-		int (*close)(struct mtar_io * io);
-		void (*free)(struct mtar_io * io);
-		off_t (*pos)(struct mtar_io * io);
-		ssize_t (*read)(struct mtar_io * io, void * data, ssize_t length);
-		off_t (*seek)(struct mtar_io * io, off_t offset, int whence);
-		ssize_t (*write)(struct mtar_io * io, const void * data, ssize_t length);
+struct mtar_io_in {
+	const char * name;
+	struct mtar_io_in_ops {
+		int (*close)(struct mtar_io_in * io);
+		off_t (*forward)(struct mtar_io_in * io, off_t offset);
+		void (*free)(struct mtar_io_in * io);
+		off_t (*pos)(struct mtar_io_in * io);
+		ssize_t (*read)(struct mtar_io_in * io, void * data, ssize_t length);
 	} * ops;
 	void * data;
 };
 
-typedef struct mtar_io * (*mtar_io_f)(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out {
+	const char * name;
+	struct mtar_io_out_ops {
+		int (*close)(struct mtar_io_out * io);
+		int (*flush)(struct mtar_io_out * io);
+		void (*free)(struct mtar_io_out * io);
+		off_t (*pos)(struct mtar_io_out * io);
+		ssize_t (*write)(struct mtar_io_out * io, const void * data, ssize_t length);
+	} * ops;
+	void * data;
+};
 
-struct mtar_io * mtar_io_get_fd(int fd, int flags, const struct mtar_option * option);
-struct mtar_io * mtar_io_get_file(const char * filename, int flags, const struct mtar_option * option);
-void mtar_io_register(const char * name, mtar_io_f function);
+struct mtar_io {
+	const char * name;
+	struct mtar_io_in * (*newIn)(int fd, int flags, const struct mtar_option * option);
+	struct mtar_io_out * (*newOut)(int fd, int flags, const struct mtar_option * option);
+	void (*showDescription)(void);
+};
+
+struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_in * mtar_io_in_get_file(const char * filename, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_out_get_fd(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, const struct mtar_option * option);
+void mtar_io_register(struct mtar_io * function);
 
 #endif
 

@@ -24,24 +24,21 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:59 +0200                       *
+*  Last modified: Tue, 07 Jun 2011 11:53:40 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+#ifndef __MTAR_IO_FILE_H__
+#define __MTAR_IO_FILE_H__
 
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG   = 0x3,
-	MTAR_VERBOSE_LEVEL_ERROR   = 0x0,
-	MTAR_VERBOSE_LEVEL_INFO    = 0x2,
-	MTAR_VERBOSE_LEVEL_WARNING = 0x1,
+#include <mtar/io.h>
+
+struct mtar_io_file {
+	int fd;
+	unsigned int pos;
 };
 
-void mtar_verbose_clean(void);
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
+struct mtar_io_in * mtar_io_file_newIn(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_file_newOut(int fd, int flags, const struct mtar_option * option);
 
 #endif
 

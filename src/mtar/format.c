@@ -24,24 +24,66 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:59 +0200                       *
+*  Last modified: Fri, 10 Jun 2011 19:00:39 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+// free, realloc
+#include <stdlib.h>
+// strcmp
+#include <string.h>
 
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG   = 0x3,
-	MTAR_VERBOSE_LEVEL_ERROR   = 0x0,
-	MTAR_VERBOSE_LEVEL_INFO    = 0x2,
-	MTAR_VERBOSE_LEVEL_WARNING = 0x1,
-};
+#include <mtar/format.h>
 
-void mtar_verbose_clean(void);
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
+#include "loader.h"
 
-#endif
+static void mtar_format_exit(void);
+static struct mtar_format * mtar_format_get(const char * name);
+
+static struct mtar_format ** mtar_format_formats = 0;
+static unsigned int mtar_format_nbFormats = 0;
+
+
+__attribute__((destructor))
+void mtar_format_exit() {
+	if (mtar_format_nbFormats > 0)
+		free(mtar_format_formats);
+	mtar_format_formats = 0;
+}
+
+struct mtar_format * mtar_format_get(const char * name) {
+	unsigned int i;
+	for (i = 0; i < mtar_format_nbFormats; i++) {
+		if (!strcmp(name, mtar_format_formats[i]->name))
+			return mtar_format_formats[i];
+	}
+	if (mtar_loader_load("format", name))
+		return 0;
+	for (i = 0; i < mtar_format_nbFormats; i++) {
+		if (!strcmp(name, mtar_format_formats[i]->name))
+			return mtar_format_formats[i];
+	}
+	return 0;
+}
+
+struct mtar_format_in * mtar_format_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
+	struct mtar_format * format = mtar_format_get(option->format);
+	if (format)
+		return format->newIn(io, option);
+	return 0;
+}
+
+struct mtar_format_out * mtar_format_get_out(struct mtar_io_out * io, const struct mtar_option * option) {
+	struct mtar_format * format = mtar_format_get(option->format);
+	if (format)
+		return format->newOut(io, option);
+	return 0;
+}
+
+void mtar_format_register(struct mtar_format * f) {
+	mtar_format_formats = realloc(mtar_format_formats, (mtar_format_nbFormats + 1) * (sizeof(struct mtar_format *)));
+	mtar_format_formats[mtar_format_nbFormats] = f;
+	mtar_format_nbFormats++;
+
+	mtar_loader_register_ok();
+}
 

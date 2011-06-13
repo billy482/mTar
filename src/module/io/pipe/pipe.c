@@ -24,24 +24,20 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:59 +0200                       *
+*  Last modified: Tue, 07 Jun 2011 12:42:40 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+#include "common.h"
 
-enum mtar_verbose_level {
-	MTAR_VERBOSE_LEVEL_DEBUG   = 0x3,
-	MTAR_VERBOSE_LEVEL_ERROR   = 0x0,
-	MTAR_VERBOSE_LEVEL_INFO    = 0x2,
-	MTAR_VERBOSE_LEVEL_WARNING = 0x1,
+static struct mtar_io mtar_io_pipe_ops = {
+	.name   = "pipe",
+	.newIn  = mtar_io_pipe_newIn,
+	.newOut = mtar_io_pipe_newOut,
 };
 
-void mtar_verbose_clean(void);
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
 
-#endif
+__attribute__((constructor))
+static void mtar_io_file_init() {
+	mtar_io_register(&mtar_io_pipe_ops);
+}
 

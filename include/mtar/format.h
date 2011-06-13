@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 13:38:43 +0200                       *
+*  Last modified: Fri, 10 Jun 2011 18:51:23 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -35,7 +35,8 @@
 
 #include "option.h"
 
-struct mtar_io;
+struct mtar_io_in;
+struct mtar_io_out;
 struct mtar_option;
 
 struct mtar_format_header {
@@ -44,25 +45,39 @@ struct mtar_format_header {
 	ssize_t size;
 };
 
-struct mtar_format {
+struct mtar_format_in {
 	const char * format;
-	struct mtar_format_ops {
-		int (*addFile)(struct mtar_format * f, const char * filename);
-		int (*addLabel)(struct mtar_format * f, const char * label);
-		int (*addLink)(struct mtar_format * f, const char * src, const char * target);
-		int (*endOfFile)(struct mtar_format * f);
-		void (*free)(struct mtar_format * f);
-		int (*getHeader)(struct mtar_format * f, struct mtar_format_header * header);
-		ssize_t (*read)(struct mtar_format * f, void * data, ssize_t length);
-		ssize_t (*write)(struct mtar_format * f, const void * data, ssize_t length);
+	struct mtar_format_in_ops {
+		void (*free)(struct mtar_format_in * f);
+		int (*getHeader)(struct mtar_format_in * f, struct mtar_format_header * header);
+		ssize_t (*read)(struct mtar_format_in * f, void * data, ssize_t length);
 	} * ops;
 	void * data;
 };
 
-typedef struct mtar_format * (*mtar_format_f)(struct mtar_io * io, const struct mtar_option * option);
+struct mtar_format_out {
+	const char * format;
+	struct mtar_format_out_ops {
+		int (*addFile)(struct mtar_format_out * f, const char * filename);
+		int (*addLabel)(struct mtar_format_out * f, const char * label);
+		int (*addLink)(struct mtar_format_out * f, const char * src, const char * target);
+		int (*endOfFile)(struct mtar_format_out * f);
+		void (*free)(struct mtar_format_out * f);
+		ssize_t (*write)(struct mtar_format_out * f, const void * data, ssize_t length);
+	} * ops;
+	void * data;
+};
 
-struct mtar_format * mtar_format_get(struct mtar_io * io, const struct mtar_option * option);
-void mtar_format_register(const char * name, mtar_format_f format);
+struct mtar_format {
+	const char * name;
+	struct mtar_format_in * (*newIn)(struct mtar_io_in * io, const struct mtar_option * option);
+	struct mtar_format_out * (*newOut)(struct mtar_io_out * io, const struct mtar_option * option);
+	void (*showDescription)(void);
+};
+
+struct mtar_format_in * mtar_format_get_in(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_format_out * mtar_format_get_out(struct mtar_io_out * io, const struct mtar_option * option);
+void mtar_format_register(struct mtar_format * format);
 
 #endif
 
