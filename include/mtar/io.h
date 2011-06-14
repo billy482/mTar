@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 13:34:38 +0200                       *
+*  Last modified: Mon, 13 Jun 2011 15:03:46 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -36,7 +36,6 @@
 struct mtar_option;
 
 struct mtar_io_in {
-	const char * name;
 	struct mtar_io_in_ops {
 		int (*close)(struct mtar_io_in * io);
 		off_t (*forward)(struct mtar_io_in * io, off_t offset);
@@ -48,7 +47,6 @@ struct mtar_io_in {
 };
 
 struct mtar_io_out {
-	const char * name;
 	struct mtar_io_out_ops {
 		int (*close)(struct mtar_io_out * io);
 		int (*flush)(struct mtar_io_out * io);

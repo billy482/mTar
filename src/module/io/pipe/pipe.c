@@ -24,15 +24,18 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 07 Jun 2011 12:42:40 +0200                       *
+*  Last modified: Mon, 13 Jun 2011 13:30:17 +0200                       *
 \***********************************************************************/
 
 #include "common.h"
 
+static void mtar_io_pipe_showDescription(void);
+
 static struct mtar_io mtar_io_pipe_ops = {
-	.name   = "pipe",
-	.newIn  = mtar_io_pipe_newIn,
-	.newOut = mtar_io_pipe_newOut,
+	.name            = "pipe",
+	.newIn           = mtar_io_pipe_newIn,
+	.newOut          = mtar_io_pipe_newOut,
+	.showDescription = mtar_io_pipe_showDescription,
 };
 
 
@@ -40,4 +43,6 @@ __attribute__((constructor))
 static void mtar_io_file_init() {
 	mtar_io_register(&mtar_io_pipe_ops);
 }
+
+void mtar_io_pipe_showDescription() { }
 

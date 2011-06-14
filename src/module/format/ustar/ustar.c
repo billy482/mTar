@@ -24,26 +24,24 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Apr 2011 22:29:30 +0200                       *
+*  Last modified: Tue, 14 Jun 2011 08:25:26 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+#include "common.h"
 
-#include <mtar/io.h>
+static void mtar_format_showDescription(void);
 
-struct mtar_io_file {
-	int fd;
-	unsigned int pos;
+static struct mtar_format mtar_format_ustar = {
+	.name            = "ustar",
+	.newIn           = mtar_format_ustar_newIn,
+	.newOut          = mtar_format_ustar_newOut,
+	.showDescription = mtar_format_showDescription,
 };
 
-int mtar_io_file_can_seek(struct mtar_io * io);
-int mtar_io_file_close(struct mtar_io * io);
-void mtar_io_file_free(struct mtar_io * io);
-off_t mtar_io_file_pos(struct mtar_io * io);
-ssize_t mtar_io_file_read(struct mtar_io * io, void * data, ssize_t length);
-off_t mtar_io_file_seek(struct mtar_io * io, off_t offset, int whence);
-ssize_t mtar_io_file_write(struct mtar_io * io, const void * data, ssize_t length);
+__attribute__((constructor))
+static void format_init() {
+	mtar_format_register(&mtar_format_ustar);
+}
 
-#endif
+void mtar_format_showDescription() {}
 

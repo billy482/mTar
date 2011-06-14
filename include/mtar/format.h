@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 10 Jun 2011 18:51:23 +0200                       *
+*  Last modified: Mon, 13 Jun 2011 15:07:37 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -46,7 +46,6 @@ struct mtar_format_header {
 };
 
 struct mtar_format_in {
-	const char * format;
 	struct mtar_format_in_ops {
 		void (*free)(struct mtar_format_in * f);
 		int (*getHeader)(struct mtar_format_in * f, struct mtar_format_header * header);
@@ -56,7 +55,6 @@ struct mtar_format_in {
 };
 
 struct mtar_format_out {
-	const char * format;
 	struct mtar_format_out_ops {
 		int (*addFile)(struct mtar_format_out * f, const char * filename);
 		int (*addLabel)(struct mtar_format_out * f, const char * label);

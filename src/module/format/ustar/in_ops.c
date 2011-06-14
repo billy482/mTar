@@ -24,74 +24,58 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 10:56:48 +0200                       *
+*  Last modified: Mon, 13 Jun 2011 15:43:01 +0200                       *
 \***********************************************************************/
 
-// free
+// free, malloc, realloc
 #include <stdlib.h>
-// lseek
-#include <sys/types.h>
-// close, lseek
-#include <unistd.h>
 
 #include "common.h"
 
-int mtar_io_pipe_can_seek(struct mtar_io * io __attribute__((unused))) {
+struct mtar_format_ustar_in {
+	struct mtar_io_in * io;
+	off_t position;
+	ssize_t size;
+};
+
+
+static void mtar_format_ustar_in_free(struct mtar_format_in * f);
+static int mtar_format_ustar_in_getHeader(struct mtar_format_in * f, struct mtar_format_header * header);
+static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
+
+static struct mtar_format_in_ops mtar_format_ustar_in_ops = {
+	.free      = mtar_format_ustar_in_free,
+	.getHeader = mtar_format_ustar_in_getHeader,
+	.read      = mtar_format_ustar_in_read,
+};
+
+
+void mtar_format_ustar_in_free(struct mtar_format_in * f) {
+	free(f->data);
+	free(f);
+}
+
+int mtar_format_ustar_in_getHeader(struct mtar_format_in * f, struct mtar_format_header * header) {
 	return 0;
 }
 
-int mtar_io_pipe_close(struct mtar_io * io) {
-	struct mtar_io_pipe * self = io->data;
+ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length) {
+	return 0;
+}
 
-	if (self->fd < 0)
+struct mtar_format_in * mtar_format_ustar_newIn(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
+	if (!io)
 		return 0;
 
-	int failed = close(self->fd);
+	struct mtar_format_ustar_in * data = malloc(sizeof(struct mtar_format_ustar_in));
+	data->io = io;
+	data->position = 0;
+	data->size = 0;
 
-	if (!failed)
-		self->fd = -1;
+	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
+	self->ops = &mtar_format_ustar_in_ops;
+	self->data = data;
 
-	return failed;
-}
-
-void mtar_io_pipe_free(struct mtar_io * io) {
-	struct mtar_io_pipe * self = io->data;
-
-	if (self->fd >= 0)
-		mtar_io_pipe_close(io);
-
-	free(self);
-	free(io);
-}
-
-off_t mtar_io_pipe_pos(struct mtar_io * io) {
-	struct mtar_io_pipe * self = io->data;
-	return self->pos;
-}
-
-ssize_t mtar_io_pipe_read(struct mtar_io * io, void * data, ssize_t length) {
-	struct mtar_io_pipe * self = io->data;
-
-	ssize_t nbRead = read(self->fd, data, length);
-
-	if (nbRead > 0)
-		self->pos += nbRead;
-
-	return nbRead;
-}
-
-off_t mtar_io_pipe_seek(struct mtar_io * io __attribute__((unused)), off_t offset __attribute__((unused)), int whence __attribute__((unused))) {
-	return -1;
-}
-
-ssize_t mtar_io_pipe_write(struct mtar_io * io, const void * data, ssize_t length) {
-	struct mtar_io_pipe * self = io->data;
-
-	ssize_t nbWrite = write(self->fd, data, length);
-
-	if (nbWrite > 0)
-		self->pos += nbWrite;
-
-	return nbWrite;
+	return self;
 }
 

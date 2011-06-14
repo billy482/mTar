@@ -24,43 +24,34 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 03 May 2011 16:35:59 +0200                       *
+*  Last modified: Tue, 14 Jun 2011 08:25:03 +0200                       *
 \***********************************************************************/
 
-// malloc
-#include <stdlib.h>
+#ifndef __MTAR_FORMAT_USTAR_H__
+#define __MTAR_FORMAT_USTAR_H__
 
-#include <mtar/option.h>
+#include <mtar/format.h>
 
-#include "common.h"
-
-static struct mtar_io_ops file_ops = {
-	.canSeek = mtar_io_file_can_seek,
-	.close   = mtar_io_file_close,
-	.free    = mtar_io_file_free,
-	.pos     = mtar_io_file_pos,
-	.read    = mtar_io_file_read,
-	.seek    = mtar_io_file_seek,
-	.write   = mtar_io_file_write,
+struct mtar_format_ustar {
+	char filename[100];
+	char filemode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char checksum[8];
+	char flag;
+	char linkname[100];
+	char magic[8];
+	char uname[32];
+	char gname[32];
+	char devmajor[8];
+	char devminor[8];
+	char prefix[167];
 };
 
-static struct mtar_io * mtar_io_file(int fd, int flags, const struct mtar_option * option);
+struct mtar_format_in * mtar_format_ustar_newIn(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_format_out * mtar_format_ustar_newOut(struct mtar_io_out * io, const struct mtar_option * option);
 
-
-struct mtar_io * mtar_io_file(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
-	data->fd = fd;
-	data->pos = 0;
-
-	struct mtar_io * io = malloc(sizeof(struct mtar_io));
-	io->ops = &file_ops;
-	io->data = data;
-
-	return io;
-}
-
-__attribute__((constructor))
-static void mtar_io_file_init() {
-	mtar_io_register("file", mtar_io_file);
-}
+#endif
 
