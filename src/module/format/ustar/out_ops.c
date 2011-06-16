@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 14 Jun 2011 08:40:03 +0200                       *
+*  Last modified: Thu, 16 Jun 2011 09:13:54 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -162,7 +162,7 @@ int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filen
 		ssize_t link_length = readlink(filename, link, 256);
 		link[link_length] = '\0';
 
-		if (filename_length >= 100 && link_length >= 100) {
+		if (filename_length > 100 && link_length > 100) {
 			block_size += 2048 + filename_length - filename_length % 512 + link_length - link_length % 512;
 			current_header = header = realloc(header, block_size);
 
@@ -171,7 +171,7 @@ int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filen
 			mtar_format_ustar_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
 
 			current_header += 4;
-		} else if (filename_length >= 100) {
+		} else if (filename_length > 100) {
 			block_size += 1024 + filename_length - filename_length % 512;
 			current_header = header = realloc(header, block_size);
 
@@ -179,7 +179,7 @@ int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filen
 			mtar_format_ustar_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
 
 			current_header += 2;
-		} else if (link_length >= 100) {
+		} else if (link_length > 100) {
 			block_size += 1024 + link_length - link_length % 512;
 			current_header = header = realloc(header, block_size);
 
@@ -188,7 +188,7 @@ int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filen
 
 			current_header += 2;
 		}
-	} else if (filename_length >= 100) {
+	} else if (filename_length > 100) {
 		block_size += 1024 + filename_length - filename_length % 512;
 		current_header = header = realloc(header, block_size);
 
