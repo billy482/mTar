@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 25 May 2011 14:02:13 +0200                       *
+*  Last modified: Tue, 14 Jun 2011 08:59:16 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -58,8 +58,8 @@
 
 struct mtar_function_create_param {
 	const char * filename;
-	struct mtar_format * format;
-	struct mtar_io * io;
+	struct mtar_format_out * format;
+	struct mtar_io_out * io;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
 };
@@ -71,6 +71,7 @@ static void mtar_function_create_showDescription(void);
 static void mtar_function_create_showHelp(void);
 
 static struct mtar_function mtar_function_create_functions = {
+	.name            = "create",
 	.doWork          = mtar_function_create,
 	.showDescription = mtar_function_create_showDescription,
 	.showHelp        = mtar_function_create_showHelp,
@@ -78,7 +79,7 @@ static struct mtar_function mtar_function_create_functions = {
 
 __attribute__((constructor))
 static void mtar_function_create_init() {
-	mtar_function_register("create", &mtar_function_create_functions);
+	mtar_function_register(&mtar_function_create_functions);
 }
 
 
@@ -94,13 +95,13 @@ int mtar_function_create(const struct mtar_option * option) {
 	};
 
 	if (option->filename)
-		param.io = mtar_io_get_file(option->filename, O_WRONLY | O_TRUNC, option);
+		param.io = mtar_io_out_get_file(option->filename, O_WRONLY | O_TRUNC, option);
 	else
-		param.io = mtar_io_get_fd(1, O_WRONLY, option);
+		param.io = mtar_io_out_get_fd(1, O_WRONLY, option);
 	if (!param.io)
 		return 1;
 
-	param.format = mtar_format_get(param.io, option);
+	param.format = mtar_format_get_out(param.io, option);
 
 	unsigned int i;
 	int failed = 0;
