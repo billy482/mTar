@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 10 Jun 2011 19:00:39 +0200                       *
+*  Last modified: Thu, 16 Jun 2011 09:51:25 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -32,8 +32,7 @@
 // strcmp
 #include <string.h>
 
-#include <mtar/format.h>
-
+#include "format.h"
 #include "loader.h"
 
 static void mtar_format_exit(void);
@@ -85,5 +84,14 @@ void mtar_format_register(struct mtar_format * f) {
 	mtar_format_nbFormats++;
 
 	mtar_loader_register_ok();
+}
+
+void mtar_format_showDescription() {
+	mtar_loader_loadAll("format");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available formats :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_format_nbFormats; i++)
+		mtar_format_formats[i]->showDescription();
 }
 

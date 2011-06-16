@@ -24,15 +24,16 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 09:34:18 +0200                       *
+*  Last modified: Thu, 16 Jun 2011 09:48:31 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_FILTER_H__
-#define __MTAR_FILTER_H__
 
-#include "io.h"
+#ifndef __MTAR_FORMAT_P_H__
+#define __MTAR_FORMAT_P_H__
 
-void mtar_filter_register(mtar_io_f function);
+#include <mtar/format.h>
+
+void mtar_format_showDescription(void);
 
 #endif
 

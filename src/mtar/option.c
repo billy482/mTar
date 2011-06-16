@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 26 May 2011 12:32:39 +0200                       *
+*  Last modified: Thu, 16 Jun 2011 10:10:30 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -32,6 +32,7 @@
 // calloc, free, realloc
 #include <stdlib.h>
 
+#include "format.h"
 #include "function.h"
 #include "option.h"
 #include "verbose.h"
@@ -88,7 +89,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhtvV");
+	size_t goodArg = strspn(argv[1], "-cfhHtvV");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_showHelp(*argv);
@@ -121,6 +122,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				case 'h':
 					mtar_option_showHelp(*argv);
 					return 1;
+
+				case 'H':
+					option->format = argv[optArg++];
+					break;
 
 				case 't':
 					option->doWork = mtar_function_get("list");
@@ -162,6 +167,20 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					return 2;
 				}
 				option->filename = opt;
+			} else if (!strncmp(argv[optArg], "--format", 8)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (!strcmp(opt, "help")) {
+					mtar_option_showVersion(*argv);
+					mtar_format_showDescription();
+					return 1;
+				} else {
+					option->format = opt;
+				}
 			} else if (!strncmp(argv[optArg], "--function", 10)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
@@ -221,6 +240,8 @@ void mtar_option_showHelp(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create          : create new archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE    : use ARCHIVE file or device ARCHIVE\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT * : use FORMAT as tar format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help               : list available format\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION * : use FUNCTION as action\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help               : list available function\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help=FUNCTION      : show specific help from function FUNCTION\n");
