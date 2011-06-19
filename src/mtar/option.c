@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 10:10:30 +0200                       *
+*  Last modified: Fri, 17 Jun 2011 08:55:53 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -34,6 +34,7 @@
 
 #include "format.h"
 #include "function.h"
+#include "io.h"
 #include "option.h"
 #include "verbose.h"
 
@@ -174,13 +175,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				else if (optArg <= argc)
 					opt = argv[++optArg];
 
-				if (!strcmp(opt, "help")) {
-					mtar_option_showVersion(*argv);
-					mtar_format_showDescription();
-					return 1;
-				} else {
-					option->format = opt;
-				}
+				option->format = opt;
 			} else if (!strncmp(argv[optArg], "--function", 10)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
@@ -188,11 +183,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				else if (optArg <= argc)
 					opt = argv[++optArg];
 
-				if (!strcmp(opt, "help")) {
-					mtar_option_showVersion(*argv);
-					mtar_function_showDescription();
-					return 1;
-				} else if (!strncmp(opt, "help=", 5)) {
+				if (!strncmp(opt, "help=", 5)) {
 					mtar_option_showVersion(*argv);
 					mtar_function_showHelp(strchr(opt, '=') + 1);
 					return 1;
@@ -203,7 +194,22 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				mtar_option_showHelp(*argv);
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list")) {
-				option->doWork = mtar_function_get("create");
+				option->doWork = mtar_function_get("list");
+			} else if (!strcmp(argv[optArg], "--list-filters")) {
+				mtar_option_showVersion(*argv);
+				return 1;
+			} else if (!strcmp(argv[optArg], "--list-formats")) {
+				mtar_option_showVersion(*argv);
+				mtar_format_showDescription();
+				return 1;
+			} else if (!strcmp(argv[optArg], "--list-functions")) {
+				mtar_option_showVersion(*argv);
+				mtar_function_showDescription();
+				return 1;
+			} else if (!strcmp(argv[optArg], "--list-ios")) {
+				mtar_option_showVersion(*argv);
+				mtar_io_showDescription();
+				return 1;
 			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;
 
@@ -241,10 +247,12 @@ void mtar_option_showHelp(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create          : create new archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE    : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT * : use FORMAT as tar format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help               : list available format\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION * : use FUNCTION as action\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help               : list available function\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help=FUNCTION      : show specific help from function FUNCTION\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-filters *      : list available io filters\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-formats *      : list available format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-functions *    : list available function\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-ios *          : list available io backend\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -h, --help            : show this and exit\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *     : load a plugin which will interact with an function\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list            : list files from tar archive\n\n");

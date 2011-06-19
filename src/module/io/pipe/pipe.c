@@ -27,6 +27,8 @@
 *  Last modified: Mon, 13 Jun 2011 13:30:17 +0200                       *
 \***********************************************************************/
 
+#include <mtar/verbose.h>
+
 #include "common.h"
 
 static void mtar_io_pipe_showDescription(void);
@@ -44,5 +46,7 @@ static void mtar_io_file_init() {
 	mtar_io_register(&mtar_io_pipe_ops);
 }
 
-void mtar_io_pipe_showDescription() { }
+void mtar_io_pipe_showDescription() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  pipe : use pipe (from file or not)\n");
+}
 

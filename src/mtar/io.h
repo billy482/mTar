@@ -24,29 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 09:00:25 +0200                       *
+*  Last modified: Fri, 17 Jun 2011 08:55:01 +0200                       *
 \***********************************************************************/
 
-#include <mtar/verbose.h>
+#ifndef __MTAR_IO_P_H__
+#define __MTAR_IO_P_H__
 
-#include "common.h"
+#include <mtar/io.h>
 
-static void mtar_io_file_showDescription(void);
+void mtar_io_showDescription(void);
 
-static struct mtar_io mtar_io_file_ops = {
-	.name            = "file",
-	.newIn           = mtar_io_file_newIn,
-	.newOut          = mtar_io_file_newOut,
-	.showDescription = mtar_io_file_showDescription,
-};
-
-
-__attribute__((constructor))
-static void mtar_io_file_init() {
-	mtar_io_register(&mtar_io_file_ops);
-}
-
-void mtar_io_file_showDescription() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  file : use regular file\n");
-}
+#endif
 

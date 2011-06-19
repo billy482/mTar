@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 13 Jun 2011 15:03:46 +0200                       *
+*  Last modified: Fri, 17 Jun 2011 11:33:05 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -35,25 +35,60 @@
 
 struct mtar_option;
 
+/**
+ * \brief Used for input io
+ */
 struct mtar_io_in {
+	/**
+	 * \brief This structure contains only functions pointers used as methods
+	 */
 	struct mtar_io_in_ops {
+		/**
+		 * \brief close the input stream
+		 * \param io : io module
+		 * \return \b 0 if ok
+		 */
 		int (*close)(struct mtar_io_in * io);
 		off_t (*forward)(struct mtar_io_in * io, off_t offset);
+		/**
+		 * \brief Release all memory used by this module
+		 */
 		void (*free)(struct mtar_io_in * io);
 		off_t (*pos)(struct mtar_io_in * io);
+		/**
+		 * \brief read data from stream
+		 * \param io : instance of stream
+		 * \param data : read data to \b data
+		 * \param length : length of \b data
+		 * \return length of data read
+		 */
 		ssize_t (*read)(struct mtar_io_in * io, void * data, ssize_t length);
 	} * ops;
+	/**
+	 * \brief Private data used by io module
+	 */
 	void * data;
 };
 
+/**
+ * \brief Used for output io
+ */
 struct mtar_io_out {
 	struct mtar_io_out_ops {
+		/**
+		 * \brief close the input stream
+		 * \param io : io module
+		 * \return \b 0 if ok
+		 */
 		int (*close)(struct mtar_io_out * io);
 		int (*flush)(struct mtar_io_out * io);
 		void (*free)(struct mtar_io_out * io);
 		off_t (*pos)(struct mtar_io_out * io);
 		ssize_t (*write)(struct mtar_io_out * io, const void * data, ssize_t length);
 	} * ops;
+	/**
+	 * \brief Private data used by io module
+	 */
 	void * data;
 };
 

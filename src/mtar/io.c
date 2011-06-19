@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 07 Jun 2011 11:24:04 +0200                       *
+*  Last modified: Fri, 17 Jun 2011 08:57:48 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -42,10 +42,10 @@
 // access, stat
 #include <unistd.h>
 
-#include <mtar/io.h>
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
+#include "io.h"
 #include "loader.h"
 
 static struct mtar_io ** mtar_io_ios = 0;
@@ -149,5 +149,14 @@ void mtar_io_register(struct mtar_io * function) {
 	mtar_io_nbIos++;
 
 	mtar_loader_register_ok();
+}
+
+void mtar_io_showDescription() {
+	mtar_loader_loadAll("io");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend ios :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_io_nbIos; i++)
+		mtar_io_ios[i]->showDescription();
 }
 
