@@ -24,29 +24,33 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 09:00:25 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:56:09 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static void mtar_io_file_showDescription(void);
+static void mtar_io_file_show_description(void);
 
-static struct mtar_io mtar_io_file_ops = {
-	.name            = "file",
-	.newIn           = mtar_io_file_newIn,
-	.newOut          = mtar_io_file_newOut,
-	.showDescription = mtar_io_file_showDescription,
+static struct mtar_io mtar_io_file = {
+	.name             = "file",
+	.new_in           = mtar_io_file_new_in,
+	.new_out          = mtar_io_file_new_out,
+	.show_description = mtar_io_file_show_description,
 };
 
 
-__attribute__((constructor))
-static void mtar_io_file_init() {
-	mtar_io_register(&mtar_io_file_ops);
+struct mtar_io * mtar_io_file_get_driver() {
+	return &mtar_io_file;
 }
 
-void mtar_io_file_showDescription() {
+__attribute__((constructor))
+static void mtar_io_file_init() {
+	mtar_io_register(&mtar_io_file);
+}
+
+void mtar_io_file_show_description() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  file : use regular file\n");
 }
 

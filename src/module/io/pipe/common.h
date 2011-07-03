@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 02 Jul 2011 08:51:15 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:47:42 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_PIPE_H__
@@ -38,8 +38,9 @@ struct mtar_io_pipe {
 	int last_errno;
 };
 
-struct mtar_io_in * mtar_io_pipe_newIn(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_pipe_newOut(int fd, int flags, const struct mtar_option * option);
+struct mtar_io * mtar_io_pipe_get_driver(void);
+struct mtar_io_in * mtar_io_pipe_new_in(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags, const struct mtar_option * option);
 
 #endif
 

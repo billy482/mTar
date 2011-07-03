@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 08:55:01 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:52:32 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_P_H__
@@ -32,7 +32,7 @@
 
 #include <mtar/io.h>
 
-void mtar_io_showDescription(void);
+void mtar_io_show_description(void);
 
 #endif
 

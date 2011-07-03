@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 02 Jul 2011 08:28:55 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:32:58 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -111,7 +111,7 @@ ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length
 	return nbRead;
 }
 
-struct mtar_io_in * mtar_io_file_newIn(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
 	data->fd = fd;
 	data->pos = 0;
@@ -120,6 +120,7 @@ struct mtar_io_in * mtar_io_file_newIn(int fd, int flags __attribute__((unused))
 	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
 	io->ops = &mtar_io_file_in_ops;
 	io->data = data;
+	io->driver = mtar_io_file_get_driver();
 
 	return io;
 }

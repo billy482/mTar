@@ -24,29 +24,33 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 13 Jun 2011 13:30:17 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:56:34 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static void mtar_io_pipe_showDescription(void);
+static void mtar_io_pipe_show_description(void);
 
-static struct mtar_io mtar_io_pipe_ops = {
-	.name            = "pipe",
-	.newIn           = mtar_io_pipe_newIn,
-	.newOut          = mtar_io_pipe_newOut,
-	.showDescription = mtar_io_pipe_showDescription,
+static struct mtar_io mtar_io_pipe = {
+	.name             = "pipe",
+	.new_in           = mtar_io_pipe_new_in,
+	.new_out          = mtar_io_pipe_new_out,
+	.show_description = mtar_io_pipe_show_description,
 };
 
 
-__attribute__((constructor))
-static void mtar_io_file_init() {
-	mtar_io_register(&mtar_io_pipe_ops);
+struct mtar_io * mtar_io_pipe_get_driver(void) {
+	return &mtar_io_pipe;
 }
 
-void mtar_io_pipe_showDescription() {
+__attribute__((constructor))
+static void mtar_io_file_init() {
+	mtar_io_register(&mtar_io_pipe);
+}
+
+void mtar_io_pipe_show_description() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  pipe : use pipe (from file or not)\n");
 }
 

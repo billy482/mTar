@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 08:57:48 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:53:48 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -95,7 +95,7 @@ struct mtar_io * mtar_io_get(int fd) {
 struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_option * option) {
 	struct mtar_io * io = mtar_io_get(fd);
 	if (io)
-		return io->newIn(fd, flags, option);
+		return io->new_in(fd, flags, option);
 
 	return 0;
 }
@@ -130,7 +130,7 @@ int mtar_io_open(const char * filename, int flags) {
 struct mtar_io_out * mtar_io_out_get_fd(int fd, int flags, const struct mtar_option * option) {
 	struct mtar_io * io = mtar_io_get(fd);
 	if (io)
-		return io->newOut(fd, flags, option);
+		return io->new_out(fd, flags, option);
 
 	return 0;
 }
@@ -151,12 +151,12 @@ void mtar_io_register(struct mtar_io * function) {
 	mtar_loader_register_ok();
 }
 
-void mtar_io_showDescription() {
+void mtar_io_show_description() {
 	mtar_loader_loadAll("io");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend ios :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)
-		mtar_io_ios[i]->showDescription();
+		mtar_io_ios[i]->show_description();
 }
 

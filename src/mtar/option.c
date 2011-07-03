@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 08:55:53 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:54:36 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -208,7 +208,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-ios")) {
 				mtar_option_showVersion(*argv);
-				mtar_io_showDescription();
+				mtar_io_show_description();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;

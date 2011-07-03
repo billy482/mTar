@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 02 Jul 2011 08:49:56 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:47:32 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -103,7 +103,7 @@ ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize
 	return nbWrite;
 }
 
-struct mtar_io_out * mtar_io_pipe_newOut(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_pipe * data = malloc(sizeof(struct mtar_io_pipe));
 	data->fd = fd;
 	data->pos = 0;
@@ -112,6 +112,7 @@ struct mtar_io_out * mtar_io_pipe_newOut(int fd, int flags __attribute__((unused
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_pipe_out_ops;
 	io->data = data;
+	io->driver = mtar_io_pipe_get_driver();
 
 	return io;
 }

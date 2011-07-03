@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 02 Jul 2011 08:16:08 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 20:52:07 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -69,6 +69,7 @@ struct mtar_io_in {
 	 * \brief Private data used by io module
 	 */
 	void * data;
+	struct mtar_io * driver;
 };
 
 /**
@@ -92,13 +93,14 @@ struct mtar_io_out {
 	 * \brief Private data used by io module
 	 */
 	void * data;
+	struct mtar_io * driver;
 };
 
 struct mtar_io {
 	const char * name;
-	struct mtar_io_in * (*newIn)(int fd, int flags, const struct mtar_option * option);
-	struct mtar_io_out * (*newOut)(int fd, int flags, const struct mtar_option * option);
-	void (*showDescription)(void);
+	struct mtar_io_in * (*new_in)(int fd, int flags, const struct mtar_option * option);
+	struct mtar_io_out * (*new_out)(int fd, int flags, const struct mtar_option * option);
+	void (*show_description)(void);
 };
 
 struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_option * option);
