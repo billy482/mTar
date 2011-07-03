@@ -24,9 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 13 Jun 2011 11:29:21 +0200                       *
+*  Last modified: Sat, 02 Jul 2011 08:45:29 +0200                       *
 \***********************************************************************/
 
+// errno
+#include <errno.h>
 // free
 #include <stdlib.h>
 // read
@@ -37,15 +39,17 @@
 static int mtar_io_pipe_in_close(struct mtar_io_in * io);
 static off_t mtar_io_pipe_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_io_pipe_in_free(struct mtar_io_in * io);
+static int mtar_io_pipe_in_last_errno(struct mtar_io_in * io);
 static off_t mtar_io_pipe_in_pos(struct mtar_io_in * io);
 static ssize_t mtar_io_pipe_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_io_pipe_in_ops = {
-	.close   = mtar_io_pipe_in_close,
-	.forward = mtar_io_pipe_in_forward,
-	.free    = mtar_io_pipe_in_free,
-	.pos     = mtar_io_pipe_in_pos,
-	.read    = mtar_io_pipe_in_read,
+	.close      = mtar_io_pipe_in_close,
+	.forward    = mtar_io_pipe_in_forward,
+	.free       = mtar_io_pipe_in_free,
+	.last_errno = mtar_io_pipe_in_last_errno,
+	.pos        = mtar_io_pipe_in_pos,
+	.read       = mtar_io_pipe_in_read,
 };
 
 
@@ -57,7 +61,9 @@ int mtar_io_pipe_in_close(struct mtar_io_in * io) {
 
 	int failed = close(self->fd);
 
-	if (!failed)
+	if (failed)
+		self->last_errno = errno;
+	else
 		self->fd = -1;
 
 	return failed;
@@ -75,6 +81,11 @@ void mtar_io_pipe_in_free(struct mtar_io_in * io) {
 	free(io);
 }
 
+int mtar_io_pipe_in_last_errno(struct mtar_io_in * io) {
+	struct mtar_io_pipe * self = io->data;
+	return self->last_errno;
+}
+
 off_t mtar_io_pipe_in_pos(struct mtar_io_in * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->pos;
@@ -87,6 +98,8 @@ ssize_t mtar_io_pipe_in_read(struct mtar_io_in * io, void * data, ssize_t length
 
 	if (nbRead > 0)
 		self->pos += nbRead;
+	else if (nbRead < 0)
+		self->last_errno = errno;
 
 	return nbRead;
 }
@@ -95,6 +108,7 @@ struct mtar_io_in * mtar_io_pipe_newIn(int fd, int flags __attribute__((unused))
 	struct mtar_io_pipe * data = malloc(sizeof(struct mtar_io_pipe));
 	data->fd = fd;
 	data->pos = 0;
+	data->last_errno = 0;
 
 	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
 	io->ops = &mtar_io_pipe_in_ops;

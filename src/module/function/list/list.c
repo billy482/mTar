@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 26 May 2011 13:11:19 +0200                       *
+*  Last modified: Sun, 19 Jun 2011 20:17:37 +0200                       *
 \***********************************************************************/
 
 // open
@@ -45,6 +45,7 @@ static void mtar_function_list_showDescription(void);
 static void mtar_function_list_showHelp(void);
 
 static struct mtar_function mtar_function_list_functions = {
+	.name            = "list",
 	.doWork          = mtar_function_list,
 	.showDescription = mtar_function_list_showDescription,
 	.showHelp        = mtar_function_list_showHelp,
@@ -52,20 +53,20 @@ static struct mtar_function mtar_function_list_functions = {
 
 __attribute__((constructor))
 static void mtar_function_list_init() {
-	mtar_function_register("list", &mtar_function_list_functions);
+	mtar_function_register(&mtar_function_list_functions);
 }
 
 
 int mtar_function_list(const struct mtar_option * option) {
-	struct mtar_io * io = 0;
+	struct mtar_io_in * io = 0;
 	if (option->filename)
-		io = mtar_io_get_file(option->filename, O_RDONLY, option);
+		io = mtar_io_in_get_file(option->filename, O_RDONLY, option);
 	else
-		io = mtar_io_get_file(0, O_RDONLY, option);
+		io = mtar_io_in_get_file(0, O_RDONLY, option);
 	if (!io)
 		return 1;
 
-	struct mtar_format * format = mtar_format_get(io, option);
+	struct mtar_format_in * format = mtar_format_get_in(io, option);
 	struct mtar_format_header header;
 	int failed;
 

@@ -24,9 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 10 Jun 2011 19:28:06 +0200                       *
+*  Last modified: Sat, 02 Jul 2011 08:34:40 +0200                       *
 \***********************************************************************/
 
+// errno
+#include <errno.h>
 // free
 #include <stdlib.h>
 // fdatasync, read
@@ -37,15 +39,17 @@
 static int mtar_io_file_out_close(struct mtar_io_out * io);
 static int mtar_io_file_out_flush(struct mtar_io_out * io);
 static void mtar_io_file_out_free(struct mtar_io_out * io);
+static int mtar_io_file_out_last_errno(struct mtar_io_out * io);
 static off_t mtar_io_file_out_pos(struct mtar_io_out * io);
 static ssize_t mtar_io_file_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_file_out_ops = {
-	.close = mtar_io_file_out_close,
-	.flush = mtar_io_file_out_flush,
-	.free  = mtar_io_file_out_free,
-	.pos   = mtar_io_file_out_pos,
-	.write = mtar_io_file_out_write,
+	.close      = mtar_io_file_out_close,
+	.flush      = mtar_io_file_out_flush,
+	.free       = mtar_io_file_out_free,
+	.last_errno = mtar_io_file_out_last_errno,
+	.pos        = mtar_io_file_out_pos,
+	.write      = mtar_io_file_out_write,
 };
 
 
@@ -57,7 +61,9 @@ int mtar_io_file_out_close(struct mtar_io_out * io) {
 
 	int failed = close(self->fd);
 
-	if (!failed)
+	if (failed)
+		self->last_errno = errno;
+	else
 		self->fd = -1;
 
 	return failed;
@@ -66,7 +72,11 @@ int mtar_io_file_out_close(struct mtar_io_out * io) {
 int mtar_io_file_out_flush(struct mtar_io_out * io) {
 	struct mtar_io_file * self = io->data;
 
-	return fdatasync(self->fd);
+	int failed = fdatasync(self->fd);
+	if (failed)
+		self->last_errno = errno;
+
+	return failed;
 }
 
 void mtar_io_file_out_free(struct mtar_io_out * io) {
@@ -74,6 +84,11 @@ void mtar_io_file_out_free(struct mtar_io_out * io) {
 
 	free(io->data);
 	free(io);
+}
+
+int mtar_io_file_out_last_errno(struct mtar_io_out * io) {
+	struct mtar_io_file * self = io->data;
+	return self->last_errno;
 }
 
 off_t mtar_io_file_out_pos(struct mtar_io_out * io) {
@@ -88,6 +103,8 @@ ssize_t mtar_io_file_out_write(struct mtar_io_out * io, const void * data, ssize
 
 	if (nbWrite > 0)
 		self->pos += nbWrite;
+	else if (nbWrite < 0)
+		self->last_errno = errno;
 
 	return nbWrite;
 }
@@ -96,6 +113,7 @@ struct mtar_io_out * mtar_io_file_newOut(int fd, int flags __attribute__((unused
 	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
 	data->fd = fd;
 	data->pos = 0;
+	data->last_errno = 0;
 
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_file_out_ops;

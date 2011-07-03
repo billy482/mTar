@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 17 Jun 2011 11:33:05 +0200                       *
+*  Last modified: Sat, 02 Jul 2011 08:16:08 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -54,6 +54,7 @@ struct mtar_io_in {
 		 * \brief Release all memory used by this module
 		 */
 		void (*free)(struct mtar_io_in * io);
+		int (*last_errno)(struct mtar_io_in * io);
 		off_t (*pos)(struct mtar_io_in * io);
 		/**
 		 * \brief read data from stream
@@ -83,6 +84,7 @@ struct mtar_io_out {
 		int (*close)(struct mtar_io_out * io);
 		int (*flush)(struct mtar_io_out * io);
 		void (*free)(struct mtar_io_out * io);
+		int (*last_errno)(struct mtar_io_out * io);
 		off_t (*pos)(struct mtar_io_out * io);
 		ssize_t (*write)(struct mtar_io_out * io, const void * data, ssize_t length);
 	} * ops;

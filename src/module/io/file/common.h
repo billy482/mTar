@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 07 Jun 2011 11:53:40 +0200                       *
+*  Last modified: Sat, 02 Jul 2011 08:50:36 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_FILE_H__
@@ -34,7 +34,8 @@
 
 struct mtar_io_file {
 	int fd;
-	unsigned int pos;
+	off_t pos;
+	int last_errno;
 };
 
 struct mtar_io_in * mtar_io_file_newIn(int fd, int flags, const struct mtar_option * option);

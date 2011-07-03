@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 09:13:54 +0200                       *
+*  Last modified: Sat, 02 Jul 2011 09:05:46 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -65,16 +65,18 @@ static int mtar_format_ustar_out_addLabel(struct mtar_format_out * f, const char
 static int mtar_format_ustar_out_addLink(struct mtar_format_out * f, const char * src, const char * target);
 static int mtar_format_ustar_out_endOfFile(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
+static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static const char * mtar_format_ustar_skip_leading_slash(const char * str);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
-	.addFile   = mtar_format_ustar_out_addFile,
-	.addLabel  = mtar_format_ustar_out_addLabel,
-	.addLink   = mtar_format_ustar_out_addLink,
-	.endOfFile = mtar_format_ustar_out_endOfFile,
-	.free      = mtar_format_ustar_out_free,
-	.write     = mtar_format_ustar_out_write,
+	.addFile    = mtar_format_ustar_out_addFile,
+	.addLabel   = mtar_format_ustar_out_addLabel,
+	.addLink    = mtar_format_ustar_out_addLink,
+	.endOfFile  = mtar_format_ustar_out_endOfFile,
+	.free       = mtar_format_ustar_out_free,
+	.last_errno = mtar_format_ustar_out_last_errno,
+	.write      = mtar_format_ustar_out_write,
 };
 
 
@@ -328,6 +330,11 @@ int mtar_format_ustar_out_endOfFile(struct mtar_format_out * f) {
 void mtar_format_ustar_out_free(struct mtar_format_out * f) {
 	free(f->data);
 	free(f);
+}
+
+int mtar_format_ustar_out_last_errno(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * format = f->data;
+	return format->io->ops->last_errno(format->io);
 }
 
 ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length) {
