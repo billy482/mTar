@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 02 Jul 2011 09:05:46 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:20:20 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -60,23 +60,23 @@ struct mtar_format_ustar_out {
 static void mtar_format_ustar_compute_checksum(const void * header, char * checksum);
 static void mtar_format_ustar_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
 static void mtar_format_ustar_compute_size(char * csize, ssize_t size);
-static int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filename);
-static int mtar_format_ustar_out_addLabel(struct mtar_format_out * f, const char * label);
-static int mtar_format_ustar_out_addLink(struct mtar_format_out * f, const char * src, const char * target);
-static int mtar_format_ustar_out_endOfFile(struct mtar_format_out * f);
+static int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename);
+static int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label);
+static int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target);
+static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static const char * mtar_format_ustar_skip_leading_slash(const char * str);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
-	.addFile    = mtar_format_ustar_out_addFile,
-	.addLabel   = mtar_format_ustar_out_addLabel,
-	.addLink    = mtar_format_ustar_out_addLink,
-	.endOfFile  = mtar_format_ustar_out_endOfFile,
-	.free       = mtar_format_ustar_out_free,
-	.last_errno = mtar_format_ustar_out_last_errno,
-	.write      = mtar_format_ustar_out_write,
+	.add_file     = mtar_format_ustar_out_add_file,
+	.add_label    = mtar_format_ustar_out_add_label,
+	.add_link     = mtar_format_ustar_out_add_link,
+	.end_of_file  = mtar_format_ustar_out_end_of_file,
+	.free         = mtar_format_ustar_out_free,
+	.last_errno   = mtar_format_ustar_out_last_errno,
+	.write        = mtar_format_ustar_out_write,
 };
 
 
@@ -122,7 +122,7 @@ void mtar_format_ustar_compute_size(char * csize, ssize_t size) {
 	}
 }
 
-struct mtar_format_out * mtar_format_ustar_newOut(struct mtar_io_out * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option __attribute__((unused))) {
 	if (!io)
 		return 0;
 
@@ -138,7 +138,7 @@ struct mtar_format_out * mtar_format_ustar_newOut(struct mtar_io_out * io, const
 	return self;
 }
 
-int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filename) {
+int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename) {
 	if (access(filename, F_OK)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", filename);
 		return 1;
@@ -244,7 +244,7 @@ int mtar_format_ustar_out_addFile(struct mtar_format_out * f, const char * filen
 	return block_size != nbWrite;
 }
 
-int mtar_format_ustar_out_addLabel(struct mtar_format_out * f, const char * label) {
+int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label) {
 	if (!label) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Label should be defined\n");
 		return 1;
@@ -269,7 +269,7 @@ int mtar_format_ustar_out_addLabel(struct mtar_format_out * f, const char * labe
 	return 512 != nbWrite;
 }
 
-int mtar_format_ustar_out_addLink(struct mtar_format_out * f, const char * src, const char * target) {
+int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target) {
 	if (access(src, F_OK)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", src);
 		return 1;
@@ -310,7 +310,7 @@ int mtar_format_ustar_out_addLink(struct mtar_format_out * f, const char * src, 
 	return block_size != nbWrite;
 }
 
-int mtar_format_ustar_out_endOfFile(struct mtar_format_out * f) {
+int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f) {
 	struct mtar_format_ustar_out * format = f->data;
 
 	unsigned short mod = format->position % 512;

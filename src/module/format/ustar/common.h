@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 14 Jun 2011 08:25:03 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:16:35 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_USTAR_H__
@@ -50,8 +50,8 @@ struct mtar_format_ustar {
 	char prefix[167];
 };
 
-struct mtar_format_in * mtar_format_ustar_newIn(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_format_out * mtar_format_ustar_newOut(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option);
 
 #endif
 

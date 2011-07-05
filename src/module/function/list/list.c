@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 19 Jun 2011 20:17:37 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:23:11 +0200                       *
 \***********************************************************************/
 
 // open
@@ -70,9 +70,9 @@ int mtar_function_list(const struct mtar_option * option) {
 	struct mtar_format_header header;
 	int failed;
 
-	while (!(failed = format->ops->getHeader(format, &header))) {
+	while (!(failed = format->ops->get_header(format, &header))) {
 
-		//format->ops->skipFile(format);
+		format->ops->skip_file(format);
 	}
 
 	format->ops->free(format);

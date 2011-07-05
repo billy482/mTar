@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 09:51:25 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 19:15:38 +0200                       *
 \***********************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// strcmp
+// bzero, strcmp
 #include <string.h>
 
 #include "format.h"
@@ -67,15 +67,31 @@ struct mtar_format * mtar_format_get(const char * name) {
 struct mtar_format_in * mtar_format_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
-		return format->newIn(io, option);
+		return format->new_in(io, option);
 	return 0;
 }
 
 struct mtar_format_out * mtar_format_get_out(struct mtar_io_out * io, const struct mtar_option * option) {
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
-		return format->newOut(io, option);
+		return format->new_out(io, option);
 	return 0;
+}
+
+void mtar_format_init_header(struct mtar_format_header * h) {
+	if (!h)
+		return;
+
+	h->dev = 0;
+	bzero(h->path, 256);
+	h->filename = 0;
+	h->size = 0;
+	h->mode = 0;
+	h->mtime = 0;
+	h->uid = 0;
+	bzero(h->uname, 32);
+	h->gid = 0;
+	bzero(h->gname, 32);
 }
 
 void mtar_format_register(struct mtar_format * f) {
@@ -86,12 +102,12 @@ void mtar_format_register(struct mtar_format * f) {
 	mtar_loader_register_ok();
 }
 
-void mtar_format_showDescription() {
+void mtar_format_show_description() {
 	mtar_loader_loadAll("format");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available formats :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_format_nbFormats; i++)
-		mtar_format_formats[i]->showDescription();
+		mtar_format_formats[i]->show_description();
 }
 

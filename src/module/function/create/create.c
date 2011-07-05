@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 14 Jun 2011 08:59:16 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:21:05 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -130,14 +130,14 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	snprintf(key, 16, "%llx_%lx", (long long int) st.st_dev, st.st_ino);
 	if (mtar_hashtable_hasKey(param->inode, key)) {
 		const char * target = mtar_hashtable_value(param->inode, key);
-		int failed = param->format->ops->addLink(param->format, param->filename, target);
+		int failed = param->format->ops->add_link(param->format, param->filename, target);
 		free(key);
 		return failed;
 	}
 
 	mtar_hashtable_put(param->inode, key, strdup(param->filename));
 
-	int failed = param->format->ops->addFile(param->format, param->filename);
+	int failed = param->format->ops->add_file(param->format, param->filename);
 	if (failed)
 		return failed;
 
@@ -160,7 +160,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 			mtar_plugin_write(buffer, nbRead);
 		}
 
-		param->format->ops->endOfFile(param->format);
+		param->format->ops->end_of_file(param->format);
 		mtar_verbose_clean();
 
 		free(buffer);

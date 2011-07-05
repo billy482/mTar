@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:52:07 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 21:32:02 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -107,7 +107,7 @@ struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_optio
 struct mtar_io_in * mtar_io_in_get_file(const char * filename, int flags, const struct mtar_option * option);
 struct mtar_io_out * mtar_io_out_get_fd(int fd, int flags, const struct mtar_option * option);
 struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, const struct mtar_option * option);
-void mtar_io_register(struct mtar_io * function);
+void mtar_io_register(struct mtar_io * io);
 
 #endif
 

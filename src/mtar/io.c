@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:53:48 +0200                       *
+*  Last modified: Sun, 03 Jul 2011 21:32:52 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -143,9 +143,9 @@ struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, cons
 	return mtar_io_out_get_fd(fd, flags, option);
 }
 
-void mtar_io_register(struct mtar_io * function) {
+void mtar_io_register(struct mtar_io * io) {
 	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
-	mtar_io_ios[mtar_io_nbIos] = function;
+	mtar_io_ios[mtar_io_nbIos] = io;
 	mtar_io_nbIos++;
 
 	mtar_loader_register_ok();

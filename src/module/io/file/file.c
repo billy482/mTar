@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:56:09 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:06:35 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
@@ -51,6 +51,6 @@ static void mtar_io_file_init() {
 }
 
 void mtar_io_file_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  file : use regular file\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  file : used for regular file\n");
 }
 

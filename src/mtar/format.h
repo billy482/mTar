@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 09:48:31 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:11:31 +0200                       *
 \***********************************************************************/
 
 
@@ -33,7 +33,7 @@
 
 #include <mtar/format.h>
 
-void mtar_format_showDescription(void);
+void mtar_format_show_description(void);
 
 #endif
 

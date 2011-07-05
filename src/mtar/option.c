@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:54:36 +0200                       *
+*  Last modified: Mon, 04 Jul 2011 18:15:39 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -38,8 +38,8 @@
 #include "option.h"
 #include "verbose.h"
 
-static void mtar_option_showHelp(const char * path);
-static void mtar_option_showVersion(const char * path);
+static void mtar_option_show_help(const char * path);
+static void mtar_option_show_version(const char * path);
 
 
 int mtar_option_check(struct mtar_option * option) {
@@ -85,7 +85,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 
 	if (argc < 2) {
-		mtar_option_showHelp(*argv);
+		mtar_option_show_help(*argv);
 		return 2;
 	}
 
@@ -93,7 +93,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	size_t goodArg = strspn(argv[1], "-cfhHtvV");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
-		mtar_option_showHelp(*argv);
+		mtar_option_show_help(*argv);
 		return 2;
 	}
 
@@ -109,19 +109,19 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				case 'f':
 					if (option->filename) {
 						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
-						mtar_option_showHelp(*argv);
+						mtar_option_show_help(*argv);
 						return 2;
 					}
 					if (optArg >= argc) {
 						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
-						mtar_option_showHelp(*argv);
+						mtar_option_show_help(*argv);
 						return 2;
 					}
 					option->filename = argv[optArg++];
 					break;
 
 				case 'h':
-					mtar_option_showHelp(*argv);
+					mtar_option_show_help(*argv);
 					return 1;
 
 				case 'H':
@@ -138,7 +138,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'V':
-					mtar_option_showVersion(*argv);
+					mtar_option_show_version(*argv);
 					return 1;
 			}
 		}
@@ -159,12 +159,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				if (option->filename) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
-					mtar_option_showHelp(*argv);
+					mtar_option_show_help(*argv);
 					return 2;
 				}
 				if (!opt) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
-					mtar_option_showHelp(*argv);
+					mtar_option_show_help(*argv);
 					return 2;
 				}
 				option->filename = opt;
@@ -184,30 +184,30 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					opt = argv[++optArg];
 
 				if (!strncmp(opt, "help=", 5)) {
-					mtar_option_showVersion(*argv);
+					mtar_option_show_version(*argv);
 					mtar_function_showHelp(strchr(opt, '=') + 1);
 					return 1;
 				} else {
 					option->doWork = mtar_function_get(opt);
 				}
 			} else if (!strcmp(argv[optArg], "--help")) {
-				mtar_option_showHelp(*argv);
+				mtar_option_show_help(*argv);
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list")) {
 				option->doWork = mtar_function_get("list");
 			} else if (!strcmp(argv[optArg], "--list-filters")) {
-				mtar_option_showVersion(*argv);
+				mtar_option_show_version(*argv);
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-formats")) {
-				mtar_option_showVersion(*argv);
-				mtar_format_showDescription();
+				mtar_option_show_version(*argv);
+				mtar_format_show_description();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-functions")) {
-				mtar_option_showVersion(*argv);
+				mtar_option_show_version(*argv);
 				mtar_function_showDescription();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-ios")) {
-				mtar_option_showVersion(*argv);
+				mtar_option_show_version(*argv);
 				mtar_io_show_description();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--plugin")) {
@@ -235,7 +235,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	return 0;
 }
 
-void mtar_option_showHelp(const char * path) {
+void mtar_option_show_help(const char * path) {
 	const char * ptr = strrchr(path, '/');
 	if (ptr)
 		ptr++;
@@ -260,7 +260,7 @@ void mtar_option_showHelp(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
 }
 
-void mtar_option_showVersion(const char * path) {
+void mtar_option_show_version(const char * path) {
 	const char * ptr = strrchr(path, '/');
 	if (ptr)
 		ptr++;
