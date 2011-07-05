@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 08:11:48 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 16:55:20 +0200                       *
 \***********************************************************************/
 
 // open
@@ -58,15 +58,10 @@ static void mtar_function_list_init() {
 
 
 int mtar_function_list(const struct mtar_option * option) {
-	struct mtar_io_in * io = 0;
-	if (option->filename)
-		io = mtar_io_in_get_file(option->filename, O_RDONLY, option);
-	else
-		io = mtar_io_in_get_fd(0, O_RDONLY, option);
-	if (!io)
+	struct mtar_format_in * format = mtar_format_get_in(option);
+	if (!format)
 		return 1;
 
-	struct mtar_format_in * format = mtar_format_get_in(io, option);
 	struct mtar_format_header header;
 	int failed;
 
@@ -77,7 +72,6 @@ int mtar_function_list(const struct mtar_option * option) {
 	}
 
 	format->ops->free(format);
-	io->ops->free(io);
 
 	return failed;
 }

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 08:06:45 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 16:46:10 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -43,7 +43,6 @@
 struct mtar_format_ustar_in {
 	struct mtar_io_in * io;
 	off_t position;
-	ssize_t size;
 	char * buffer;
 	unsigned int bufferSize;
 	unsigned int bufferUsed;
@@ -248,7 +247,13 @@ ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_
 }
 
 ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length) {
-	return 0;
+	struct mtar_format_ustar_in * self = f->data;
+	if (length > self->filesize)
+		length = self->filesize;
+	ssize_t nbRead = mtar_format_ustar_in_read_buffer(self, data, length);
+	if (nbRead > 0)
+		self->filesize -= nbRead;
+	return nbRead;
 }
 
 ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * self, void * data, ssize_t length) {
@@ -292,7 +297,6 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 	struct mtar_format_ustar_in * data = malloc(sizeof(struct mtar_format_ustar_in));
 	data->io = io;
 	data->position = 0;
-	data->size = 0;
 	data->buffer = 0;
 	data->bufferSize = 0;
 	data->bufferUsed = 0;

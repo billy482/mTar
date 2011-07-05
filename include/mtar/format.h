@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 07:18:23 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 16:56:02 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -84,8 +84,8 @@ struct mtar_format {
 	void (*show_description)(void);
 };
 
-struct mtar_format_in * mtar_format_get_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_format_out * mtar_format_get_out(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option);
+struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option);
 void mtar_format_init_header(struct mtar_format_header * h);
 void mtar_format_register(struct mtar_format * format);
 

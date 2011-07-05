@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 18:21:05 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 16:58:53 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -48,7 +48,6 @@
 #include <mtar/format.h>
 #include <mtar/function.h>
 #include <mtar/hashtable.h>
-#include <mtar/io.h>
 #include <mtar/option.h>
 #include <mtar/plugin.h>
 #include <mtar/util.h>
@@ -59,7 +58,6 @@
 struct mtar_function_create_param {
 	const char * filename;
 	struct mtar_format_out * format;
-	struct mtar_io_out * io;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
 };
@@ -89,19 +87,11 @@ int mtar_function_create(const struct mtar_option * option) {
 	struct mtar_function_create_param param = {
 		.filename = 0,
 		.format   = 0,
-		.io       = 0,
 		.inode    = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
 		.option   = option,
 	};
 
-	if (option->filename)
-		param.io = mtar_io_out_get_file(option->filename, O_WRONLY | O_TRUNC, option);
-	else
-		param.io = mtar_io_out_get_fd(1, O_WRONLY, option);
-	if (!param.io)
-		return 1;
-
-	param.format = mtar_format_get_out(param.io, option);
+	param.format = mtar_format_get_out(option);
 
 	unsigned int i;
 	int failed = 0;
@@ -112,7 +102,6 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	mtar_hashtable_free(param.inode);
 	param.format->ops->free(param.format);
-	param.io->ops->free(param.io);
 	return failed;
 }
 

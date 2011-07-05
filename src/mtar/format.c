@@ -24,15 +24,20 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 07:19:21 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 16:58:19 +0200                       *
 \***********************************************************************/
 
+// O_RDONLY, O_WRONLY
+#include <fcntl.h>
 // free, realloc
 #include <stdlib.h>
 // bzero, strcmp
 #include <string.h>
+// O_RDONLY, O_WRONLY
+#include <sys/types.h>
 
 #include "format.h"
+#include "io.h"
 #include "loader.h"
 
 static void mtar_format_exit(void);
@@ -64,14 +69,30 @@ struct mtar_format * mtar_format_get(const char * name) {
 	return 0;
 }
 
-struct mtar_format_in * mtar_format_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
+struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option) {
+	struct mtar_io_in * io = 0;
+	if (option->filename)
+		io = mtar_io_in_get_file(option->filename, O_RDONLY, option);
+	else
+		io = mtar_io_in_get_fd(0, O_RDONLY, option);
+	if (!io)
+		return 0;
+
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_in(io, option);
 	return 0;
 }
 
-struct mtar_format_out * mtar_format_get_out(struct mtar_io_out * io, const struct mtar_option * option) {
+struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option) {
+	struct mtar_io_out * io = 0;
+	if (option->filename)
+		io = mtar_io_out_get_file(option->filename, O_WRONLY | O_TRUNC, option);
+	else
+		io = mtar_io_out_get_fd(1, O_WRONLY, option);
+	if (!io)
+		return 0;
+
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_out(io, option);
