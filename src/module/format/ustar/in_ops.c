@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 04:43:05 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 08:06:45 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -33,6 +33,8 @@
 #include <stdlib.h>
 // memcpy, memmove, memset
 #include <string.h>
+// S_IFREG
+#include <sys/stat.h>
 
 #include <mtar/io.h>
 
@@ -45,6 +47,7 @@ struct mtar_format_ustar_in {
 	char * buffer;
 	unsigned int bufferSize;
 	unsigned int bufferUsed;
+	ssize_t filesize;
 };
 
 
@@ -144,7 +147,6 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 		return -1;
 
 	mtar_format_init_header(header);
-	//char * linkname = 0;
 
 	do {
 		char buffer[512];
@@ -159,8 +161,34 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 			// header checksum failed !!!
 		}
 
-		header->dev = mtar_format_ustar_in_convert_dev(h);
-		strncpy(header->path, h->filename, 256);
+		ssize_t next_read;
+		switch (h->flag) {
+			case 'L':
+				next_read = mtar_format_ustar_in_convert_size(h);
+				nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512 + next_read - next_read % 512);
+				strncpy(header->path, buffer, next_read);
+				continue;
+
+			case 'K':
+				next_read = mtar_format_ustar_in_convert_size(h);
+				nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512 + next_read - next_read % 512);
+				strncpy(header->link, buffer, next_read);
+				continue;
+
+			case '1':
+			case '2':
+				if (header->link[0] == 0)
+					strncpy(header->link, h->linkname, 256);
+				break;
+
+			case '3':
+			case '4':
+				header->dev = mtar_format_ustar_in_convert_dev(h);
+				break;
+		}
+
+		if (header->path[0] == 0)
+			strncpy(header->path, h->filename, 256);
 		header->filename = header->path;
 		header->size = mtar_format_ustar_in_convert_size(h);
 		sscanf(h->filemode, "%o", &header->mode);
@@ -169,7 +197,37 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 		strcpy(header->uname, h->uname);
 		header->gid = mtar_format_ustar_in_convert_gid(h);
 		strcpy(header->gname, h->gname);
+
+		switch (h->flag) {
+			case '0':
+				header->mode |= S_IFREG;
+				break;
+
+			case '2':
+				header->mode |= S_IFLNK;
+				break;
+
+			case '3':
+				header->mode |= S_IFCHR;
+				break;
+
+			case '4':
+				header->mode |= S_IFBLK;
+				break;
+
+			case '5':
+				header->mode |= S_IFDIR;
+				break;
+
+			case '6':
+				header->mode |= S_IFIFO;
+				break;
+		}
 	} while (!header->filename);
+
+	self->filesize = 0;
+	if (header->size > 0)
+		self->filesize = 512 + header->size - header->size % 512;
 
 	return 0;
 }
@@ -209,7 +267,8 @@ ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * self, voi
 		}
 	}
 
-	ssize_t r = self->io->ops->read(self->io, data + nbRead, length - nbRead);
+	char * pdata = data;
+	ssize_t r = self->io->ops->read(self->io, pdata + nbRead, length - nbRead);
 	if (r < 0) {
 		memcpy(self->buffer, data, nbRead);
 		self->bufferUsed = nbRead;
@@ -237,6 +296,7 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 	data->buffer = 0;
 	data->bufferSize = 0;
 	data->bufferUsed = 0;
+	data->filesize = 0;
 
 	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
 	self->ops = &mtar_format_ustar_in_ops;
@@ -246,6 +306,25 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 }
 
 int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
+	struct mtar_format_ustar_in * self = f->data;
+	if (self->bufferUsed > 0) {
+		if (self->filesize < self->bufferUsed) {
+			memmove(self->buffer, self->buffer + self->filesize, self->bufferUsed - self->filesize);
+			self->bufferUsed -= self->filesize;
+			self->filesize = 0;
+			return 0;
+		} else {
+			self->filesize -= self->bufferUsed;
+			self->bufferUsed = 0;
+		}
+	}
+	if (self->filesize > 0) {
+		off_t next_pos = self->io->ops->pos(self->io) + self->filesize;
+		off_t new_pos = self->io->ops->forward(self->io, self->filesize);
+		if (new_pos == (off_t) -1)
+			return 1;
+		return new_pos == next_pos;
+	}
 	return 0;
 }
 

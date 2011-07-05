@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 18:21:11 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 08:13:50 +0200                       *
 \***********************************************************************/
 
 #include "option.h"

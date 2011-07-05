@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 19:12:43 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 07:18:23 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -43,6 +43,7 @@ struct mtar_format_header {
 	dev_t dev;
 	char path[256];
 	char * filename;
+	char link[256];
 	ssize_t size;
 	mode_t mode;
 	time_t mtime;

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 21:32:52 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 08:17:42 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -116,6 +116,13 @@ int mtar_io_open(const char * filename, int flags) {
 		m |= R_OK;
 	else if (flags & O_WRONLY)
 		m |= W_OK;
+
+	if (!strcmp("-", filename)) {
+		if (flags & O_RDONLY)
+			return 0;
+		if (flags & O_WRONLY)
+			return 1;
+	}
 
 	if (access(filename, m))
 		flags |= O_CREAT;
