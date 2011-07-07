@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 09:52:55 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 17:43:42 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -36,13 +36,12 @@
 #include "loader.h"
 #include "verbose.h"
 
-static void mtar_function_exit(void);
+static void mtar_function_exit(void) __attribute__((destructor));
 
 struct mtar_function ** mtar_function_functions = 0;
 static unsigned int mtar_function_nbFunctions = 0;
 
 
-__attribute__((destructor))
 void mtar_function_exit() {
 	if (mtar_function_nbFunctions > 0)
 		free(mtar_function_functions);

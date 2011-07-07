@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 08:17:42 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 17:39:34 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -51,12 +51,11 @@
 static struct mtar_io ** mtar_io_ios = 0;
 static unsigned int mtar_io_nbIos = 0;
 
-static void mtar_io_exit(void);
+static void mtar_io_exit(void) __attribute__((destructor));
 struct mtar_io * mtar_io_get(int fd);
 int mtar_io_open(const char * filename, int flags);
 
 
-__attribute__((destructor))
 void mtar_io_exit() {
 	if (mtar_io_nbIos > 0)
 		free(mtar_io_ios);

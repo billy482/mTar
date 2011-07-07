@@ -24,13 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 18:17:21 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 09:50:11 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
+static void format_init(void) __attribute__((constructor));
 static void mtar_format_show_description(void);
 
 static struct mtar_format mtar_format_ustar = {
@@ -40,8 +41,7 @@ static struct mtar_format mtar_format_ustar = {
 	.show_description = mtar_format_show_description,
 };
 
-__attribute__((constructor))
-static void format_init() {
+void format_init() {
 	mtar_format_register(&mtar_format_ustar);
 }
 

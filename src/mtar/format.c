@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 16:58:19 +0200                       *
+*  Last modified: Thu, 07 Jul 2011 23:00:59 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -40,29 +40,28 @@
 #include "io.h"
 #include "loader.h"
 
-static void mtar_format_exit(void);
+static void mtar_format_exit(void) __attribute__((destructor));
 static struct mtar_format * mtar_format_get(const char * name);
 
 static struct mtar_format ** mtar_format_formats = 0;
-static unsigned int mtar_format_nbFormats = 0;
+static unsigned int mtar_format_nb_formats = 0;
 
 
-__attribute__((destructor))
 void mtar_format_exit() {
-	if (mtar_format_nbFormats > 0)
+	if (mtar_format_nb_formats > 0)
 		free(mtar_format_formats);
 	mtar_format_formats = 0;
 }
 
 struct mtar_format * mtar_format_get(const char * name) {
 	unsigned int i;
-	for (i = 0; i < mtar_format_nbFormats; i++) {
+	for (i = 0; i < mtar_format_nb_formats; i++) {
 		if (!strcmp(name, mtar_format_formats[i]->name))
 			return mtar_format_formats[i];
 	}
 	if (mtar_loader_load("format", name))
 		return 0;
-	for (i = 0; i < mtar_format_nbFormats; i++) {
+	for (i = 0; i < mtar_format_nb_formats; i++) {
 		if (!strcmp(name, mtar_format_formats[i]->name))
 			return mtar_format_formats[i];
 	}
@@ -117,9 +116,17 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 }
 
 void mtar_format_register(struct mtar_format * f) {
-	mtar_format_formats = realloc(mtar_format_formats, (mtar_format_nbFormats + 1) * (sizeof(struct mtar_format *)));
-	mtar_format_formats[mtar_format_nbFormats] = f;
-	mtar_format_nbFormats++;
+	if (!f)
+		return;
+
+	unsigned int i;
+	for (i = 0; i < mtar_format_nb_formats; i++)
+		if (mtar_format_formats[i] == f || !strcmp(f->name, mtar_format_formats[i]->name))
+			return;
+
+	mtar_format_formats = realloc(mtar_format_formats, (mtar_format_nb_formats + 1) * (sizeof(struct mtar_format *)));
+	mtar_format_formats[mtar_format_nb_formats] = f;
+	mtar_format_nb_formats++;
 
 	mtar_loader_register_ok();
 }
@@ -129,7 +136,7 @@ void mtar_format_show_description() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available formats :\n");
 
 	unsigned int i;
-	for (i = 0; i < mtar_format_nbFormats; i++)
+	for (i = 0; i < mtar_format_nb_formats; i++)
 		mtar_format_formats[i]->show_description();
 }
 

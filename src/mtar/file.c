@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 22:13:09 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 17:42:08 +0200                       *
 \***********************************************************************/
 
 // open
@@ -46,9 +46,9 @@
 #include <mtar/hashtable.h>
 #include <mtar/util.h>
 
-static void mtar_file_exit(void);
+static void mtar_file_exit(void) __attribute__((destructor));
 static void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, const char * id);
-static void mtar_file_init(void);
+static void mtar_file_init(void) __attribute__((constructor));
 
 static struct mtar_hashtable * mtar_file_gidCached = 0;
 static struct mtar_hashtable * mtar_file_uidCached = 0;
@@ -98,27 +98,28 @@ void mtar_file_convert_mode(char * buffer, mode_t mode) {
 		buffer[9] = 'x';
 }
 
-__attribute__((destructor))
 void mtar_file_exit() {
 	mtar_hashtable_free(mtar_file_gidCached);
 	mtar_hashtable_free(mtar_file_uidCached);
 }
 
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid) {
+	// Compute key
 	char cid[16];
 	snprintf(cid, 16, "%u", gid);
 
 	if (!mtar_hashtable_hasKey(mtar_file_gidCached, cid)) {
+		// if lookup has failed
 		mtar_file_lookup("/etc/group", name, namelength, cid);
 		mtar_hashtable_put(mtar_file_gidCached, strdup(cid), strdup(name));
 		return;
 	}
 
+	// lookup has succeeded
 	char * value = mtar_hashtable_value(mtar_file_gidCached, cid);
 	strncpy(name, value, namelength);
 }
 
-__attribute__((constructor))
 void mtar_file_init(void) {
 	mtar_file_gidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
 	mtar_file_uidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
@@ -149,15 +150,18 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 }
 
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid) {
+	// Compute key
 	char cid[16];
 	snprintf(cid, 16, "%u", uid);
 
 	if (!mtar_hashtable_hasKey(mtar_file_uidCached, cid)) {
+		// if lookup has failed
 		mtar_file_lookup("/etc/passwd", name, namelength, cid);
 		mtar_hashtable_put(mtar_file_uidCached, strdup(cid), strdup(name));
 		return;
 	}
 
+	// lookup has succeeded
 	char * value = mtar_hashtable_value(mtar_file_uidCached, cid);
 	strncpy(name, value, namelength);
 }

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 14:09:37 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 17:44:38 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -48,7 +48,7 @@
 
 #include "verbose.h"
 
-static void mtar_verbose_init(void);
+static void mtar_verbose_init(void) __attribute__((constructor));
 static size_t mtar_verbose_strlen(const char * str);
 static void mtar_verbose_updateSize(int signal);
 
@@ -74,7 +74,6 @@ void mtar_verbose_configure(const struct mtar_option * option) {
 	mtar_verbose_level = option->verbose;
 }
 
-__attribute__((constructor))
 void mtar_verbose_init() {
 	mtar_verbose_updateSize(0);
 	signal(SIGWINCH, mtar_verbose_updateSize);

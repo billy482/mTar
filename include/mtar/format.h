@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 16:56:02 +0200                       *
+*  Last modified: Thu, 07 Jul 2011 22:54:33 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -39,6 +39,9 @@ struct mtar_io_in;
 struct mtar_io_out;
 struct mtar_option;
 
+/**
+ * \brief Define a generic tar header
+ */
 struct mtar_format_header {
 	dev_t dev;
 	char path[256];
@@ -53,7 +56,13 @@ struct mtar_format_header {
 	char gname[32];
 };
 
+/**
+ * \brief Used for reading tar
+ */
 struct mtar_format_in {
+	/**
+	 * \brief This structure contains only functions pointers used as methods
+	 */
 	struct mtar_format_in_ops {
 		void (*free)(struct mtar_format_in * f);
 		int (*get_header)(struct mtar_format_in * f, struct mtar_format_header * header);
@@ -61,6 +70,9 @@ struct mtar_format_in {
 		ssize_t (*read)(struct mtar_format_in * f, void * data, ssize_t length);
 		int (*skip_file)(struct mtar_format_in * f);
 	} * ops;
+	/**
+	 * \brief Private data used by io module
+	 */
 	void * data;
 };
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:47:14 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 17:10:54 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -69,7 +69,24 @@ int mtar_io_pipe_in_close(struct mtar_io_in * io) {
 	return failed;
 }
 
-off_t mtar_io_pipe_in_forward(struct mtar_io_in * io, off_t offset __attribute__((unused))) {
+off_t mtar_io_pipe_in_forward(struct mtar_io_in * io, off_t offset) {
+	char buffer[4096];
+
+	while (offset > 0) {
+		ssize_t read = offset;
+		if (read > 4096)
+			read = 4096;
+
+		ssize_t nbRead = mtar_io_pipe_in_read(io, buffer, read);
+
+		if (nbRead > 0)
+			offset -= nbRead;
+		else if (nbRead == 0)
+			break;
+		else if (nbRead < 0)
+			return -1;
+	}
+
 	struct mtar_io_pipe * self = io->data;
 	return self->pos;
 }

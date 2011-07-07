@@ -24,13 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 18:06:35 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 09:51:04 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
+static void mtar_io_file_init(void) __attribute__((constructor));
 static void mtar_io_file_show_description(void);
 
 static struct mtar_io mtar_io_file = {
@@ -45,8 +46,7 @@ struct mtar_io * mtar_io_file_get_driver() {
 	return &mtar_io_file;
 }
 
-__attribute__((constructor))
-static void mtar_io_file_init() {
+void mtar_io_file_init() {
 	mtar_io_register(&mtar_io_file);
 }
 

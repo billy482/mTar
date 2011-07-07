@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 16:58:53 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 09:53:57 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -65,6 +65,7 @@ struct mtar_function_create_param {
 static int mtar_function_create(const struct mtar_option * option);
 static int mtar_function_create2(struct mtar_function_create_param * param);
 static int mtar_function_create_filter(const struct dirent * d);
+static void mtar_function_create_init(void) __attribute__((constructor));
 static void mtar_function_create_showDescription(void);
 static void mtar_function_create_showHelp(void);
 
@@ -74,11 +75,6 @@ static struct mtar_function mtar_function_create_functions = {
 	.showDescription = mtar_function_create_showDescription,
 	.showHelp        = mtar_function_create_showHelp,
 };
-
-__attribute__((constructor))
-static void mtar_function_create_init() {
-	mtar_function_register(&mtar_function_create_functions);
-}
 
 
 int mtar_function_create(const struct mtar_option * option) {
@@ -187,6 +183,10 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 int mtar_function_create_filter(const struct dirent * d) {
 	return !strcmp(".", d->d_name) || !strcmp("..", d->d_name) ? 0 : 1;
+}
+
+void mtar_function_create_init() {
+	mtar_function_register(&mtar_function_create_functions);
 }
 
 void mtar_function_create_showDescription() {

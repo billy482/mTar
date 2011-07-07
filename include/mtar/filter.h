@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 16 Jun 2011 09:34:18 +0200                       *
+*  Last modified: Tue, 05 Jul 2011 19:35:21 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -32,7 +32,11 @@
 
 #include "io.h"
 
-void mtar_filter_register(mtar_io_f function);
+/**
+ * \brief Register a filter io
+ * \param[in] io : a filtering module io statically allocated
+ */
+void mtar_filter_register(struct mtar_io * io);
 
 #endif
 

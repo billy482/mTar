@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Apr 2011 12:46:17 +0200                       *
+*  Last modified: Thu, 07 Jul 2011 22:48:17 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILE_H__
@@ -33,8 +33,29 @@
 // gid_t, mode_t, ssize_t, uid_t
 #include <sys/types.h>
 
+/**
+ * \brief Convert a file mode to \b buffer with `ls -l` style
+ * \param[out] buffer : a 10 bytes already allocated buffer
+ * \param[in] mode : convert with this mode
+ */
 void mtar_file_convert_mode(char * buffer, mode_t mode);
+
+/**
+ * \brief Convert an gid to group's name
+ * \param[out] name : write group's name into it
+ * \param[in] namelength : length of \b name
+ * \param[in] gid : a gid
+ * \note For better performance, this function maintain a cache
+ */
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
+
+/**
+ * \brief Convert an uid to user's name
+ * \param[out] name : write user's name into it
+ * \param[in] namelength : length of \b name
+ * \param[in] uid : a uid
+ * \note For better performance, this function maintain a cache
+ */
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
 
 #endif

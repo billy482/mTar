@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 16:55:20 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 09:54:39 +0200                       *
 \***********************************************************************/
 
 // open
@@ -41,6 +41,7 @@
 #include <mtar/verbose.h>
 
 static int mtar_function_list(const struct mtar_option * option);
+static void mtar_function_list_init(void) __attribute__((constructor));
 static void mtar_function_list_showDescription(void);
 static void mtar_function_list_showHelp(void);
 
@@ -50,11 +51,6 @@ static struct mtar_function mtar_function_list_functions = {
 	.showDescription = mtar_function_list_showDescription,
 	.showHelp        = mtar_function_list_showHelp,
 };
-
-__attribute__((constructor))
-static void mtar_function_list_init() {
-	mtar_function_register(&mtar_function_list_functions);
-}
 
 
 int mtar_function_list(const struct mtar_option * option) {
@@ -74,6 +70,10 @@ int mtar_function_list(const struct mtar_option * option) {
 	format->ops->free(format);
 
 	return failed;
+}
+
+void mtar_function_list_init() {
+	mtar_function_register(&mtar_function_list_functions);
 }
 
 void mtar_function_list_showDescription() {

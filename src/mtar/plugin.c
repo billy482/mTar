@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 11 May 2011 14:05:35 +0200                       *
+*  Last modified: Wed, 06 Jul 2011 17:44:18 +0200                       *
 \***********************************************************************/
 
 // strcmp
@@ -37,7 +37,7 @@
 #include "loader.h"
 #include "plugin.h"
 
-static void mtar_plugin_exit(void);
+static void mtar_plugin_exit(void) __attribute__((destructor));
 
 static struct plugin {
 	const char * name;
@@ -51,7 +51,6 @@ static unsigned int mtar_plugin_nbPlugins = 0;
 static struct mtar_plugin * mtar_plugin_get(const char * name, const struct mtar_option * option);
 
 
-__attribute__((destructor))
 void mtar_plugin_exit() {
 	if (mtar_plugin_nbPluginHandlers > 0)
 		free(mtar_plugin_pluginHandlers);
