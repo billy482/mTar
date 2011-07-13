@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 07 Jul 2011 22:54:33 +0200                       *
+*  Last modified: Sat, 09 Jul 2011 21:24:51 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -33,26 +33,79 @@
 // dev_t, mode_t, ssize_t, time_t
 #include <sys/types.h>
 
-#include "option.h"
-
 struct mtar_io_in;
 struct mtar_io_out;
 struct mtar_option;
 
 /**
+ * \addtogroup WrtFrmtMdl Writing format module
+ *
+ * Writing a format module is quite easy but it takes a bit time.
+ *
+ * First, we need to write an implemtation of struct mtar_format_in, then write an
+ * implemtation of mtar_format_out and finaly write an implemtation of mtar_format.
+ *
+ * An example :
+ *   - An implementation of mtar_format : See code source of \ref src/module/format/ustar/ustar.c
+ *   - An implementation of mtar_format_in : See code source of \ref module/format/ustar/in_ops.c
+ *   - An implementation of mtar_format_out : See code source of \ref module/format/ustar/out_ops.c
+ */
+
+/**
  * \brief Define a generic tar header
  */
 struct mtar_format_header {
+	/**
+	 * \brief Id of device
+	 *
+	 * Used only by character or block device
+	 *
+	 * \code
+	 * int major = dev >> 8;
+	 * int minor = dev & 0xFF;
+	 * \endcode
+	 */
 	dev_t dev;
+	/**
+	 * \brief A partial filename as recorded into tar
+	 */
 	char path[256];
 	char * filename;
+	/**
+	 * \brief Value of hard or symbolic link
+	 */
 	char link[256];
+	/**
+	 * \brief Size of file
+	 */
 	ssize_t size;
+	/**
+	 * \brief List of permission
+	 */
 	mode_t mode;
+	/**
+	 * \brief Modified time
+	 */
 	time_t mtime;
+	/**
+	 * \brief User's id
+	 * \note Id of user where tar has been made.
+	 */
 	uid_t uid;
+	/**
+	 * \brief User's name
+	 * \note Name of user where tar has been made.
+	 */
 	char uname[32];
+	/**
+	 * \brief Group's id
+	 * \note Id of group where tar has been made.
+	 */
 	gid_t gid;
+	/**
+	 * \brief Group's name
+	 * \note Name of group where tar has been made.
+	 */
 	char gname[32];
 };
 
@@ -64,8 +117,21 @@ struct mtar_format_in {
 	 * \brief This structure contains only functions pointers used as methods
 	 */
 	struct mtar_format_in_ops {
+		/**
+		 * \brief Release memory
+		 * \param[in] f : a tar format
+		 */
 		void (*free)(struct mtar_format_in * f);
+		/**
+		 * \brief Parse the next header
+		 * \param[in] f : a tar format
+		 * \param[out] header : an already allocated header
+		 */
 		int (*get_header)(struct mtar_format_in * f, struct mtar_format_header * header);
+		/**
+		 * \brief Retreive the latest error
+		 * \param[in] f : a tar format
+		 */
 		int (*last_errno)(struct mtar_format_in * f);
 		ssize_t (*read)(struct mtar_format_in * f, void * data, ssize_t length);
 		int (*skip_file)(struct mtar_format_in * f);
@@ -97,7 +163,9 @@ struct mtar_format {
 };
 
 struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option);
+struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
 struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option);
+struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
 void mtar_format_init_header(struct mtar_format_header * h);
 void mtar_format_register(struct mtar_format * format);
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 16:46:10 +0200                       *
+*  Last modified: Mon, 11 Jul 2011 09:09:54 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -58,6 +58,7 @@ static time_t mtar_format_ustar_in_convert_time(struct mtar_format_ustar * heade
 static uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header);
 static void mtar_format_ustar_in_free(struct mtar_format_in * f);
 static int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
+static int mtar_format_ustar_in_last_errno(struct mtar_format_in * f);
 static ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_t length);
 static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
 static ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * f, void * data, ssize_t length);
@@ -66,6 +67,7 @@ static int mtar_format_ustar_in_skip_file(struct mtar_format_in * f);
 static struct mtar_format_in_ops mtar_format_ustar_in_ops = {
 	.free       = mtar_format_ustar_in_free,
 	.get_header = mtar_format_ustar_in_get_header,
+	.last_errno = mtar_format_ustar_in_last_errno,
 	.read       = mtar_format_ustar_in_read,
 	.skip_file  = mtar_format_ustar_in_skip_file,
 };
@@ -131,6 +133,9 @@ uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header) {
 
 void mtar_format_ustar_in_free(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
+
+	if (self->io)
+		self->io->ops->free(self->io);
 
 	if (self->buffer)
 		free(self->buffer);
@@ -229,6 +234,11 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 		self->filesize = 512 + header->size - header->size % 512;
 
 	return 0;
+}
+
+int mtar_format_ustar_in_last_errno(struct mtar_format_in * f) {
+	struct mtar_format_ustar_in * self = f->data;
+	return self->io->ops->last_errno(self->io);
 }
 
 ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_t length) {

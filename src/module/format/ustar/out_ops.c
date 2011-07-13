@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 18:20:20 +0200                       *
+*  Last modified: Mon, 11 Jul 2011 09:11:30 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -328,6 +328,11 @@ int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f) {
 }
 
 void mtar_format_ustar_out_free(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * self = f->data;
+
+	if (self->io)
+		self->io->ops->free(self->io);
+
 	free(f->data);
 	free(f);
 }

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 07 Jul 2011 23:00:59 +0200                       *
+*  Last modified: Fri, 08 Jul 2011 19:00:20 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -39,6 +39,7 @@
 #include "format.h"
 #include "io.h"
 #include "loader.h"
+#include "option.h"
 
 static void mtar_format_exit(void) __attribute__((destructor));
 static struct mtar_format * mtar_format_get(const char * name);
@@ -77,6 +78,10 @@ struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option) {
 	if (!io)
 		return 0;
 
+	return mtar_format_get_in2(io, option);
+}
+
+struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_in(io, option);
@@ -92,6 +97,10 @@ struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option) 
 	if (!io)
 		return 0;
 
+	return mtar_format_get_out2(io, option);
+}
+
+struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_out(io, option);
@@ -119,6 +128,10 @@ void mtar_format_register(struct mtar_format * f) {
 	if (!f)
 		return;
 
+	/**
+	 * check if module has been preciously loaded
+	 * or another module has the same name
+	 */
 	unsigned int i;
 	for (i = 0; i < mtar_format_nb_formats; i++)
 		if (mtar_format_formats[i] == f || !strcmp(f->name, mtar_format_formats[i]->name))
