@@ -24,74 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 17:06:08 +0200                       *
+*  Last modified: Sat, 16 Jul 2011 16:53:36 +0200                       *
 \***********************************************************************/
 
-// open
-#include <fcntl.h>
-// open
-#include <sys/stat.h>
-// open
-#include <sys/types.h>
+#ifndef __MTAR_FUNCTION_LIST_H__
+#define __MTAR_FUNCTION_LIST_H__
 
-#include <mtar/function.h>
-#include <mtar/io.h>
-#include <mtar/option.h>
-#include <mtar/verbose.h>
+#include <mtar/format.h>
 
-#include "common.h"
+extern void (*mtar_function_list_display)(struct mtar_format_header * header);
 
-static int mtar_function_list(const struct mtar_option * option);
-static void mtar_function_list_init(void) __attribute__((constructor));
-static void mtar_function_list_showDescription(void);
-static void mtar_function_list_showHelp(void);
+void mtar_function_list_configure(const struct mtar_option * option);
 
-static struct mtar_function mtar_function_list_functions = {
-	.name            = "list",
-	.doWork          = mtar_function_list,
-	.showDescription = mtar_function_list_showDescription,
-	.showHelp        = mtar_function_list_showHelp,
-};
-
-
-int mtar_function_list(const struct mtar_option * option) {
-	struct mtar_format_in * format = mtar_format_get_in(option);
-	if (!format)
-		return 1;
-
-	mtar_function_list_configure(option);
-
-	struct mtar_format_header header;
-
-	for (;;) {
-		enum mtar_format_in_header_status status = format->ops->get_header(format, &header);
-
-		switch (status) {
-			case MTAR_FORMAT_HEADER_OK:
-				mtar_function_list_display(&header);
-				break;
-
-			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
-			case MTAR_FORMAT_HEADER_BAD_HEADER:
-			case MTAR_FORMAT_HEADER_NOT_FOUND:
-				return 1;
-		}
-	}
-
-	format->ops->free(format);
-
-	return 0;
-}
-
-void mtar_function_list_init() {
-	mtar_function_register(&mtar_function_list_functions);
-}
-
-void mtar_function_list_showDescription() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  list : List files from tar archive\n");
-}
-
-void mtar_function_list_showHelp() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
-}
+#endif
 

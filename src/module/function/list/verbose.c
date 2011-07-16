@@ -24,74 +24,71 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 17:06:08 +0200                       *
+*  Last modified: Sat, 16 Jul 2011 19:29:26 +0200                       *
 \***********************************************************************/
 
-// open
-#include <fcntl.h>
-// open
+// localtime_r, strftime
+#include <time.h>
+// strcat, strcpy
+#include <string.h>
+// S_*
 #include <sys/stat.h>
-// open
-#include <sys/types.h>
 
-#include <mtar/function.h>
-#include <mtar/io.h>
+#include <mtar/file.h>
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static int mtar_function_list(const struct mtar_option * option);
-static void mtar_function_list_init(void) __attribute__((constructor));
-static void mtar_function_list_showDescription(void);
-static void mtar_function_list_showHelp(void);
+static void mtar_function_list_display1(struct mtar_format_header * header);
+static void mtar_function_list_display2(struct mtar_format_header * header);
 
-static struct mtar_function mtar_function_list_functions = {
-	.name            = "list",
-	.doWork          = mtar_function_list,
-	.showDescription = mtar_function_list_showDescription,
-	.showHelp        = mtar_function_list_showHelp,
-};
+void (*mtar_function_list_display)(struct mtar_format_header * header) = mtar_function_list_display1;
 
 
-int mtar_function_list(const struct mtar_option * option) {
-	struct mtar_format_in * format = mtar_format_get_in(option);
-	if (!format)
-		return 1;
+void mtar_function_list_configure(const struct mtar_option * option) {
+	if (option->verbose > 0)
+		mtar_function_list_display = mtar_function_list_display2;
+}
 
-	mtar_function_list_configure(option);
+void mtar_function_list_display1(struct mtar_format_header * header) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", header->path);
+}
 
-	struct mtar_format_header header;
+void mtar_function_list_display2(struct mtar_format_header * header) {
+	char mode[10];
+	mtar_file_convert_mode(mode, header->mode);
 
-	for (;;) {
-		enum mtar_format_in_header_status status = format->ops->get_header(format, &header);
+	static int sug = 0;
+	char ug[32];
+	strcpy(ug, header->uname);
+	strcat(ug, "/");
+	strcat(ug, header->gname);
 
-		switch (status) {
-			case MTAR_FORMAT_HEADER_OK:
-				mtar_function_list_display(&header);
-				break;
+	int tsug = strlen(ug), i;
+	if (sug == 0)
+		sug = tsug;
 
-			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
-			case MTAR_FORMAT_HEADER_BAD_HEADER:
-			case MTAR_FORMAT_HEADER_NOT_FOUND:
-				return 1;
-		}
+	for (i = tsug; i < sug; i++)
+		ug[i] = ' ';
+	ug[i] = '\0';
+
+	if (sug < tsug)
+		sug = tsug;
+
+	struct tm tmval;
+	localtime_r(&header->mtime, &tmval);
+
+	char mtime[16];
+	strftime(mtime, 16, "%y-%m-%d %R", &tmval);
+
+	if (header->link[0] != '\0' && !(header->mode & S_IFMT)) {
+		mode[0] = 'h';
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %lld %s link to %s\n", mode, ug, mtime, (long long) header->size, header->path, header->link);
+	} else if (S_ISLNK(header->mode)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %lld %s -> %s\n", mode, ug, mtime, (long long) header->size, header->path, header->link);
+	} else {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %lld %s\n", mode, ug, mtime, (long long) header->size, header->path);
 	}
-
-	format->ops->free(format);
-
-	return 0;
-}
-
-void mtar_function_list_init() {
-	mtar_function_register(&mtar_function_list_functions);
-}
-
-void mtar_function_list_showDescription() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  list : List files from tar archive\n");
-}
-
-void mtar_function_list_showHelp() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
 }
 

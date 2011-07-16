@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 09 Jul 2011 21:24:51 +0200                       *
+*  Last modified: Sat, 16 Jul 2011 14:50:42 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -109,6 +109,13 @@ struct mtar_format_header {
 	char gname[32];
 };
 
+enum mtar_format_in_header_status {
+	MTAR_FORMAT_HEADER_OK,
+	MTAR_FORMAT_HEADER_NOT_FOUND,
+	MTAR_FORMAT_HEADER_BAD_HEADER,
+	MTAR_FORMAT_HEADER_BAD_CHECKSUM,
+};
+
 /**
  * \brief Used for reading tar
  */
@@ -127,7 +134,7 @@ struct mtar_format_in {
 		 * \param[in] f : a tar format
 		 * \param[out] header : an already allocated header
 		 */
-		int (*get_header)(struct mtar_format_in * f, struct mtar_format_header * header);
+		enum mtar_format_in_header_status (*get_header)(struct mtar_format_in * f, struct mtar_format_header * header);
 		/**
 		 * \brief Retreive the latest error
 		 * \param[in] f : a tar format

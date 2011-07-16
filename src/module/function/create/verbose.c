@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 10:40:34 +0200                       *
+*  Last modified: Sat, 16 Jul 2011 17:54:08 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -37,7 +37,7 @@
 #include <sys/stat.h>
 // stat
 #include <sys/types.h>
-// localtime_r
+// localtime_r, strftime
 #include <time.h>
 // stat
 #include <unistd.h>

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 11 Jul 2011 09:09:54 +0200                       *
+*  Last modified: Sat, 16 Jul 2011 14:17:11 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -57,7 +57,7 @@ static ssize_t mtar_format_ustar_in_convert_size(struct mtar_format_ustar * head
 static time_t mtar_format_ustar_in_convert_time(struct mtar_format_ustar * header);
 static uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header);
 static void mtar_format_ustar_in_free(struct mtar_format_in * f);
-static int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
+static enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
 static int mtar_format_ustar_in_last_errno(struct mtar_format_in * f);
 static ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_t length);
 static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
@@ -145,10 +145,10 @@ void mtar_format_ustar_in_free(struct mtar_format_in * f) {
 	free(f);
 }
 
-int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header) {
+enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header) {
 	struct mtar_format_ustar_in * self = f->data;
 	if (mtar_format_ustar_in_prefetch(self, 2560) < 0)
-		return -1;
+		return MTAR_FORMAT_HEADER_NOT_FOUND;
 
 	mtar_format_init_header(header);
 
@@ -157,12 +157,16 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 		struct mtar_format_ustar * h = (struct mtar_format_ustar *) buffer;
 		ssize_t nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512);
 
+		if (h->filename[0] == '\0')
+			return MTAR_FORMAT_HEADER_NOT_FOUND;
+
 		// no header found
 		if (nbRead < 512)
-			return 1;
+			return MTAR_FORMAT_HEADER_BAD_HEADER;
 
 		if (mtar_format_ustar_in_check_header(h)) {
 			// header checksum failed !!!
+			return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
 		}
 
 		ssize_t next_read;
@@ -233,7 +237,7 @@ int mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_forma
 	if (header->size > 0)
 		self->filesize = 512 + header->size - header->size % 512;
 
-	return 0;
+	return MTAR_FORMAT_HEADER_OK;
 }
 
 int mtar_format_ustar_in_last_errno(struct mtar_format_in * f) {
