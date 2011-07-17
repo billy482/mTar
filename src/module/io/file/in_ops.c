@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 17:47:23 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 11:40:12 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -77,6 +77,9 @@ off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
 	off_t ok = lseek(self->fd, offset, SEEK_CUR);
 	if (ok == (off_t) -1)
 		self->last_errno = errno;
+
+	if (ok >= 0)
+		self->pos = ok;
 
 	return ok;
 }

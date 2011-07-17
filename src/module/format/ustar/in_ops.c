@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 14:17:11 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 12:08:38 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -47,6 +47,7 @@ struct mtar_format_ustar_in {
 	unsigned int bufferSize;
 	unsigned int bufferUsed;
 	ssize_t filesize;
+	ssize_t skipsize;
 };
 
 
@@ -233,9 +234,10 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 		}
 	} while (!header->filename);
 
-	self->filesize = 0;
-	if (header->size > 0)
-		self->filesize = 512 + header->size - header->size % 512;
+	self->skipsize = self->filesize = header->size;
+
+	if (header->size > 0 && header->size % 512)
+		self->skipsize = 512 + header->size - header->size % 512;
 
 	return MTAR_FORMAT_HEADER_OK;
 }
@@ -315,6 +317,7 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 	data->bufferSize = 0;
 	data->bufferUsed = 0;
 	data->filesize = 0;
+	data->skipsize = 0;
 
 	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
 	self->ops = &mtar_format_ustar_in_ops;
@@ -325,23 +328,28 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 
 int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
+	if (self->skipsize == 0)
+		return 0;
 	if (self->bufferUsed > 0) {
-		if (self->filesize < self->bufferUsed) {
-			memmove(self->buffer, self->buffer + self->filesize, self->bufferUsed - self->filesize);
-			self->bufferUsed -= self->filesize;
+		if (self->skipsize < self->bufferUsed) {
+			memmove(self->buffer, self->buffer + self->skipsize, self->bufferUsed - self->skipsize);
+			self->bufferUsed -= self->skipsize;
 			self->filesize = 0;
+			self->skipsize = 0;
 			return 0;
 		} else {
 			self->filesize -= self->bufferUsed;
+			self->skipsize -= self->bufferUsed;
 			self->bufferUsed = 0;
 		}
 	}
-	if (self->filesize > 0) {
-		off_t next_pos = self->io->ops->pos(self->io) + self->filesize;
-		off_t new_pos = self->io->ops->forward(self->io, self->filesize);
+	if (self->skipsize > 0) {
+		off_t next_pos = self->io->ops->pos(self->io) + self->skipsize;
+		off_t new_pos = self->io->ops->forward(self->io, self->skipsize);
 		if (new_pos == (off_t) -1)
 			return 1;
-		return new_pos == next_pos;
+		self->filesize = self->skipsize = 0;
+		return new_pos != next_pos;
 	}
 	return 0;
 }

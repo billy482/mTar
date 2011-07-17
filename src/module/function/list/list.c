@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 17:06:08 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 11:51:21 +0200                       *
 \***********************************************************************/
 
 // open
@@ -72,9 +72,21 @@ int mtar_function_list(const struct mtar_option * option) {
 				break;
 
 			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
+				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad checksum\n");
+				return 3;
+
 			case MTAR_FORMAT_HEADER_BAD_HEADER:
+				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad header\n");
+				return 4;
+
 			case MTAR_FORMAT_HEADER_NOT_FOUND:
+				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Header not found\n");
 				return 1;
+		}
+
+		if (format->ops->skip_file(format)) {
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to skip file\n");
+			return 2;
 		}
 	}
 
