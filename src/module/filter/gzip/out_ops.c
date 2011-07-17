@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
-*  Last modified: Sun, 17 Jul 2011 20:37:46 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 22:06:47 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -33,6 +33,8 @@
 #include <stdio.h>
 // deflate, deflateEnd, deflateInit
 #include <zlib.h>
+
+#include <mtar/option.h>
 
 #include "common.h"
 
@@ -162,7 +164,7 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 
 	self->crc32 = crc32(0, Z_NULL, 0);
 
-	int err = deflateInit2(&self->gz_stream, 9, Z_DEFLATED, -MAX_WBITS, 9, Z_DEFAULT_STRATEGY);
+	int err = deflateInit2(&self->gz_stream, option->compress_level, Z_DEFLATED, -MAX_WBITS, 9, Z_DEFAULT_STRATEGY);
 	if (err) {
 		free(self);
 		return 0;
@@ -177,6 +179,6 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 	io2->ops = &mtar_filter_gzip_out_ops;
 	io2->data = self;
 
-	return io;
+	return io2;
 }
 

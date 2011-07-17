@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 08 Jun 2011 08:37:45 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 21:26:54 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -44,6 +44,9 @@ struct mtar_option {
 	unsigned int nbFiles;
 
 	enum mtar_verbose_level verbose;
+
+	const char * compress_module;
+	int compress_level;
 
 	const char ** plugins;
 	unsigned int nbPlugins;

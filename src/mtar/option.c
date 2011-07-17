@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 04 Jul 2011 18:15:39 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 21:32:34 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -80,6 +80,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	option->verbose = 0;
 
+	option->compress_module = 0;
+	option->compress_level = 6;
+
 	option->plugins = 0;
 	option->nbPlugins = 0;
 
@@ -90,7 +93,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhHtvV");
+	size_t goodArg = strspn(argv[1], "-cfhHtvVz");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -140,6 +143,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				case 'V':
 					mtar_option_show_version(*argv);
 					return 1;
+
+				case 'z':
+					option->compress_module = "gzip";
+					break;
 			}
 		}
 	} else {
@@ -216,6 +223,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
 				option->plugins[option->nbPlugins] = argv[optArg];
 				option->nbPlugins++;
+			} else if (!strcmp(argv[optArg], "--gzip")) {
+				option->compress_module = "gzip";
 			} else if (!strcmp(argv[optArg], "--")) {
 				optArg++;
 				break;
@@ -255,7 +264,8 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-ios *          : list available io backend\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -h, --help            : show this and exit\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *     : load a plugin which will interact with an function\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list            : list files from tar archive\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list            : list files from tar archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip            : use gzip compression\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
 }

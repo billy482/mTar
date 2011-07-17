@@ -24,47 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:58:53 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 21:18:54 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_FILTER_H__
-#define __MTAR_FILTER_H__
+#ifndef __MTAR_FILTER_P_H__
+#define __MTAR_FILTER_P_H__
 
-#include "io.h"
+#include <mtar/filter.h>
 
-struct mtar_filter {
-	/**
-	 * \brief name of driver
-	 */
-	const char * name;
-	/**
-	 * \brief get a new input handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
-	 * \return 0 if failed or a new instance of struct mtar_io_in
-	 */
-	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
-	/**
-	 * \brief get a new output handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
-	 * \return 0 if failed or a new instance of struct mtar_io_out
-	 */
-	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
-	/**
-	 * \brief print a short description about driver
-	 *
-	 * This function is called by \b mtar when argument is --list-filters
-	 */
-	void (*show_description)(void);
-};
-
-struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct mtar_option * option);
-
-/**
- * \brief Register a filter io
- * \param[in] io : a filtering module io statically allocated
- */
-void mtar_filter_register(struct mtar_filter * filter);
+void mtar_filter_show_description(void);
 
 #endif
 

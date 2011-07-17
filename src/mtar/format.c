@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 08 Jul 2011 19:00:20 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 21:47:03 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -36,6 +36,7 @@
 // O_RDONLY, O_WRONLY
 #include <sys/types.h>
 
+#include "filter.h"
 #include "format.h"
 #include "io.h"
 #include "loader.h"
@@ -101,6 +102,7 @@ struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option) 
 }
 
 struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
+	io = mtar_filter_get_out(io, option);
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_out(io, option);

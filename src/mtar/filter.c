@@ -24,47 +24,63 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:58:53 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 21:41:30 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_FILTER_H__
-#define __MTAR_FILTER_H__
+// realloc
+#include <stdlib.h>
+// strcmp
+#include <string.h>
 
-#include "io.h"
+#include "filter.h"
+#include "loader.h"
+#include "option.h"
+#include "verbose.h"
 
-struct mtar_filter {
-	/**
-	 * \brief name of driver
-	 */
-	const char * name;
-	/**
-	 * \brief get a new input handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
-	 * \return 0 if failed or a new instance of struct mtar_io_in
-	 */
-	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
-	/**
-	 * \brief get a new output handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
-	 * \return 0 if failed or a new instance of struct mtar_io_out
-	 */
-	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
-	/**
-	 * \brief print a short description about driver
-	 *
-	 * This function is called by \b mtar when argument is --list-filters
-	 */
-	void (*show_description)(void);
-};
+static struct mtar_filter ** mtar_filter_filters = 0;
+static unsigned int mtar_filter_nb_filters = 0;
 
-struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct mtar_option * option);
+static struct mtar_filter * mtar_filter_get(const char * module);
 
-/**
- * \brief Register a filter io
- * \param[in] io : a filtering module io statically allocated
- */
-void mtar_filter_register(struct mtar_filter * filter);
 
-#endif
+struct mtar_filter * mtar_filter_get(const char * module) {
+	unsigned int i;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
+		if (!strcmp(module, mtar_filter_filters[i]->name))
+			return mtar_filter_filters[i];
+	if (mtar_loader_load("filter", module))
+		return 0;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
+		if (!strcmp(module, mtar_filter_filters[i]->name))
+			return mtar_filter_filters[i];
+	return 0;
+}
+
+struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
+	return io;
+}
+
+struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct mtar_option * option) {
+	if (option->compress_module) {
+		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
+		if (!filter)
+			return 0;
+
+		return filter->new_out(io, option);
+	}
+	return io;
+}
+
+void mtar_filter_register(struct mtar_filter * filter) {
+	mtar_filter_filters = realloc(mtar_filter_filters, (mtar_filter_nb_filters + 1) * sizeof(struct mtar_filter *));
+	mtar_filter_filters[mtar_filter_nb_filters] = filter;
+	mtar_filter_nb_filters++;
+
+	mtar_loader_register_ok();
+}
+
+void mtar_filter_show_description() {
+	mtar_loader_loadAll("filter");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend filters :\n");
+}
 
