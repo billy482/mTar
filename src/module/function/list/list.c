@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 11:51:21 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 13:32:27 +0200                       *
 \***********************************************************************/
 
 // open
@@ -63,7 +63,8 @@ int mtar_function_list(const struct mtar_option * option) {
 
 	struct mtar_format_header header;
 
-	for (;;) {
+	int ok = -1;
+	while (ok < 0) {
 		enum mtar_format_in_header_status status = format->ops->get_header(format, &header);
 
 		switch (status) {
@@ -73,20 +74,22 @@ int mtar_function_list(const struct mtar_option * option) {
 
 			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
 				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad checksum\n");
-				return 3;
+				ok = 3;
+				continue;
 
 			case MTAR_FORMAT_HEADER_BAD_HEADER:
 				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad header\n");
-				return 4;
+				ok = 4;
+				continue;
 
 			case MTAR_FORMAT_HEADER_NOT_FOUND:
-				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Header not found\n");
-				return 1;
+				ok = 0;
+				continue;
 		}
 
 		if (format->ops->skip_file(format)) {
 			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to skip file\n");
-			return 2;
+			ok = 2;
 		}
 	}
 

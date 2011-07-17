@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 12:08:38 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 13:29:19 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -148,15 +148,18 @@ void mtar_format_ustar_in_free(struct mtar_format_in * f) {
 
 enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header) {
 	struct mtar_format_ustar_in * self = f->data;
-	if (mtar_format_ustar_in_prefetch(self, 2560) < 0)
+	ssize_t nbRead = mtar_format_ustar_in_prefetch(self, 2560);
+	if (nbRead == 0)
 		return MTAR_FORMAT_HEADER_NOT_FOUND;
+	if (nbRead < 0)
+		return MTAR_FORMAT_HEADER_BAD_HEADER;
 
 	mtar_format_init_header(header);
 
 	do {
 		char buffer[512];
 		struct mtar_format_ustar * h = (struct mtar_format_ustar *) buffer;
-		ssize_t nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512);
+		nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512);
 
 		if (h->filename[0] == '\0')
 			return MTAR_FORMAT_HEADER_NOT_FOUND;
