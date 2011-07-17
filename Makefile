@@ -13,7 +13,7 @@ STRIP		:= ${TARGET}strip
 NAME		:= mtar
 DIR_NAME	:= $(lastword $(subst /, , $(realpath .)))
 #VERSION		:= $(shell git describe)
-VERSION		:= 0.0.1
+VERSION		:= 0.0.2-$(shell git branch | grep ^* | cut -d ' ' -f '2-')
 
 
 BINS		:=
