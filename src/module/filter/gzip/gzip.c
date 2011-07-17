@@ -1,13 +1,13 @@
 /***********************************************************************\
-*                               ______                                  *
-*                          __ _/_  __/__ _____                          *
-*                         /  ' \/ / / _ `/ __/                          *
-*                        /_/_/_/_/  \_,_/_/                             *
-*                                                                       *
+*       ______           ____     ___           __   _                  *
+*      / __/ /____  ____/  _/__ _/ _ | ________/ /  (_)  _____ ____     *
+*     _\ \/ __/ _ \/ __// // _ `/ __ |/ __/ __/ _ \/ / |/ / -_) __/     *
+*    /___/\__/\___/_/ /___/\_, /_/ |_/_/  \__/_//_/_/|___/\__/_/        *
+*                           /_/                                         *
 *  -------------------------------------------------------------------  *
-*  This file is a part of mTar                                          *
+*  This file is a part of StorIqArchiver                                *
 *                                                                       *
-*  mTar is free software; you can redistribute it and/or                *
+*  StorIqArchiver is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License          *
 *  as published by the Free Software Foundation; either version 3       *
 *  of the License, or (at your option) any later version.               *
@@ -23,30 +23,26 @@
 *  Boston, MA  02110-1301, USA.                                         *
 *                                                                       *
 *  -------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:40:37 +0200                       *
+*  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
+*  Last modified: Sun, 17 Jul 2011 20:20:28 +0200                       *
 \***********************************************************************/
-
-#include <mtar/verbose.h>
 
 #include "common.h"
 
-static void mtar_io_pipe_init(void) __attribute__((constructor));
-static void mtar_io_pipe_show_description(void);
+static void mtar_filter_gzip_init(void) __attribute__((constructor));
+static void mtar_filter_gzip_show_description(void);
 
-static struct mtar_io mtar_io_pipe = {
-	.name             = "pipe",
-	.new_in           = mtar_io_pipe_new_in,
-	.new_out          = mtar_io_pipe_new_out,
-	.show_description = mtar_io_pipe_show_description,
+static struct mtar_filter mtar_filter_gzip = {
+	.name             = "gzip",
+	.new_in           = mtar_filter_gzip_new_in,
+	.new_out          = mtar_filter_gzip_new_out,
+	.show_description = mtar_filter_gzip_show_description,
 };
 
 
-void mtar_io_pipe_init() {
-	mtar_io_register(&mtar_io_pipe);
+void mtar_filter_gzip_init() {
+	mtar_filter_register(&mtar_filter_gzip);
 }
 
-void mtar_io_pipe_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  pipe : used for pipe (from file (mkfifo) or not)\n");
-}
+void mtar_filter_gzip_show_description() {}
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 03 Jul 2011 20:47:32 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 20:40:18 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -112,7 +112,6 @@ struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unuse
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_pipe_out_ops;
 	io->data = data;
-	io->driver = mtar_io_pipe_get_driver();
 
 	return io;
 }

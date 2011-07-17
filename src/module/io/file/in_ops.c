@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 11:40:12 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 20:39:20 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -123,7 +123,6 @@ struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)
 	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
 	io->ops = &mtar_io_file_in_ops;
 	io->data = data;
-	io->driver = mtar_io_file_get_driver();
 
 	return io;
 }

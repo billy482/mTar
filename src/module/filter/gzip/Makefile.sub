@@ -1,0 +1,16 @@
+MTAR_FILTER_GZIP_SRC_DIR	:= src/module/filter/gzip
+MTAR_FILTER_GZIP_BUILD_DIR	:= ${BUILD_DIR}/module/filter/gzip
+MTAR_FILTER_GZIP_DEPEND_DIR	:= ${DEPEND_DIR}/module/filter/gzip
+
+MTAR_FILTER_GZIP_SRC_FILES	:= $(sort $(shell test -d ${MTAR_FILTER_GZIP_SRC_DIR} && find ${MTAR_FILTER_GZIP_SRC_DIR} -name '*.c'))
+MTAR_FILTER_GZIP_HEAD_FILES	:= $(sort $(shell test -d ${MTAR_FILTER_GZIP_SRC_DIR} && find ${MTAR_FILTER_GZIP_SRC_DIR} -name '*.h'))
+MTAR_FILTER_GZIP_OBJ_FILES	:= $(sort $(patsubst src/%.c,${BUILD_DIR}/%.o,${MTAR_FILTER_GZIP_SRC_FILES}))
+MTAR_FILTER_GZIP_DEP_FILES	:= $(sort $(shell test -d ${MTAR_FILTER_GZIP_DEPEND_DIR} && find ${MTAR_FILTER_GZIP_DEPEND_DIR} -name '*.d'))
+
+MTAR_FILTER_GZIP_BIN		:= lib/libfilter-gzip.so
+MTAR_FILTER_GZIP_CFLAG		:= -I. -fPIC -fvisibility=hidden
+MTAR_FILTER_GZIP_LD			:= -shared -lz
+
+MTAR_FILTER_GZIP_LIB		:=
+
+BIN_SYMS					+= MTAR_FILTER_GZIP

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 05 Jul 2011 19:35:21 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 20:17:59 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -32,11 +32,36 @@
 
 #include "io.h"
 
+struct mtar_filter {
+	/**
+	 * \brief name of driver
+	 */
+	const char * name;
+	/**
+	 * \brief get a new input handler
+	 * \param[in] option : a struct containing argument passed to \b mtar
+	 * \return 0 if failed or a new instance of struct mtar_io_in
+	 */
+	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
+	/**
+	 * \brief get a new output handler
+	 * \param[in] option : a struct containing argument passed to \b mtar
+	 * \return 0 if failed or a new instance of struct mtar_io_out
+	 */
+	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
+	/**
+	 * \brief print a short description about driver
+	 *
+	 * This function is called by \b mtar when argument is --list-filters
+	 */
+	void (*show_description)(void);
+};
+
 /**
  * \brief Register a filter io
  * \param[in] io : a filtering module io statically allocated
  */
-void mtar_filter_register(struct mtar_io * io);
+void mtar_filter_register(struct mtar_filter * filter);
 
 #endif
 

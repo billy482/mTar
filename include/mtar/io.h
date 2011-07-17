@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 17:58:58 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 20:39:05 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -103,7 +103,6 @@ struct mtar_io_in {
 	 * Users should not modify this field
 	 */
 	void * data;
-	struct mtar_io * driver;
 };
 
 /**
@@ -133,7 +132,6 @@ struct mtar_io_out {
 	 * \brief Private data used by io module
 	 */
 	void * data;
-	struct mtar_io * driver;
 };
 
 /**
