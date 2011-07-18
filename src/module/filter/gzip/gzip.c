@@ -24,8 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
-*  Last modified: Mon, 18 Jul 2011 08:26:06 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 13:06:48 +0200                       *
 \***********************************************************************/
+
+// zlibVersion
+#include <zlib.h>
 
 #include <mtar/verbose.h>
 
@@ -47,6 +50,6 @@ void mtar_filter_gzip_init() {
 }
 
 void mtar_filter_gzip_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  gzip : filter from/to compressed data\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  gzip (using zlib: v%s) : filter from/to compressed data\n", zlibVersion());
 }
 
