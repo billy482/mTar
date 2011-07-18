@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 17:39:39 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 18:09:08 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -109,16 +109,17 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	if (S_ISSOCK(st.st_mode))
 		return 0;
 
-	mtar_function_create_display(param->filename, &st);
-
 	char * key = malloc(16);
 	snprintf(key, 16, "%llx_%lx", (long long int) st.st_dev, st.st_ino);
 	if (mtar_hashtable_hasKey(param->inode, key)) {
 		const char * target = mtar_hashtable_value(param->inode, key);
+		mtar_function_create_display(param->filename, &st, target);
 		int failed = param->format->ops->add_link(param->format, param->filename, target);
 		free(key);
 		return failed;
 	}
+
+	mtar_function_create_display(param->filename, &st, 0);
 
 	mtar_hashtable_put(param->inode, key, strdup(param->filename));
 

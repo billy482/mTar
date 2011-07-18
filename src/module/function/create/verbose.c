@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 17:38:47 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 18:11:46 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -39,7 +39,7 @@
 #include <sys/types.h>
 // localtime_r, strftime
 #include <time.h>
-// stat
+// readlink, stat
 #include <unistd.h>
 
 #include <mtar/file.h>
@@ -48,14 +48,14 @@
 
 #include "common.h"
 
-static void mtar_function_create_display1(const char * filename, struct stat * st);
-static void mtar_function_create_display2(const char * filename, struct stat * st);
-static void mtar_function_create_display3(const char * filename, struct stat * st);
+static void mtar_function_create_display1(const char * filename, struct stat * st, const char * hardlink);
+static void mtar_function_create_display2(const char * filename, struct stat * st, const char * hardlink);
+static void mtar_function_create_display3(const char * filename, struct stat * st, const char * hardlink);
 static void mtar_function_create_progress1(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 
-void (*mtar_function_create_display)(const char * filename, struct stat * st) = mtar_function_create_display1;
+void (*mtar_function_create_display)(const char * filename, struct stat * st, const char * hardlink) = mtar_function_create_display1;
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
 
@@ -78,42 +78,56 @@ void mtar_function_create_configure(const struct mtar_option * option) {
 	}
 }
 
-void mtar_function_create_display1(const char * filename __attribute__((unused)), struct stat * st __attribute__((unused))) {}
+void mtar_function_create_display1(const char * filename __attribute__((unused)), struct stat * st __attribute__((unused)), const char * hardlink __attribute__((unused))) {}
 
-void mtar_function_create_display2(const char * filename, struct stat * st __attribute__((unused))) {
+void mtar_function_create_display2(const char * filename, struct stat * st __attribute__((unused)), const char * hardlink __attribute__((unused))) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", filename);
 }
 
-void mtar_function_create_display3(const char * filename, struct stat * st) {
-	char * buffer = malloc(256);
-	char * pos = buffer + 10;
+void mtar_function_create_display3(const char * filename, struct stat * st, const char * hardlink) {
+	char mode[11];
+	mtar_file_convert_mode(mode, st->st_mode);
+
+	static int sug = 0;
+	char ug[32];
+	mtar_file_uid2name(ug, 32, st->st_uid);
+	strcat(ug, "/");
+	size_t length = strlen(ug);
+	mtar_file_gid2name(ug + length, 32 - length, st->st_gid);
+
+	int tsug = strlen(ug), i;
+	if (sug == 0)
+		sug = tsug;
+
+	for (i = tsug; i < sug; i++)
+		ug[i] = ' ';
+	ug[i] = '\0';
+
+	if (sug < tsug)
+		sug = tsug;
+
 	struct tm tmval;
-
-	mtar_file_convert_mode(buffer, st->st_mode);
-
-	*pos = ' ';
-	pos++;
-
-	mtar_file_uid2name(pos, 256 - (pos - buffer), st->st_uid);
-	pos += strlen(pos);
-
-	*pos = '/';
-	pos++;
-
-	mtar_file_gid2name(pos, 256 - (pos - buffer), st->st_gid);
-	pos += strlen(pos);
-
-	snprintf(pos, 256 - (pos - buffer), " %lld ", (long long) st->st_size);
-	pos += strlen(pos);
-
 	localtime_r(&st->st_mtime, &tmval);
-	strftime(pos, 256 - (pos - buffer), "%y-%m-%d %R ", &tmval);
-	pos += strlen(pos);
 
-	strncpy(pos, filename, 256 - (pos - buffer));
+	char mtime[24];
+	strftime(mtime, 24, "%Y-%m-%d %R", &tmval);
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", buffer);
-	free(buffer);
+	static int nsize = 0;
+	int size1, size2;
+
+	if (hardlink) {
+		mode[0] = 'h';
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s link to %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, hardlink);
+	} else if (S_ISLNK(st->st_mode)) {
+		char link[256];
+		readlink(filename, link, 256);
+
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s -> %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, link);
+	} else {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename);
+	}
+
+	nsize = size2 - size1;
 }
 
 void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 17:42:08 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 18:03:28 +0200                       *
 \***********************************************************************/
 
 // open
@@ -143,7 +143,9 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 		rptr--;
 
 	char * dot = strchr(rptr, ':');
-	strncpy(name, rptr, (dot - rptr) < namelength ? dot - rptr : namelength);
+	size_t size = (dot - rptr) < namelength ? dot - rptr : namelength;
+	strncpy(name, rptr, size);
+	name[size] = '\0';
 
 	munmap(buffer, fs.st_size);
 	close(fd);
