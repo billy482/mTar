@@ -24,13 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
-*  Last modified: Sun, 17 Jul 2011 22:06:47 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 10:55:01 +0200                       *
 \***********************************************************************/
 
 // free, malloc
 #include <malloc.h>
 // snprintf
 #include <stdio.h>
+// time
+#include <time.h>
 // deflate, deflateEnd, deflateInit
 #include <zlib.h>
 
@@ -43,6 +45,7 @@ struct mtar_filter_gzip_out {
 	z_stream gz_stream;
 	struct mtar_io_out * io;
 	uLong crc32;
+	short closed;
 };
 
 static int mtar_filter_gzip_out_close(struct mtar_io_out * io);
@@ -64,6 +67,8 @@ static struct mtar_io_out_ops mtar_filter_gzip_out_ops = {
 
 int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
+	if (self->closed)
+		return 0;
 
 	char buffer[1024];
 	self->gz_stream.next_in = 0;
@@ -85,6 +90,7 @@ int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
 	self->io->ops->write(self->io, &length, 4);
 
 	deflateEnd(&self->gz_stream);
+	self->closed = 1;
 
 	return self->io->ops->close(self->io);
 }
@@ -110,6 +116,9 @@ int mtar_filter_gzip_out_flush(struct mtar_io_out * io) {
 
 void mtar_filter_gzip_out_free(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
+	if (!self->closed)
+		mtar_filter_gzip_out_close(io);
+
 	self->io->ops->free(self->io);
 	free(self);
 	free(io);
@@ -122,7 +131,7 @@ int mtar_filter_gzip_out_last_errno(struct mtar_io_out * io) {
 
 off_t mtar_filter_gzip_out_pos(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
-	return self->io->ops->pos(self->io);
+	return self->gz_stream.total_in;
 }
 
 ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
@@ -150,6 +159,7 @@ ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, s
 struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_filter_gzip_out * self = malloc(sizeof(struct mtar_filter_gzip_out));
 	self->io = io;
+	self->closed = 0;
 
 	self->gz_stream.zalloc = 0;
 	self->gz_stream.zfree = 0;
@@ -172,7 +182,8 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 
 	// write header
 	char header[11];
-	snprintf(header, 11, "%c%c%c%c%c%c%c%c%c%c", 0x1f, 0x8b, 0x8, 0, 0, 0, 0, 0, self->gz_stream.data_type, 3);
+	time_t current = time(0);
+	snprintf(header, 11, "%c%c%c%c%c%c%c%c%c%c", 0x1f, 0x8b, 0x8, 0, (char) (current & 0xff), (char) (current >> 8 & 0xff), (char) (current >> 16 & 0xff), (char) (current >> 24 & 0xff), self->gz_stream.data_type, 3);
 	io->ops->write(io, header, 10);
 
 	struct mtar_io_out * io2 = malloc(sizeof(struct mtar_io_out));
