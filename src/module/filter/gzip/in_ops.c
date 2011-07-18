@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:32:13 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 09:41:43 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -39,6 +39,7 @@
 struct mtar_filter_gzip_in {
 	z_stream gz_stream;
 	struct mtar_io_in * io;
+	short closed;
 
 	char bufferIn[1024];
 };
@@ -62,16 +63,58 @@ static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
 
 int mtar_filter_gzip_in_close(struct mtar_io_in * io) {
 	struct mtar_filter_gzip_in * self = io->data;
+	if (self->closed)
+		return 0;
+
+	int failed = self->io->ops->close(self->io);
+	if (failed)
+		return failed;
+
 	inflateEnd(&self->gz_stream);
-	return self->io->ops->close(self->io);
+	self->closed = 1;
+	return 0;
 }
 
-off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io __attribute__((unused)), off_t offset __attribute__((unused))) {
-	return -1;
+off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
+	struct mtar_filter_gzip_in * self = io->data;
+
+	unsigned char buffer[1024];
+	self->gz_stream.next_out = buffer;
+	self->gz_stream.avail_out = offset > 1024 ? 1024 : offset;
+	uLong end_pos = self->gz_stream.total_out + offset;
+
+	while (self->gz_stream.total_out < end_pos) {
+		if (self->gz_stream.avail_in > 0) {
+			int err = inflate(&self->gz_stream, Z_SYNC_FLUSH);
+			if (err == Z_STREAM_END)
+				return self->gz_stream.total_out;
+			if (self->gz_stream.avail_out == 0) {
+				uLong tOffset = end_pos - self->gz_stream.total_out;
+				if (tOffset == 0)
+					return self->gz_stream.total_out;
+				self->gz_stream.avail_out = tOffset > 1024 ? 1024 : tOffset;
+			}
+		}
+
+		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
+		if (nbRead > 0) {
+			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
+			self->gz_stream.avail_in += nbRead;
+		} else if (nbRead == 0) {
+			return self->gz_stream.total_out;
+		} else {
+			return nbRead;
+		}
+	}
+
+	return self->gz_stream.total_out;
 }
 
 void mtar_filter_gzip_in_free(struct mtar_io_in * io) {
 	struct mtar_filter_gzip_in * self = io->data;
+	if (!self->closed)
+		mtar_filter_gzip_in_close(io);
+
 	self->io->ops->free(self->io);
 	free(self);
 	free(io);
@@ -84,7 +127,7 @@ int mtar_filter_gzip_in_last_errno(struct mtar_io_in * io) {
 
 off_t mtar_filter_gzip_in_pos(struct mtar_io_in * io) {
 	struct mtar_filter_gzip_in * self = io->data;
-	return self->io->ops->pos(self->io);
+	return self->gz_stream.total_out;
 }
 
 ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
@@ -92,37 +135,37 @@ ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t le
 
 	self->gz_stream.next_out = data;
 	self->gz_stream.avail_out = length;
-	self->gz_stream.total_out = 0;
+	uLong previous_pos = self->gz_stream.total_out;
 
 	while (self->gz_stream.avail_out > 0) {
 		if (self->gz_stream.avail_in > 0) {
 			int err = inflate(&self->gz_stream, Z_SYNC_FLUSH);
 			if (err == Z_STREAM_END || self->gz_stream.avail_out == 0)
-				return self->gz_stream.total_out;
+				return self->gz_stream.total_out - previous_pos;
 		}
 
 		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
 		if (nbRead > 0) {
 			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
-			self->gz_stream.avail_in = nbRead;
-			self->gz_stream.total_in = 0;
+			self->gz_stream.avail_in += nbRead;
 		} else if (nbRead == 0) {
-			return self->gz_stream.total_out;
+			return self->gz_stream.total_out - previous_pos;
 		} else {
 			return nbRead;
 		}
 	}
 
-	return self->gz_stream.total_out;
+	return self->gz_stream.total_out - previous_pos;
 }
 
 struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_filter_gzip_in * self = malloc(sizeof(struct mtar_filter_gzip_in));
 	self->io = io;
+	self->closed = 0;
 
 	int nbRead = io->ops->read(io, self->bufferIn, 1024);
 
-	if (self->bufferIn[0] != 0x1f || ((unsigned char) self->bufferIn[1]) != 0x8b) {
+	if (nbRead < 10 || self->bufferIn[0] != 0x1f || ((unsigned char) self->bufferIn[1]) != 0x8b) {
 		free(self);
 		return 0;
 	}
@@ -154,6 +197,9 @@ struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct
 
 	self->gz_stream.next_in = (unsigned char *) ptr;
 	self->gz_stream.avail_in = nbRead - (ptr - self->bufferIn);
+	self->gz_stream.total_in = 0;
+
+	self->gz_stream.total_out = 0;
 
 	int err = inflateInit2(&self->gz_stream, -MAX_WBITS);
 	if (err < 0) {

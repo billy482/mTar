@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 21:41:30 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 08:22:04 +0200                       *
 \***********************************************************************/
 
 // realloc
@@ -57,6 +57,13 @@ struct mtar_filter * mtar_filter_get(const char * module) {
 }
 
 struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
+	if (option->compress_module) {
+		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
+		if (!filter)
+			return 0;
+
+		return filter->new_in(io, option);
+	}
 	return io;
 }
 
@@ -82,5 +89,9 @@ void mtar_filter_register(struct mtar_filter * filter) {
 void mtar_filter_show_description() {
 	mtar_loader_loadAll("filter");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend filters :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
+		mtar_filter_filters[i]->show_description();
 }
 

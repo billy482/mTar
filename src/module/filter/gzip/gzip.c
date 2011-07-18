@@ -24,8 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
-*  Last modified: Sun, 17 Jul 2011 20:20:28 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 08:26:06 +0200                       *
 \***********************************************************************/
+
+#include <mtar/verbose.h>
 
 #include "common.h"
 
@@ -44,5 +46,7 @@ void mtar_filter_gzip_init() {
 	mtar_filter_register(&mtar_filter_gzip);
 }
 
-void mtar_filter_gzip_show_description() {}
+void mtar_filter_gzip_show_description() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  gzip : filter from/to compressed data\n");
+}
 

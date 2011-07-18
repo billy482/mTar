@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 21:47:03 +0200                       *
+*  Last modified: Sun, 17 Jul 2011 22:25:30 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -83,6 +83,7 @@ struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option) {
 }
 
 struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
+	io = mtar_filter_get_in(io, option);
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_in(io, option);

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 21:32:34 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 08:27:08 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -32,6 +32,7 @@
 // calloc, free, realloc
 #include <stdlib.h>
 
+#include "filter.h"
 #include "format.h"
 #include "function.h"
 #include "io.h"
@@ -204,6 +205,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->doWork = mtar_function_get("list");
 			} else if (!strcmp(argv[optArg], "--list-filters")) {
 				mtar_option_show_version(*argv);
+				mtar_filter_show_description();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-formats")) {
 				mtar_option_show_version(*argv);
