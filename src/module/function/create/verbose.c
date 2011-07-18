@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 17:54:08 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 17:38:47 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -46,7 +46,7 @@
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
-#include "verbose.h"
+#include "common.h"
 
 static void mtar_function_create_display1(const char * filename, struct stat * st);
 static void mtar_function_create_display2(const char * filename, struct stat * st);

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 09:53:57 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 17:39:39 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -53,7 +53,7 @@
 #include <mtar/util.h>
 #include <mtar/verbose.h>
 
-#include "verbose.h"
+#include "common.h"
 
 struct mtar_function_create_param {
 	const char * filename;
