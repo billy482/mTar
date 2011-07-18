@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 17:43:42 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:18:31 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -71,9 +71,8 @@ void mtar_function_register(struct mtar_function * f) {
 	mtar_loader_register_ok();
 }
 
-void mtar_function_showDescription() {
+void mtar_function_show_description() {
 	mtar_loader_loadAll("function");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available functions :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_function_nbFunctions; i++)

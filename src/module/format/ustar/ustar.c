@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 09:50:11 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:27:46 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
@@ -46,6 +46,6 @@ void format_init() {
 }
 
 void mtar_format_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  ustar : default format in gnu tar\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    ustar : default format in gnu tar\n");
 }
 

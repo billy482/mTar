@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 08:27:08 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:28:30 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -52,16 +52,31 @@ int mtar_option_check(struct mtar_option * option) {
 }
 
 void mtar_option_free(struct mtar_option * option) {
+	// main operation mode
 	option->doWork = 0;
-	option->format = 0;
+
+	// overwrite control
+	option->verify = 0;
+
+	// device selection and switching
 	option->filename = 0;
 
+	// archive format selection
+	option->format = 0;
+	option->label = 0;
+
+	// compression options
+	option->compress_module = 0;
+
+	// local file selections
 	if (option->nbFiles > 0) {
 		free(option->files);
 		option->files = 0;
 		option->nbFiles = 0;
 	}
+	option->working_directory = 0;
 
+	// mtar specific option
 	if (option->nbPlugins > 0) {
 		free(option->plugins);
 		option->plugins = 0;
@@ -70,20 +85,32 @@ void mtar_option_free(struct mtar_option * option) {
 }
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
+	// main operation mode
 	option->doWork = 0;
 
-	option->format = "ustar";
+	// overwrite control
+	option->verify = 0;
 
+	// device selection and switching
 	option->filename = 0;
 
-	option->files = 0;
-	option->nbFiles = 0;
+	// archive format selection
+	option->format = "ustar";
+	option->label = 0;
 
-	option->verbose = 0;
-
+	// compression options
 	option->compress_module = 0;
 	option->compress_level = 6;
 
+	// local file selections
+	option->files = 0;
+	option->nbFiles = 0;
+	option->working_directory = 0;
+
+	// informative output
+	option->verbose = 0;
+
+	// mtar specific option
 	option->plugins = 0;
 	option->nbPlugins = 0;
 
@@ -94,7 +121,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cfhHtvVz");
+	size_t goodArg = strspn(argv[1], "-cCfHtvVWz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -108,6 +135,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			switch (argv[1][i]) {
 				case 'c':
 					option->doWork = mtar_function_get("create");
+					break;
+
+				case 'C':
+					option->working_directory = argv[optArg++];
 					break;
 
 				case 'f':
@@ -124,10 +155,6 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					option->filename = argv[optArg++];
 					break;
 
-				case 'h':
-					mtar_option_show_help(*argv);
-					return 1;
-
 				case 'H':
 					option->format = argv[optArg++];
 					break;
@@ -142,12 +169,20 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'V':
-					mtar_option_show_version(*argv);
-					return 1;
+					option->label = argv[optArg++];
+					break;
+
+				case 'W':
+					option->verify = 1;
+					break;
 
 				case 'z':
 					option->compress_module = "gzip";
 					break;
+
+				case '?':
+					mtar_option_show_help(*argv);
+					return 1;
 			}
 		}
 	} else {
@@ -158,6 +193,15 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		while (optArg < argc) {
 			if (!strcmp(argv[optArg], "--create")) {
 				option->doWork = mtar_function_get("create");
+			} else if (!strncmp(argv[optArg], "--directory", 11)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+				opt = argv[++optArg];
+
+				if (opt)
+					option->working_directory = opt;
 			} else if (!strncmp(argv[optArg], "--file", 6)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
@@ -198,9 +242,20 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				} else {
 					option->doWork = mtar_function_get(opt);
 				}
+			} else if (!strcmp(argv[optArg], "--gzip")) {
+				option->compress_module = "gzip";
 			} else if (!strcmp(argv[optArg], "--help")) {
 				mtar_option_show_help(*argv);
 				return 1;
+			} else if (!strncmp(argv[optArg], "--label", 7)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (opt)
+					option->label = opt;
 			} else if (!strcmp(argv[optArg], "--list")) {
 				option->doWork = mtar_function_get("list");
 			} else if (!strcmp(argv[optArg], "--list-filters")) {
@@ -213,7 +268,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-functions")) {
 				mtar_option_show_version(*argv);
-				mtar_function_showDescription();
+				mtar_function_show_description();
 				return 1;
 			} else if (!strcmp(argv[optArg], "--list-ios")) {
 				mtar_option_show_version(*argv);
@@ -225,8 +280,11 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
 				option->plugins[option->nbPlugins] = argv[optArg];
 				option->nbPlugins++;
-			} else if (!strcmp(argv[optArg], "--gzip")) {
-				option->compress_module = "gzip";
+			} else if (!strcmp(argv[optArg], "--verbose")) {
+				if (option->verbose < 2)
+					option->verbose++;
+			} else if (!strcmp(argv[optArg], "--verify")) {
+				option->verify = 1;
 			} else if (!strcmp(argv[optArg], "--")) {
 				optArg++;
 				break;
@@ -254,20 +312,46 @@ void mtar_option_show_help(const char * path) {
 		ptr = path;
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create          : create new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE    : use ARCHIVE file or device ARCHIVE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT * : use FORMAT as tar format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION * : use FUNCTION as action\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "       help=FUNCTION      : show specific help from function FUNCTION\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-filters *      : list available io filters\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-formats *      : list available format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-functions *    : list available function\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-ios *          : list available io backend\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -h, --help            : show this and exit\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *     : load a plugin which will interact with an function\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list            : list files from tar archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip            : use gzip compression\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Main operation mode:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create               : create new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list                 : list files from tar archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION *      : use FUNCTION as action\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FUNCTION is one of:\n");
+	mtar_function_show_description();
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Main operation mode:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify : attempt to verify the archive after writing it\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Archive format selection:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -V, --label=TEXT    : create archive with volume name TEXT\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FORMAT is one of the following:\n");
+	mtar_format_show_description();
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip : filter the archive through gzip\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Informative output:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose : verbosely list files processed\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Other options:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -?, --help : give this help list\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-filters *   : list available io filters\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-formats *   : list available format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-functions * : list available function\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-ios *       : list available io backend\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *  : load a plugin which will interact with an function\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
 }

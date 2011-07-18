@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 22:25:30 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:27:29 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -149,7 +149,6 @@ void mtar_format_register(struct mtar_format * f) {
 
 void mtar_format_show_description() {
 	mtar_loader_loadAll("format");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available formats :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_format_nb_formats; i++)

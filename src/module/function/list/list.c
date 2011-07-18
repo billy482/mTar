@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 13:32:27 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:24:26 +0200                       *
 \***********************************************************************/
 
 // open
@@ -43,14 +43,14 @@
 
 static int mtar_function_list(const struct mtar_option * option);
 static void mtar_function_list_init(void) __attribute__((constructor));
-static void mtar_function_list_showDescription(void);
-static void mtar_function_list_showHelp(void);
+static void mtar_function_list_show_description(void);
+static void mtar_function_list_show_help(void);
 
 static struct mtar_function mtar_function_list_functions = {
 	.name            = "list",
 	.doWork          = mtar_function_list,
-	.showDescription = mtar_function_list_showDescription,
-	.showHelp        = mtar_function_list_showHelp,
+	.showDescription = mtar_function_list_show_description,
+	.showHelp        = mtar_function_list_show_help,
 };
 
 
@@ -102,11 +102,11 @@ void mtar_function_list_init() {
 	mtar_function_register(&mtar_function_list_functions);
 }
 
-void mtar_function_list_showDescription() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  list : List files from tar archive\n");
+void mtar_function_list_show_description() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    list : List files from tar archive\n");
 }
 
-void mtar_function_list_showHelp() {
+void mtar_function_list_show_help() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
 }
 

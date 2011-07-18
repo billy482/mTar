@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 21:26:54 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 22:21:25 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -34,20 +34,32 @@
 #include "verbose.h"
 
 struct mtar_option {
+	// main operation mode
 	mtar_function_f doWork;
 
-	const char * format;
+	// overwrite control
+	char verify;
 
+	// device selection and switching
 	const char * filename;
 
-	const char ** files;
-	unsigned int nbFiles;
+	// archive format selection
+	const char * format;
+	const char * label;
 
-	enum mtar_verbose_level verbose;
-
+	// compression options
 	const char * compress_module;
 	int compress_level;
 
+	// local file selections
+	const char ** files;
+	unsigned int nbFiles;
+	const char * working_directory;
+
+	// informative output
+	enum mtar_verbose_level verbose;
+
+	// mtar specific option
 	const char ** plugins;
 	unsigned int nbPlugins;
 };

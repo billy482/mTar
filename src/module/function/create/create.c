@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 18:09:08 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 23:22:13 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -66,14 +66,14 @@ static int mtar_function_create(const struct mtar_option * option);
 static int mtar_function_create2(struct mtar_function_create_param * param);
 static int mtar_function_create_filter(const struct dirent * d);
 static void mtar_function_create_init(void) __attribute__((constructor));
-static void mtar_function_create_showDescription(void);
-static void mtar_function_create_showHelp(void);
+static void mtar_function_create_show_description(void);
+static void mtar_function_create_show_help(void);
 
 static struct mtar_function mtar_function_create_functions = {
 	.name            = "create",
 	.doWork          = mtar_function_create,
-	.showDescription = mtar_function_create_showDescription,
-	.showHelp        = mtar_function_create_showHelp,
+	.showDescription = mtar_function_create_show_description,
+	.showHelp        = mtar_function_create_show_help,
 };
 
 
@@ -190,11 +190,11 @@ void mtar_function_create_init() {
 	mtar_function_register(&mtar_function_create_functions);
 }
 
-void mtar_function_create_showDescription() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  create : Create new archive\n");
+void mtar_function_create_show_description() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    create : Create new archive\n");
 }
 
-void mtar_function_create_showHelp() {
+void mtar_function_create_show_help() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Create new archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    f, --file: name of archive\n");
 }
