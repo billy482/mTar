@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 13:53:53 +0200                       *
+*  Last modified: Mon, 18 Jul 2011 09:46:53 +0200                       *
 \***********************************************************************/
 
 // localtime_r, strftime
@@ -80,18 +80,18 @@ void mtar_function_list_display2(struct mtar_format_header * header) {
 	localtime_r(&header->mtime, &tmval);
 
 	char mtime[24];
-	strftime(mtime, 24, "%Y-%m-%d %T", &tmval);
+	strftime(mtime, 24, "%Y-%m-%d %R", &tmval);
 
 	static int nsize = 0;
 	int size1, size2;
 
 	if (header->link[0] != '\0' && !(header->mode & S_IFMT)) {
 		mode[0] = 'h';
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %n%*lld%n %s link to %s\n", mode, ug, mtime, &size1, nsize, (long long) header->size, &size2, header->path, header->link);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s link to %s\n", mode, ug, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
 	} else if (S_ISLNK(header->mode)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %n%*lld%n %s -> %s\n", mode, ug, mtime, &size1, nsize, (long long) header->size, &size2, header->path, header->link);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s -> %s\n", mode, ug, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s %n%*lld%n %s\n", mode, ug, mtime, &size1, nsize, (long long) header->size, &size2, header->path);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s\n", mode, ug, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
 	}
 
 	nsize = size2 - size1;
