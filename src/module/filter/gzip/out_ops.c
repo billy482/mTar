@@ -1,13 +1,13 @@
 /***********************************************************************\
-*       ______           ____     ___           __   _                  *
-*      / __/ /____  ____/  _/__ _/ _ | ________/ /  (_)  _____ ____     *
-*     _\ \/ __/ _ \/ __// // _ `/ __ |/ __/ __/ _ \/ / |/ / -_) __/     *
-*    /___/\__/\___/_/ /___/\_, /_/ |_/_/  \__/_//_/_/|___/\__/_/        *
-*                           /_/                                         *
-*  -------------------------------------------------------------------  *
-*  This file is a part of StorIqArchiver                                *
+*                               ______                                  *
+*                          __ _/_  __/__ _____                          *
+*                         /  ' \/ / / _ `/ __/                          *
+*                        /_/_/_/_/  \_,_/_/                             *
 *                                                                       *
-*  StorIqArchiver is free software; you can redistribute it and/or      *
+*  -------------------------------------------------------------------  *
+*  This file is a part of mTar                                          *
+*                                                                       *
+*  mTar is free software; you can redistribute it and/or                *
 *  modify it under the terms of the GNU General Public License          *
 *  as published by the Free Software Foundation; either version 3       *
 *  of the License, or (at your option) any later version.               *
@@ -23,8 +23,8 @@
 *  Boston, MA  02110-1301, USA.                                         *
 *                                                                       *
 *  -------------------------------------------------------------------  *
-*  Copyright (C) 2010, Clercin guillaume <gclercin@intellique.com>      *
-*  Last modified: Mon, 18 Jul 2011 10:55:01 +0200                       *
+*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
+*  Last modified: Tue, 19 Jul 2011 22:21:33 +0200                       *
 \***********************************************************************/
 
 // free, malloc

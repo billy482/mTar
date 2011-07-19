@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:30:33 +0200                       *
+*  Last modified: Tue, 19 Jul 2011 08:54:22 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_GZIP_H__
@@ -32,7 +32,6 @@
 
 #include <mtar/filter.h>
 
-struct mtar_io * mtar_filter_gzip_get_driver(void);
 struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct mtar_option * option);
 struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const struct mtar_option * option);
 

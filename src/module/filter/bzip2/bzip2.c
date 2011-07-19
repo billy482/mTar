@@ -27,29 +27,32 @@
 *  Last modified: Tue, 19 Jul 2011 22:21:33 +0200                       *
 \***********************************************************************/
 
-// zlibVersion
-#include <zlib.h>
+// BZ2_bzlibVersion
+#include <bzlib.h>
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static void mtar_filter_gzip_init(void) __attribute__((constructor));
-static void mtar_filter_gzip_show_description(void);
+static void mtar_filter_bzip2_init(void) __attribute__((constructor));
+static void mtar_filter_bzip2_show_description(void);
 
-static struct mtar_filter mtar_filter_gzip = {
-	.name             = "gzip",
-	.new_in           = mtar_filter_gzip_new_in,
-	.new_out          = mtar_filter_gzip_new_out,
-	.show_description = mtar_filter_gzip_show_description,
+static struct mtar_filter mtar_filter_bzip2 = {
+	.name             = "bzip2",
+	.new_in           = mtar_filter_bzip2_new_in,
+	.new_out          = mtar_filter_bzip2_new_out,
+	.show_description = mtar_filter_bzip2_show_description,
 };
 
 
-void mtar_filter_gzip_init() {
-	mtar_filter_register(&mtar_filter_gzip);
+void mtar_filter_bzip2_init() {
+	mtar_filter_register(&mtar_filter_bzip2);
 }
 
-void mtar_filter_gzip_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  gzip (using zlib: v%s) : filter from/to compressed data\n", zlibVersion());
+void mtar_filter_bzip2_show_description() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  bzip2 (using libbz2: v%s) : filter from/to compressed data\n", BZ2_bzlibVersion());
 }
+
+
+struct mtar_io_out * mtar_filter_bzip2_new_out(struct mtar_io_out * io, const struct mtar_option * option) {}
 

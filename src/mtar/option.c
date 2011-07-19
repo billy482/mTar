@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 23:28:30 +0200                       *
+*  Last modified: Tue, 19 Jul 2011 22:05:36 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -121,7 +121,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cCfHtvVWz?");
+	size_t goodArg = strspn(argv[1], "-cCfHjtvVWz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -157,6 +157,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				case 'H':
 					option->format = argv[optArg++];
+					break;
+
+				case 'j':
+					option->compress_module = "bzip2";
 					break;
 
 				case 't':
