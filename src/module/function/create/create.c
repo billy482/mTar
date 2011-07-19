@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 23:37:46 +0200                       *
+*  Last modified: Tue, 19 Jul 2011 08:26:28 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -42,7 +42,7 @@
 #include <sys/stat.h>
 // open, stat
 #include <sys/types.h>
-// read, stat
+// chdir, read, stat
 #include <unistd.h>
 
 #include <mtar/format.h>
@@ -88,6 +88,11 @@ int mtar_function_create(const struct mtar_option * option) {
 	};
 
 	param.format = mtar_format_get_out(option);
+
+	if (option->working_directory && chdir(option->working_directory)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
+		return 1;
+	}
 
 	unsigned int i;
 	int failed = 0;
