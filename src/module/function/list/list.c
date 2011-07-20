@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 19 Jul 2011 08:10:22 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 13:28:19 +0200                       *
 \***********************************************************************/
 
 // open
@@ -110,6 +110,7 @@ void mtar_function_list_show_help() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2 : filter the archive through bzip2\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip          : filter the archive through gzip\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose       : verbosely list files processed\n");
 }

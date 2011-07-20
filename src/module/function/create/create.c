@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 19 Jul 2011 08:26:28 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 13:27:01 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -205,6 +205,7 @@ void mtar_function_create_show_help() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -V, --label=TEXT    : create archive with volume name TEXT\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2         : filter the archive through bzip2\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip          : filter the archive through gzip\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose       : verbosely list files processed\n");
