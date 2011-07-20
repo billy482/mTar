@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 14:16:05 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 20:36:22 +0200                       *
 \***********************************************************************/
 
 // mknod, open
@@ -77,6 +77,9 @@ int mtar_function_extract(const struct mtar_option * option) {
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
 				mtar_function_extract_display(&header);
+
+				if (header.is_label)
+					break;
 
 				if (header.link[0] != '\0' && !(header.mode & S_IFMT)) {
 					link(header.link, header.path);
