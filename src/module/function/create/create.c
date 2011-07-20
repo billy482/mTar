@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 13:27:01 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 18:51:26 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -92,6 +92,11 @@ int mtar_function_create(const struct mtar_option * option) {
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
 		return 1;
+	}
+
+	if (option->label) {
+		mtar_function_create_display_label(option->label);
+		param.format->ops->add_label(param.format, option->label);
 	}
 
 	unsigned int i;

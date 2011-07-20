@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 18:11:46 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 18:50:40 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -51,11 +51,15 @@
 static void mtar_function_create_display1(const char * filename, struct stat * st, const char * hardlink);
 static void mtar_function_create_display2(const char * filename, struct stat * st, const char * hardlink);
 static void mtar_function_create_display3(const char * filename, struct stat * st, const char * hardlink);
+static void mtar_function_create_display_label1(const char * label);
+static void mtar_function_create_display_label2(const char * label);
+static void mtar_function_create_display_label3(const char * label);
 static void mtar_function_create_progress1(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 
 void (*mtar_function_create_display)(const char * filename, struct stat * st, const char * hardlink) = mtar_function_create_display1;
+void (*mtar_function_create_display_label)(const char * label) = mtar_function_create_display_label1;
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
 
@@ -63,16 +67,19 @@ void mtar_function_create_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
 		case MTAR_VERBOSE_LEVEL_ERROR:
 			mtar_function_create_display = mtar_function_create_display1;
+			mtar_function_create_display_label = mtar_function_create_display_label1;
 			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		case MTAR_VERBOSE_LEVEL_WARNING:
 			mtar_function_create_display = mtar_function_create_display2;
+			mtar_function_create_display_label = mtar_function_create_display_label2;
 			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		default:
 			mtar_function_create_display = mtar_function_create_display3;
+			mtar_function_create_display_label = mtar_function_create_display_label3;
 			mtar_function_create_progress = mtar_function_create_progress2;
 			break;
 	}
@@ -128,6 +135,27 @@ void mtar_function_create_display3(const char * filename, struct stat * st, cons
 	}
 
 	nsize = size2 - size1;
+}
+
+void mtar_function_create_display_label1(const char * label __attribute__((unused))) {}
+
+void mtar_function_create_display_label2(const char * label) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", label);
+}
+
+void mtar_function_create_display_label3(const char * label) {
+	char mode[11];
+	strcpy(mode, "V---------");
+
+	time_t current = time(0);
+
+	struct tm tmval;
+	localtime_r(&current, &tmval);
+
+	char mtime[24];
+	strftime(mtime, 24, "%Y-%m-%d %R", &tmval);
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s\n", mode, mtime, label);
 }
 
 void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
