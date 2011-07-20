@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 13:27:47 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 14:16:05 +0200                       *
 \***********************************************************************/
 
 // mknod, open
@@ -33,7 +33,7 @@
 #include <sys/stat.h>
 // mkdir, mknod, open
 #include <sys/types.h>
-// close, link, mknod, symlink, write
+// chdir, close, link, mknod, symlink, write
 #include <unistd.h>
 
 #include <mtar/function.h>
@@ -62,6 +62,11 @@ int mtar_function_extract(const struct mtar_option * option) {
 		return 1;
 
 	mtar_function_extract_configure(option);
+
+	if (option->working_directory && chdir(option->working_directory)) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
+		return 1;
+	}
 
 	struct mtar_format_header header;
 
