@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 13:29:19 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 13:05:50 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -270,8 +270,12 @@ ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_
 	if (length > self->filesize)
 		length = self->filesize;
 	ssize_t nbRead = mtar_format_ustar_in_read_buffer(self, data, length);
-	if (nbRead > 0)
+	if (nbRead > 0) {
 		self->filesize -= nbRead;
+		self->skipsize -= nbRead;
+	}
+	if (self->filesize == 0 && self->skipsize > 0)
+		mtar_format_ustar_in_skip_file(f);
 	return nbRead;
 }
 

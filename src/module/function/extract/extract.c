@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 10:53:27 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 13:06:38 +0200                       *
 \***********************************************************************/
 
 // mknod, open
@@ -74,7 +74,7 @@ int mtar_function_extract(const struct mtar_option * option) {
 				mtar_function_extract_display(&header);
 
 				if (header.link[0] != '\0' && !(header.mode & S_IFMT)) {
-					link(header.path, header.link);
+					link(header.link, header.path);
 				} else if (S_ISFIFO(header.mode)) {
 					mknod(header.path, S_IFIFO, 0);
 				} else if (S_ISCHR(header.mode)) {
@@ -92,7 +92,7 @@ int mtar_function_extract(const struct mtar_option * option) {
 						write(fd, buffer, nbRead);
 					close(fd);
 				} else if (S_ISLNK(header.mode)) {
-					symlink(header.path, header.link);
+					symlink(header.link, header.path);
 				}
 
 				break;
@@ -110,11 +110,6 @@ int mtar_function_extract(const struct mtar_option * option) {
 			case MTAR_FORMAT_HEADER_NOT_FOUND:
 				ok = 0;
 				continue;
-		}
-
-		if (format->ops->skip_file(format)) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to skip file\n");
-			ok = 2;
 		}
 	}
 

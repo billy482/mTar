@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 09:55:33 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 10:58:02 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -121,7 +121,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cCfHjtvVWz?");
+	size_t goodArg = strspn(argv[1], "-cCfHjtvVWxz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -180,6 +180,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					option->verify = 1;
 					break;
 
+				case 'x':
+					option->doWork = mtar_function_get("extract");
+					break;
+
 				case 'z':
 					option->compress_module = "gzip";
 					break;
@@ -208,6 +212,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				if (opt)
 					option->working_directory = opt;
+			} else if (!strcmp(argv[optArg], "--extract")) {
+				option->doWork = mtar_function_get("extract");
 			} else if (!strncmp(argv[optArg], "--file", 6)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
@@ -323,6 +329,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Main operation mode:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create               : create new archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list                 : list files from tar archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -x, --extract              : extract new archive\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION *      : use FUNCTION as action\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FUNCTION is one of:\n");
