@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 23:27:29 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 20:20:13 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
@@ -125,6 +125,7 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 	bzero(h->uname, 32);
 	h->gid = 0;
 	bzero(h->gname, 32);
+	h->is_label = 0;
 }
 
 void mtar_format_register(struct mtar_format * f) {

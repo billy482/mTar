@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 13:05:50 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 20:22:36 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -196,6 +196,10 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 			case '3':
 			case '4':
 				header->dev = mtar_format_ustar_in_convert_dev(h);
+				break;
+
+			case 'V':
+				header->is_label = 1;
 				break;
 		}
 

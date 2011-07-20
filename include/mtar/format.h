@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 16 Jul 2011 14:50:42 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 20:19:28 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -107,6 +107,7 @@ struct mtar_format_header {
 	 * \note Name of group where tar has been made.
 	 */
 	char gname[32];
+	char is_label;
 };
 
 enum mtar_format_in_header_status {
