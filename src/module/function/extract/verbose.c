@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 10:04:41 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 13:13:44 +0200                       *
 \***********************************************************************/
 
 // localtime_r, strftime
@@ -42,20 +42,34 @@
 
 static void mtar_function_extract_display1(struct mtar_format_header * header);
 static void mtar_function_extract_display2(struct mtar_format_header * header);
+static void mtar_function_extract_display3(struct mtar_format_header * header);
 
 void (*mtar_function_extract_display)(struct mtar_format_header * header) = mtar_function_extract_display1;
 
 
 void mtar_function_extract_configure(const struct mtar_option * option) {
-	if (option->verbose > 0)
-		mtar_function_extract_display = mtar_function_extract_display2;
+	switch (option->verbose) {
+		case MTAR_VERBOSE_LEVEL_ERROR:
+			mtar_function_extract_display = mtar_function_extract_display1;
+			break;
+
+		case MTAR_VERBOSE_LEVEL_WARNING:
+			mtar_function_extract_display = mtar_function_extract_display2;
+			break;
+
+		default:
+			mtar_function_extract_display = mtar_function_extract_display3;
+			break;
+	}
 }
 
-void mtar_function_extract_display1(struct mtar_format_header * header) {
+void mtar_function_extract_display1(struct mtar_format_header * header __attribute__((unused))) {}
+
+void mtar_function_extract_display2(struct mtar_format_header * header) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", header->path);
 }
 
-void mtar_function_extract_display2(struct mtar_format_header * header) {
+void mtar_function_extract_display3(struct mtar_format_header * header) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 
