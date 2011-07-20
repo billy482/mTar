@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 10:58:02 +0200                       *
+*  Last modified: Wed, 20 Jul 2011 21:04:09 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -212,6 +212,14 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				if (opt)
 					option->working_directory = opt;
+			} else if (!strncmp(argv[optArg], "--compression-level", 19)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				option->compress_level = atoi(opt);
 			} else if (!strcmp(argv[optArg], "--extract")) {
 				option->doWork = mtar_function_get("extract");
 			} else if (!strncmp(argv[optArg], "--file", 6)) {
@@ -349,8 +357,9 @@ void mtar_option_show_help(const char * path) {
 	mtar_format_show_description();
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2 : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip  : filter the archive through gzip\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                 : filter the archive through bzip2\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip                  : filter the archive through gzip\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --compression-level LEVEL * : Set the level of compression (1 <= LEVEL <= 9)\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n\n");
