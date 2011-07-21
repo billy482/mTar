@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 19 Jul 2011 22:16:04 +0200                       *
+*  Last modified: Thu, 21 Jul 2011 22:19:48 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -84,7 +84,7 @@ off_t mtar_filter_bzip2_in_forward(struct mtar_io_in * io, off_t offset) {
 	unsigned int end_pos = self->strm.total_out_lo32 + offset;
 
 	while (self->strm.total_out_lo32 < end_pos) {
-		if (self->strm.avail_in > 0) {
+		while (self->strm.avail_in > 0) {
 			int err = BZ2_bzDecompress(&self->strm);
 			if (err == BZ_STREAM_END)
 				return self->strm.total_out_lo32;
@@ -92,6 +92,7 @@ off_t mtar_filter_bzip2_in_forward(struct mtar_io_in * io, off_t offset) {
 				unsigned int tOffset = end_pos - self->strm.total_out_lo32;
 				if (tOffset == 0)
 					return self->strm.total_out_lo32;
+				self->strm.next_out = buffer;
 				self->strm.avail_out = tOffset > 1024 ? 1024 : tOffset;
 			}
 		}
