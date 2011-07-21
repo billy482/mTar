@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 09:41:43 +0200                       *
+*  Last modified: Thu, 21 Jul 2011 22:26:07 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -84,7 +84,7 @@ off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
 	uLong end_pos = self->gz_stream.total_out + offset;
 
 	while (self->gz_stream.total_out < end_pos) {
-		if (self->gz_stream.avail_in > 0) {
+		while (self->gz_stream.avail_in > 0) {
 			int err = inflate(&self->gz_stream, Z_SYNC_FLUSH);
 			if (err == Z_STREAM_END)
 				return self->gz_stream.total_out;
@@ -92,6 +92,7 @@ off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
 				uLong tOffset = end_pos - self->gz_stream.total_out;
 				if (tOffset == 0)
 					return self->gz_stream.total_out;
+				self->gz_stream.next_out = buffer;
 				self->gz_stream.avail_out = tOffset > 1024 ? 1024 : tOffset;
 			}
 		}
