@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 11:12:49 +0200                       *
+*  Last modified: Fri, 22 Jul 2011 18:18:08 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -75,7 +75,7 @@ struct mtar_io * mtar_io_get(int fd) {
 		module = "file";
 	else if (S_ISFIFO(st.st_mode))
 		module = "pipe";
-	else if (S_ISCHR(st.st_mode) && (st.st_dev >> 8) == 9)
+	else if (S_ISCHR(st.st_mode) && (st.st_rdev >> 8) == 9)
 		module = "tape";
 
 	if (!module)
