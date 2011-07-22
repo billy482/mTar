@@ -24,29 +24,29 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 12:53:56 +0200                       *
+*  Last modified: Fri, 22 Jul 2011 12:55:05 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static void mtar_io_pipe_init(void) __attribute__((constructor));
-static void mtar_io_pipe_show_description(void);
+static void mtar_io_tape_init(void) __attribute__((constructor));
+static void mtar_io_tape_show_description(void);
 
-static struct mtar_io mtar_io_pipe = {
-	.name             = "pipe",
-	.new_in           = mtar_io_pipe_new_in,
-	.new_out          = mtar_io_pipe_new_out,
-	.show_description = mtar_io_pipe_show_description,
+static struct mtar_io mtar_io_tape = {
+	.name             = "tape",
+	.new_in           = mtar_io_tape_new_in,
+	.new_out          = mtar_io_tape_new_out,
+	.show_description = mtar_io_tape_show_description,
 };
 
 
-void mtar_io_pipe_init() {
-	mtar_io_register(&mtar_io_pipe);
+void mtar_io_tape_init() {
+	mtar_io_register(&mtar_io_tape);
 }
 
-void mtar_io_pipe_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  pipe : used for pipe (from file (mkfifo) or system call (pipe))\n");
+void mtar_io_tape_show_description() {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  tape : used for tape (scsi tape device)\n");
 }
 

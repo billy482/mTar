@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 21:04:09 +0200                       *
+*  Last modified: Thu, 21 Jul 2011 22:53:50 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -94,6 +94,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// device selection and switching
 	option->filename = 0;
 
+	// device blocking
+	option->block_factor = 1;
+
 	// archive format selection
 	option->format = "ustar";
 	option->label = 0;
@@ -121,7 +124,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-cCfHjtvVWxz?");
+	size_t goodArg = strspn(argv[1], "-bcCfHjtvVWxz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -133,6 +136,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	if (strncmp(argv[1], "--", 2)) {
 		for (i = 0; i < length; i++) {
 			switch (argv[1][i]) {
+				case 'b':
+					option->block_factor = atoi(argv[optArg++]);
+					break;
+
 				case 'c':
 					option->doWork = mtar_function_get("create");
 					break;
@@ -199,7 +206,16 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	if (optArg < argc && !strncmp(argv[optArg], "--", 2)) {
 		while (optArg < argc) {
-			if (!strcmp(argv[optArg], "--bzip2")) {
+			if (!strncmp(argv[optArg], "--blocking-factor", 17)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (opt)
+					option->block_factor = atoi(opt);
+			} else if (!strcmp(argv[optArg], "--bzip2")) {
 				option->compress_module = "bzip2";
 			} else if (!strcmp(argv[optArg], "--create")) {
 				option->doWork = mtar_function_get("create");
@@ -208,7 +224,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				if (opt)
 					opt++;
 				else if (optArg <= argc)
-				opt = argv[++optArg];
+					opt = argv[++optArg];
 
 				if (opt)
 					option->working_directory = opt;
@@ -348,6 +364,9 @@ void mtar_option_show_help(const char * path) {
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device blocking:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Archive format selection:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");

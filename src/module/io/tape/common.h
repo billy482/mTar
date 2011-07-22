@@ -24,29 +24,16 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 12:53:56 +0200                       *
+*  Last modified: Thu, 21 Jul 2011 22:58:15 +0200                       *
 \***********************************************************************/
 
-#include <mtar/verbose.h>
+#ifndef __MTAR_IO_TAPE_H__
+#define __MTAR_IO_TAPE_H__
 
-#include "common.h"
+#include <mtar/io.h>
 
-static void mtar_io_pipe_init(void) __attribute__((constructor));
-static void mtar_io_pipe_show_description(void);
+struct mtar_io_in * mtar_io_tape_new_in(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags, const struct mtar_option * option);
 
-static struct mtar_io mtar_io_pipe = {
-	.name             = "pipe",
-	.new_in           = mtar_io_pipe_new_in,
-	.new_out          = mtar_io_pipe_new_out,
-	.show_description = mtar_io_pipe_show_description,
-};
-
-
-void mtar_io_pipe_init() {
-	mtar_io_register(&mtar_io_pipe);
-}
-
-void mtar_io_pipe_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  pipe : used for pipe (from file (mkfifo) or system call (pipe))\n");
-}
+#endif
 

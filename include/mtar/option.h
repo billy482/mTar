@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 22:21:25 +0200                       *
+*  Last modified: Thu, 21 Jul 2011 22:43:23 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -42,6 +42,9 @@ struct mtar_option {
 
 	// device selection and switching
 	const char * filename;
+
+	// device blocking
+	int block_factor;
 
 	// archive format selection
 	const char * format;
