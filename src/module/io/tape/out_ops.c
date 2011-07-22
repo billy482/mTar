@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 15:34:36 +0200                       *
+*  Last modified: Fri, 22 Jul 2011 18:55:38 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -113,6 +113,7 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 	if (self->buffer_used + length < self->buffer_size) {
 		memcpy(self->buffer + self->buffer_used, data, length);
 		self->buffer_used += length;
+		return length;
 	} else if (self->buffer_used + length < 2 * self->buffer_size) {
 		ssize_t copy_size = self->buffer_size - self->buffer_used;
 		memcpy(self->buffer + self->buffer_used, data, copy_size);
