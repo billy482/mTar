@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 18:55:38 +0200                       *
+*  Last modified: Fri, 22 Jul 2011 19:03:11 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -33,7 +33,7 @@
 #include <stdlib.h>
 // memcpy
 #include <string.h>
-// read
+// bzero, read
 #include <unistd.h>
 
 #include <mtar/option.h>
@@ -69,6 +69,16 @@ static struct mtar_io_out_ops mtar_io_tape_out_ops = {
 
 int mtar_io_tape_out_close(struct mtar_io_out * io) {
 	struct mtar_io_tape_out * self = io->data;
+
+	if (self->buffer_used > 0) {
+		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
+		ssize_t nbWrite = write(self->fd, self->buffer, self->buffer_size);
+
+		if (nbWrite < 0) {
+			self->last_errno = errno;
+			return -1;
+		}
+	}
 
 	if (self->fd < 0)
 		return 0;
