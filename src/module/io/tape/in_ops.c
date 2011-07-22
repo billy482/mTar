@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 09:04:25 +0200                       *
+*  Last modified: Fri, 22 Jul 2011 22:26:20 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -147,7 +147,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 		} else {
 			ssize_t need_read = length - available;
 			if (need_read % self->buffer_size)
-				need_read += self->buffer_size - available % self->buffer_size;
+				need_read += (self->buffer_size - available) % self->buffer_size;
 
 			char * buffer = malloc(need_read);
 			ssize_t nbRead = read(self->fd, buffer, need_read);
@@ -193,7 +193,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 
 		return nbRead;
 	} else {
-		ssize_t need_read = length - available +  self->buffer_size - available % self->buffer_size;
+		ssize_t need_read = length - available + (self->buffer_size - available) % self->buffer_size;
 		char * buffer = malloc(need_read);
 		ssize_t nbRead = read(self->fd, buffer, need_read);
 
