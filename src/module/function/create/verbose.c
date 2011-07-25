@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 18:50:40 +0200                       *
+*  Last modified: Mon, 25 Jul 2011 20:46:49 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -95,23 +95,11 @@ void mtar_function_create_display3(const char * filename, struct stat * st, cons
 	char mode[11];
 	mtar_file_convert_mode(mode, st->st_mode);
 
-	static int sug = 0;
-	char ug[32];
-	mtar_file_uid2name(ug, 32, st->st_uid);
-	strcat(ug, "/");
-	size_t length = strlen(ug);
-	mtar_file_gid2name(ug + length, 32 - length, st->st_gid);
-
-	int tsug = strlen(ug), i;
-	if (sug == 0)
-		sug = tsug;
-
-	for (i = tsug; i < sug; i++)
-		ug[i] = ' ';
-	ug[i] = '\0';
-
-	if (sug < tsug)
-		sug = tsug;
+	char user_group[32];
+	mtar_file_uid2name(user_group, 32, st->st_uid);
+	strcat(user_group, "/");
+	size_t length = strlen(user_group);
+	mtar_file_gid2name(user_group + length, 32 - length, st->st_gid);
 
 	struct tm tmval;
 	localtime_r(&st->st_mtime, &tmval);
@@ -119,21 +107,25 @@ void mtar_function_create_display3(const char * filename, struct stat * st, cons
 	char mtime[24];
 	strftime(mtime, 24, "%Y-%m-%d %R", &tmval);
 
+	static int sug = 0;
 	static int nsize = 0;
+	int ug1, ug2;
 	int size1, size2;
 
 	if (hardlink) {
 		mode[0] = 'h';
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s link to %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, hardlink);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, hardlink);
 	} else if (S_ISLNK(st->st_mode)) {
 		char link[256];
-		readlink(filename, link, 256);
+		ssize_t size_link = readlink(filename, link, 256);
+		link[size_link] = '\0';
 
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s -> %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, link);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) st->st_size, &size2, mtime, filename, link);
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %n%*lld%n %s %s\n", mode, ug, &size1, nsize, (long long) st->st_size, &size2, mtime, filename);
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) st->st_size, &size2, mtime, filename);
 	}
 
+	sug = ug2 - ug1;
 	nsize = size2 - size1;
 }
 

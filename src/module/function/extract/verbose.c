@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 20:35:30 +0200                       *
+*  Last modified: Mon, 25 Jul 2011 20:25:41 +0200                       *
 \***********************************************************************/
 
 // localtime_r, strftime
@@ -97,13 +97,19 @@ void mtar_function_extract_display3(struct mtar_format_header * header) {
 	} else if (header->link[0] != '\0' && !(header->mode & S_IFMT)) {
 		mode[0] = 'h';
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+
+		sug = ug2 - ug1;
+		nsize = size2 - size1;
 	} else if (S_ISLNK(header->mode)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+
+		sug = ug2 - ug1;
+		nsize = size2 - size1;
 	} else {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
-	}
 
-	sug = ug2 - ug1;
-	nsize = size2 - size1;
+		sug = ug2 - ug1;
+		nsize = size2 - size1;
+	}
 }
 
