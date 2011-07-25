@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Jul 2011 20:46:49 +0200                       *
+*  Last modified: Mon, 25 Jul 2011 23:31:47 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -154,12 +154,9 @@ void mtar_function_create_progress1(const char * filename __attribute__((unused)
 
 void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
-	static time_t start = 0, last = 0;
+	static time_t last = 0;
 
 	time_t curtime = time(0);
-
-	if (start + 2 > curtime)
-		return;
 
 	if (last >= curtime)
 		return;
