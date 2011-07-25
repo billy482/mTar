@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 18:18:08 +0200                       *
+*  Last modified: Mon, 25 Jul 2011 23:13:53 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -70,7 +70,7 @@ struct mtar_io * mtar_io_get(int fd) {
 		return 0;
 	}
 
-	const char * module = 0;
+	const char * module = "pipe";
 	if (S_ISREG(st.st_mode))
 		module = "file";
 	else if (S_ISFIFO(st.st_mode))
