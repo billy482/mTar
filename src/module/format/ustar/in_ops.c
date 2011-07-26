@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 20:22:36 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 19:30:23 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -313,6 +313,7 @@ ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * self, voi
 		self->bufferSize = 0;
 	}
 
+	nbRead += r;
 	self->position += nbRead;
 	return nbRead;
 }
