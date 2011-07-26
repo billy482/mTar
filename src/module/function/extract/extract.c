@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 16:37:43 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 19:32:57 +0200                       *
 \***********************************************************************/
 
 // mknod, open
@@ -103,6 +103,7 @@ int mtar_function_extract(const struct mtar_option * option) {
 
 						mtar_function_extract_progress(header.path, "\r%b [%P] ETA: %E", nbTotalRead, header.size);
 					}
+					mtar_verbose_clean();
 					close(fd);
 
 				} else if (S_ISLNK(header.mode)) {
