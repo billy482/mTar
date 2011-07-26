@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 22:03:09 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 19:16:27 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -110,7 +110,7 @@ void mtar_format_ustar_compute_link(struct mtar_format_ustar * header, char * li
 }
 
 void mtar_format_ustar_compute_size(char * csize, ssize_t size) {
-	if (size > 077777777) {
+	if (size > 0777777777777) {
 		*csize = (char) 0x80;
 		unsigned int i;
 		for (i = 11; i > 0; i--) {
