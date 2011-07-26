@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:58:53 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 22:08:30 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -57,8 +57,10 @@ struct mtar_filter {
 	void (*show_description)(void);
 };
 
-struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option);
+struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
 
 /**
  * \brief Register a filter io

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Jul 2011 23:13:53 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 21:43:07 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -77,9 +77,6 @@ struct mtar_io * mtar_io_get(int fd) {
 		module = "pipe";
 	else if (S_ISCHR(st.st_mode) && (st.st_rdev >> 8) == 9)
 		module = "tape";
-
-	if (!module)
-		return 0;
 
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)
@@ -152,6 +149,14 @@ struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, cons
 }
 
 void mtar_io_register(struct mtar_io * io) {
+	if (!io)
+		return;
+
+	unsigned int i;
+	for (i = 0; i < mtar_io_nbIos; i++)
+		if (!strcmp(io->name, mtar_io_ios[i]->name))
+			return;
+
 	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
 	mtar_io_ios[mtar_io_nbIos] = io;
 	mtar_io_nbIos++;

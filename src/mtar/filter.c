@@ -24,9 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 08:22:04 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 22:18:49 +0200                       *
 \***********************************************************************/
 
+// O_RDONLY, O_WRONLY
+#include <fcntl.h>
 // realloc
 #include <stdlib.h>
 // strcmp
@@ -40,8 +42,15 @@
 static struct mtar_filter ** mtar_filter_filters = 0;
 static unsigned int mtar_filter_nb_filters = 0;
 
+static void mtar_filter_exit(void) __attribute__((destructor));
 static struct mtar_filter * mtar_filter_get(const char * module);
 
+
+void mtar_filter_exit() {
+	if (mtar_filter_nb_filters > 0)
+		free(mtar_filter_filters);
+	mtar_filter_filters = 0;
+}
 
 struct mtar_filter * mtar_filter_get(const char * module) {
 	unsigned int i;
@@ -56,7 +65,23 @@ struct mtar_filter * mtar_filter_get(const char * module) {
 	return 0;
 }
 
-struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar_option * option) {
+struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option) {
+	if (!option)
+		return 0;
+
+	struct mtar_io_in * io = 0;
+	if (option->filename)
+		io = mtar_io_in_get_file(option->filename, O_RDONLY, option);
+	else
+		io = mtar_io_in_get_fd(0, O_RDONLY, option);
+
+	return mtar_filter_get_in2(io, option);
+}
+
+struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
+	if (!io || !option)
+		return 0;
+
 	if (option->compress_module) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
 		if (!filter)
@@ -67,7 +92,23 @@ struct mtar_io_in * mtar_filter_get_in(struct mtar_io_in * io, const struct mtar
 	return io;
 }
 
-struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct mtar_option * option) {
+struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option) {
+	if (!option)
+		return 0;
+
+	struct mtar_io_out * io = 0;
+	if (option->filename)
+		io = mtar_io_out_get_file(option->filename, O_WRONLY | O_TRUNC, option);
+	else
+		io = mtar_io_out_get_fd(1, O_WRONLY, option);
+
+	return mtar_filter_get_out2(io, option);
+}
+
+struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
+	if (!io || !option)
+		return 0;
+
 	if (option->compress_module) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
 		if (!filter)
@@ -79,6 +120,14 @@ struct mtar_io_out * mtar_filter_get_out(struct mtar_io_out * io, const struct m
 }
 
 void mtar_filter_register(struct mtar_filter * filter) {
+	if (!filter)
+		return;
+
+	unsigned int i;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
+		if (!strcmp(filter->name, mtar_filter_filters[i]->name))
+			return;
+
 	mtar_filter_filters = realloc(mtar_filter_filters, (mtar_filter_nb_filters + 1) * sizeof(struct mtar_filter *));
 	mtar_filter_filters[mtar_filter_nb_filters] = filter;
 	mtar_filter_nb_filters++;
