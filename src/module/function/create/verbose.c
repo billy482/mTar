@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Jul 2011 23:31:47 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 15:40:24 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -35,6 +35,8 @@
 #include <string.h>
 // stat
 #include <sys/stat.h>
+// gettimeofday
+#include <sys/time.h>
 // stat
 #include <sys/types.h>
 // localtime_r, strftime
@@ -154,20 +156,32 @@ void mtar_function_create_progress1(const char * filename __attribute__((unused)
 
 void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
-	static time_t last = 0;
+	static struct timeval last = {0, 0};
 
-	time_t curtime = time(0);
+	struct timeval curtime;
+	gettimeofday(&curtime, 0);
 
-	if (last >= curtime)
-		return;
-
-	last = curtime;
-
-	if (filename != current_file) {
+	if (current_file == 0) {
 		current_file = filename;
-		//last_start = time(0);
+		last = curtime;
 		mtar_verbose_restart_timer();
 		return;
+	}
+
+	double diff = difftime(curtime.tv_sec, last.tv_sec) + difftime(curtime.tv_usec, last.tv_usec) / 1000000;
+
+	if (filename != current_file) {
+		if (diff < 2)
+			return;
+
+		current_file = filename;
+		last = curtime;
+		mtar_verbose_restart_timer();
+	} else {
+		if (diff < 1)
+			return;
+
+		last = curtime;
 	}
 
 	mtar_verbose_progress(format, current, upperLimit);
