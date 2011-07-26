@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 20:36:22 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 16:37:43 +0200                       *
 \***********************************************************************/
 
 // mknod, open
@@ -95,10 +95,16 @@ int mtar_function_extract(const struct mtar_option * option) {
 					int fd = open(header.path, O_CREAT | O_TRUNC | O_WRONLY, header.mode);
 
 					char buffer[4096];
-					ssize_t nbRead;
-					while ((nbRead = format->ops->read(format, buffer, 4096)) > 0)
+					ssize_t nbRead, nbTotalRead = 0;
+					while ((nbRead = format->ops->read(format, buffer, 4096)) > 0) {
 						write(fd, buffer, nbRead);
+
+						nbTotalRead += nbRead;
+
+						mtar_function_extract_progress(header.path, "\r%b [%P] ETA: %E", nbTotalRead, header.size);
+					}
 					close(fd);
+
 				} else if (S_ISLNK(header.mode)) {
 					symlink(header.link, header.path);
 				}

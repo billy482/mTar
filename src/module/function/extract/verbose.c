@@ -24,15 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Jul 2011 20:25:41 +0200                       *
+*  Last modified: Tue, 26 Jul 2011 16:34:17 +0200                       *
 \***********************************************************************/
 
-// localtime_r, strftime
-#include <time.h>
+// gettimeofday
+#include <sys/time.h>
 // strcat, strcpy
 #include <string.h>
 // S_*
 #include <sys/stat.h>
+// localtime_r, strftime
+#include <time.h>
 
 #include <mtar/file.h>
 #include <mtar/option.h>
@@ -43,22 +45,28 @@
 static void mtar_function_extract_display1(struct mtar_format_header * header);
 static void mtar_function_extract_display2(struct mtar_format_header * header);
 static void mtar_function_extract_display3(struct mtar_format_header * header);
+static void mtar_function_extract_progress1(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
+static void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 void (*mtar_function_extract_display)(struct mtar_format_header * header) = mtar_function_extract_display1;
+void (*mtar_function_extract_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_extract_progress1;
 
 
 void mtar_function_extract_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
 		case MTAR_VERBOSE_LEVEL_ERROR:
 			mtar_function_extract_display = mtar_function_extract_display1;
+			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
 
 		case MTAR_VERBOSE_LEVEL_WARNING:
 			mtar_function_extract_display = mtar_function_extract_display2;
+			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
 
 		default:
 			mtar_function_extract_display = mtar_function_extract_display3;
+			mtar_function_extract_progress = mtar_function_extract_progress2;
 			break;
 	}
 }
@@ -111,5 +119,40 @@ void mtar_function_extract_display3(struct mtar_format_header * header) {
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
 	}
+}
+
+void mtar_function_extract_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
+
+void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
+	static const char * current_file = 0;
+	static struct timeval last = {0, 0};
+
+	struct timeval curtime;
+	gettimeofday(&curtime, 0);
+
+	if (current_file == 0) {
+		current_file = filename;
+		last = curtime;
+		mtar_verbose_restart_timer();
+		return;
+	}
+
+	double diff = difftime(curtime.tv_sec, last.tv_sec) + difftime(curtime.tv_usec, last.tv_usec) / 1000000;
+
+	if (filename != current_file) {
+		if (diff < 2)
+			return;
+
+		current_file = filename;
+		last = curtime;
+		mtar_verbose_restart_timer();
+	} else {
+		if (diff < 1)
+			return;
+
+		last = curtime;
+	}
+
+	mtar_verbose_progress(format, current, upperLimit);
 }
 
