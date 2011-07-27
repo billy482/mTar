@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 18:03:28 +0200                       *
+*  Last modified: Wed, 27 Jul 2011 09:26:03 +0200                       *
 \***********************************************************************/
 
 // open
@@ -35,11 +35,11 @@
 #include <string.h>
 // mmap, munmap
 #include <sys/mman.h>
-// fstat, mode_t, open
+// fstat, mode_t, open, S_*
 #include <sys/stat.h>
-// fstat, open
+// fstat, open, S_*
 #include <sys/types.h>
-// close, fstat
+// close, fstat, S_*
 #include <unistd.h>
 
 #include <mtar/file.h>
@@ -127,6 +127,8 @@ void mtar_file_init(void) {
 
 void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, const char * id) {
 	int fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		return;
 
 	struct stat fs;
 	fstat(fd, &fs);
@@ -138,14 +140,18 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 	snprintf(cid, l, ":%s:", id);
 
 	char * ptr = strstr(buffer, cid);
-	char * rptr = ptr;
-	while (rptr > buffer && rptr[-1] != '\n')
-		rptr--;
+	if (ptr) {
+		char * rptr = ptr;
+		while (rptr > buffer && rptr[-1] != '\n')
+			rptr--;
 
-	char * dot = strchr(rptr, ':');
-	size_t size = (dot - rptr) < namelength ? dot - rptr : namelength;
-	strncpy(name, rptr, size);
-	name[size] = '\0';
+		char * dot = strchr(rptr, ':');
+		size_t size = (dot - rptr) < namelength ? dot - rptr : namelength;
+		strncpy(name, rptr, size);
+		name[size] = '\0';
+	} else {
+		strncpy(name, id, namelength);
+	}
 
 	munmap(buffer, fs.st_size);
 	close(fd);
