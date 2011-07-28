@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 18:51:26 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 23:05:33 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -70,10 +70,10 @@ static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
 
 static struct mtar_function mtar_function_create_functions = {
-	.name            = "create",
-	.doWork          = mtar_function_create,
-	.showDescription = mtar_function_create_show_description,
-	.showHelp        = mtar_function_create_show_help,
+	.name             = "create",
+	.doWork           = mtar_function_create,
+	.show_description = mtar_function_create_show_description,
+	.show_help        = mtar_function_create_show_help,
 };
 
 
@@ -137,7 +137,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	if (failed)
 		return failed;
 
-	mtar_plugin_addFile(param->filename);
+	mtar_plugin_add_file(param->filename);
 
 	if (S_ISREG(st.st_mode)) {
 		int fd = open(param->filename, O_RDONLY);
@@ -162,7 +162,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		free(buffer);
 		close(fd);
 
-		mtar_plugin_endOfFile();
+		mtar_plugin_end_of_file();
 
 	} else if (S_ISDIR(st.st_mode)) {
 		const char * dirname = param->filename;

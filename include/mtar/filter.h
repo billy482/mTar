@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 22:08:30 +0200                       *
+*  Last modified: Wed, 27 Jul 2011 17:07:05 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -32,20 +32,25 @@
 
 #include "io.h"
 
+/**
+ * \brief Used by the driver of filter
+ */
 struct mtar_filter {
 	/**
 	 * \brief name of driver
+	 *
+	 * Should be uniq
 	 */
 	const char * name;
 	/**
 	 * \brief get a new input handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
+	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_in
 	 */
 	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
 	/**
 	 * \brief get a new output handler
-	 * \param[in] option : a struct containing argument passed to \b mtar
+	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_out
 	 */
 	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
@@ -57,7 +62,18 @@ struct mtar_filter {
 	void (*show_description)(void);
 };
 
+/**
+ * \brief Get an instance of filter or io based on \a option parameter
+ * \param[in] option : 
+ * \return 0 if failed or a new instance of struct mtar_io_in
+ */
 struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option);
+/**
+ * \brief Get an instance of filter or io based on \a option parameter
+ * \param[in] io
+ * \param[in] option : 
+ * \return 0 if failed or a new instance of struct mtar_io_in
+ */
 struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
 struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option);
 struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option);

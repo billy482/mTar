@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 23:18:31 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 22:50:08 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -39,24 +39,24 @@
 static void mtar_function_exit(void) __attribute__((destructor));
 
 struct mtar_function ** mtar_function_functions = 0;
-static unsigned int mtar_function_nbFunctions = 0;
+static unsigned int mtar_function_nb_functions = 0;
 
 
 void mtar_function_exit() {
-	if (mtar_function_nbFunctions > 0)
+	if (mtar_function_nb_functions > 0)
 		free(mtar_function_functions);
 	mtar_function_functions = 0;
 }
 
 mtar_function_f mtar_function_get(const char * name) {
 	unsigned int i;
-	for (i = 0; i < mtar_function_nbFunctions; i++) {
+	for (i = 0; i < mtar_function_nb_functions; i++) {
 		if (!strcmp(name, mtar_function_functions[i]->name))
 			return mtar_function_functions[i]->doWork;
 	}
 	if (mtar_loader_load("function", name))
 		return 0;
-	for (i = 0; i < mtar_function_nbFunctions; i++) {
+	for (i = 0; i < mtar_function_nb_functions; i++) {
 		if (!strcmp(name, mtar_function_functions[i]->name))
 			return mtar_function_functions[i]->doWork;
 	}
@@ -64,9 +64,17 @@ mtar_function_f mtar_function_get(const char * name) {
 }
 
 void mtar_function_register(struct mtar_function * f) {
-	mtar_function_functions = realloc(mtar_function_functions, (mtar_function_nbFunctions + 1) * sizeof(struct mtar_function *));
-	mtar_function_functions[mtar_function_nbFunctions] = f;
-	mtar_function_nbFunctions++;
+	if (!f)
+		return;
+
+	unsigned int i;
+	for (i = 0; i < mtar_function_nb_functions; i++)
+		if (!strcmp(f->name, mtar_function_functions[i]->name))
+			return;
+
+	mtar_function_functions = realloc(mtar_function_functions, (mtar_function_nb_functions + 1) * sizeof(struct mtar_function *));
+	mtar_function_functions[mtar_function_nb_functions] = f;
+	mtar_function_nb_functions++;
 
 	mtar_loader_register_ok();
 }
@@ -75,32 +83,28 @@ void mtar_function_show_description() {
 	mtar_loader_loadAll("function");
 
 	unsigned int i;
-	for (i = 0; i < mtar_function_nbFunctions; i++)
-		mtar_function_functions[i]->showDescription();
+	for (i = 0; i < mtar_function_nb_functions; i++)
+		mtar_function_functions[i]->show_description();
 }
 
 void mtar_function_showHelp(const char * function) {
 	unsigned int i;
 	struct mtar_function * f = 0;
-	for (i = 0; i < mtar_function_nbFunctions; i++)
-		if (!strcmp(mtar_function_functions[i]->name, function)) {
+	for (i = 0; !f && i < mtar_function_nb_functions; i++)
+		if (!strcmp(mtar_function_functions[i]->name, function))
 			f = mtar_function_functions[i];
-			break;
-		}
 
 	if (!f) {
 		mtar_loader_load("function", function);
 
-		for (i = 0; i < mtar_function_nbFunctions; i++)
-			if (!strcmp(mtar_function_functions[i]->name, function)) {
+		for (i = 0; !f && i < mtar_function_nb_functions; i++)
+			if (!strcmp(mtar_function_functions[i]->name, function))
 				f = mtar_function_functions[i];
-				break;
-			}
 	}
 
 	if (f) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Help for function: %s\n", function);
-		f->showHelp();
+		f->show_help();
 	} else {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No help found for function: %s\n", function);
 	}

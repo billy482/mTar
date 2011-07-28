@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Jul 2011 22:43:23 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 23:00:31 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -64,7 +64,7 @@ struct mtar_option {
 
 	// mtar specific option
 	const char ** plugins;
-	unsigned int nbPlugins;
+	unsigned int nb_plugins;
 };
 
 #endif

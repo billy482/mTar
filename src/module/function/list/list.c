@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 17:44:26 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 23:05:57 +0200                       *
 \***********************************************************************/
 
 // open
@@ -47,10 +47,10 @@ static void mtar_function_list_show_description(void);
 static void mtar_function_list_show_help(void);
 
 static struct mtar_function mtar_function_list_functions = {
-	.name            = "list",
-	.doWork          = mtar_function_list,
-	.showDescription = mtar_function_list_show_description,
-	.showHelp        = mtar_function_list_show_help,
+	.name             = "list",
+	.doWork           = mtar_function_list,
+	.show_description = mtar_function_list_show_description,
+	.show_help        = mtar_function_list_show_help,
 };
 
 

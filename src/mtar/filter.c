@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 22:18:49 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 17:54:03 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_WRONLY
 #include <fcntl.h>
-// realloc
+// free, realloc
 #include <stdlib.h>
 // strcmp
 #include <string.h>

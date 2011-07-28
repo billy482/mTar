@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Jul 2011 22:53:50 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 23:01:50 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -77,10 +77,10 @@ void mtar_option_free(struct mtar_option * option) {
 	option->working_directory = 0;
 
 	// mtar specific option
-	if (option->nbPlugins > 0) {
+	if (option->nb_plugins > 0) {
 		free(option->plugins);
 		option->plugins = 0;
-		option->nbPlugins = 0;
+		option->nb_plugins = 0;
 	}
 }
 
@@ -115,7 +115,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	// mtar specific option
 	option->plugins = 0;
-	option->nbPlugins = 0;
+	option->nb_plugins = 0;
 
 
 	if (argc < 2) {
@@ -313,9 +313,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;
 
-				option->plugins = realloc(option->plugins, (option->nbPlugins + 1) * sizeof(char *));
-				option->plugins[option->nbPlugins] = argv[optArg];
-				option->nbPlugins++;
+				option->plugins = realloc(option->plugins, (option->nb_plugins + 1) * sizeof(char *));
+				option->plugins[option->nb_plugins] = argv[optArg];
+				option->nb_plugins++;
 			} else if (!strcmp(argv[optArg], "--verbose")) {
 				if (option->verbose < 2)
 					option->verbose++;

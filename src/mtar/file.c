@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Jul 2011 09:26:03 +0200                       *
+*  Last modified: Wed, 27 Jul 2011 09:32:28 +0200                       *
 \***********************************************************************/
 
 // open
@@ -57,6 +57,7 @@ static struct mtar_hashtable * mtar_file_uidCached = 0;
 void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	strcpy(buffer, "----------");
 
+	// file type
 	if (S_ISDIR(mode))
 		buffer[0] = 'd';
 	else if (S_ISCHR(mode))
@@ -70,6 +71,7 @@ void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	else if (S_ISSOCK(mode))
 		buffer[0] = 's';
 
+	// user field
 	if (mode & S_IRUSR)
 		buffer[1] = 'r';
 	if (mode & S_IWUSR)
@@ -79,6 +81,7 @@ void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	else if (mode & S_IXUSR)
 		buffer[3] = 'x';
 
+	// group field
 	if (mode & S_IRGRP)
 		buffer[4] = 'r';
 	if (mode & S_IWGRP)
@@ -88,6 +91,7 @@ void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	else if (mode & S_IXGRP)
 		buffer[6] = 'x';
 
+	// other field
 	if (mode & S_IROTH)
 		buffer[7] = 'r';
 	if (mode & S_IWOTH)
@@ -150,6 +154,7 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 		strncpy(name, rptr, size);
 		name[size] = '\0';
 	} else {
+		// lookup failed
 		strncpy(name, id, namelength);
 	}
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 25 May 2011 15:57:29 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 22:53:35 +0200                       *
 \***********************************************************************/
 
 // dlclose, dlerror, dlopen
@@ -75,9 +75,8 @@ void mtar_loader_loadAll(const char * module) {
 }
 
 int mtar_loader_load_file(const char * filename) {
-	if (access(filename, R_OK | X_OK)) {
+	if (access(filename, R_OK | X_OK))
 		return 2;
-	}
 
 	mtar_loader_loaded = 0;
 

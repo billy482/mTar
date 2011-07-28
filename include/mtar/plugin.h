@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 10 May 2011 17:19:00 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 22:56:38 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_PLUGIN_H__
@@ -38,10 +38,10 @@ struct mtar_option;
 struct mtar_plugin {
 	const char * name;
 	struct mtar_plugin_ops {
-		int (*addFile)(struct mtar_plugin * p, const char * filename);
-		int (*addLabel)(struct mtar_plugin * p, const char * label);
-		int (*addLink)(struct mtar_plugin * p, const char * src, const char * target);
-		int (*endOfFile)(struct mtar_plugin * p);
+		int (*add_file)(struct mtar_plugin * p, const char * filename);
+		int (*add_label)(struct mtar_plugin * p, const char * label);
+		int (*add_link)(struct mtar_plugin * p, const char * src, const char * target);
+		int (*end_of_file)(struct mtar_plugin * p);
 		void (*free)(struct mtar_plugin * p);
 		ssize_t (*read)(struct mtar_plugin * p, const void * data, ssize_t length);
 		ssize_t (*write)(struct mtar_plugin * p, const void * data, ssize_t length);
@@ -53,8 +53,8 @@ typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option)
 
 void mtar_plugin_register(const char * name, mtar_plugin_f format);
 
-void mtar_plugin_addFile(const char * filename);
-void mtar_plugin_endOfFile(void);
+void mtar_plugin_add_file(const char * filename);
+void mtar_plugin_end_of_file(void);
 void mtar_plugin_write(const void * data, ssize_t length);
 
 #endif

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 22:21:43 +0200                       *
+*  Last modified: Thu, 28 Jul 2011 22:44:18 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -65,11 +65,19 @@ struct mtar_format * mtar_format_get(const char * name) {
 }
 
 struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option) {
+	if (!option)
+		return 0;
+
 	struct mtar_io_in * io = mtar_filter_get_in(option);
-	return mtar_format_get_in2(io, option);
+	if (io)
+		return mtar_format_get_in2(io, option);
+	return 0;
 }
 
 struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
+	if (!option || !io)
+		return 0;
+
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_in(io, option);
@@ -77,11 +85,19 @@ struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct
 }
 
 struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option) {
+	if (!option)
+		return 0;
+
 	struct mtar_io_out * io = mtar_filter_get_out(option);
-	return mtar_format_get_out2(io, option);
+	if (io)
+		return mtar_format_get_out2(io, option);
+	return 0;
 }
 
 struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
+	if (!option || !io)
+		return 0;
+
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format)
 		return format->new_out(io, option);
