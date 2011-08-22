@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 19 Jul 2011 23:04:07 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:19:12 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -43,19 +43,22 @@ struct mtar_filter_bzip2_out {
 };
 
 static int mtar_filter_bzip2_out_close(struct mtar_io_out * io);
+static int mtar_filter_bzip2_out_finish(struct mtar_filter_bzip2_out * io);
 static int mtar_filter_bzip2_out_flush(struct mtar_io_out * io);
 static void mtar_filter_bzip2_out_free(struct mtar_io_out * io);
 static int mtar_filter_bzip2_out_last_errno(struct mtar_io_out * io);
 static off_t mtar_filter_bzip2_out_pos(struct mtar_io_out * io);
+static struct mtar_io_in * mtar_filter_bzip2_out_reopenForReading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_filter_bzip2_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_filter_bzip2_out_ops = {
-	.close      = mtar_filter_bzip2_out_close,
-	.flush      = mtar_filter_bzip2_out_flush,
-	.free       = mtar_filter_bzip2_out_free,
-	.last_errno = mtar_filter_bzip2_out_last_errno,
-	.pos        = mtar_filter_bzip2_out_pos,
-	.write      = mtar_filter_bzip2_out_write,
+	.close            = mtar_filter_bzip2_out_close,
+	.flush            = mtar_filter_bzip2_out_flush,
+	.free             = mtar_filter_bzip2_out_free,
+	.last_errno       = mtar_filter_bzip2_out_last_errno,
+	.pos              = mtar_filter_bzip2_out_pos,
+	.reopenForReading = mtar_filter_bzip2_out_reopenForReading,
+	.write            = mtar_filter_bzip2_out_write,
 };
 
 
@@ -64,11 +67,18 @@ int mtar_filter_bzip2_out_close(struct mtar_io_out * io) {
 	if (self->closed)
 		return 0;
 
+	if (mtar_filter_bzip2_out_finish(self))
+		return 1;
+
+	return self->io->ops->close(self->io);
+}
+
+int mtar_filter_bzip2_out_finish(struct mtar_filter_bzip2_out * self) {
 	char buffer[1024];
 	self->strm.next_in = 0;
 	self->strm.avail_in = 0;
 
-	int err;
+	int err = 0;
 	do {
 		self->strm.next_out = buffer;
 		self->strm.avail_out = 1024;
@@ -82,7 +92,7 @@ int mtar_filter_bzip2_out_close(struct mtar_io_out * io) {
 	BZ2_bzCompressEnd(&self->strm);
 	self->closed = 1;
 
-	return self->io->ops->close(self->io);
+	return err < 0;
 }
 
 int mtar_filter_bzip2_out_flush(struct mtar_io_out * io) {
@@ -126,6 +136,20 @@ int mtar_filter_bzip2_out_last_errno(struct mtar_io_out * io) {
 off_t mtar_filter_bzip2_out_pos(struct mtar_io_out * io) {
 	struct mtar_filter_bzip2_out * self = io->data;
 	return self->strm.total_in_lo32;
+}
+
+struct mtar_io_in * mtar_filter_bzip2_out_reopenForReading(struct mtar_io_out * io, const struct mtar_option * option) {
+	struct mtar_filter_bzip2_out * self = io->data;
+	if (self->closed)
+		return 0;
+
+	if (mtar_filter_bzip2_out_finish(self))
+		return 0;
+
+	struct mtar_io_in * in = self->io->ops->reopenForReading(self->io, option);
+	if (in)
+		return mtar_filter_bzip2_new_in(in, option);
+	return 0;
 }
 
 ssize_t mtar_filter_bzip2_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {

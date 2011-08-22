@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 19 Jul 2011 22:21:33 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:23:51 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -49,19 +49,22 @@ struct mtar_filter_gzip_out {
 };
 
 static int mtar_filter_gzip_out_close(struct mtar_io_out * io);
+static int mtar_filter_gzip_out_finish(struct mtar_filter_gzip_out * io);
 static int mtar_filter_gzip_out_flush(struct mtar_io_out * io);
 static void mtar_filter_gzip_out_free(struct mtar_io_out * io);
 static int mtar_filter_gzip_out_last_errno(struct mtar_io_out * io);
 static off_t mtar_filter_gzip_out_pos(struct mtar_io_out * io);
+static struct mtar_io_in * mtar_filter_gzip_out_reopenForReading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_filter_gzip_out_ops = {
-	.close      = mtar_filter_gzip_out_close,
-	.flush      = mtar_filter_gzip_out_flush,
-	.free       = mtar_filter_gzip_out_free,
-	.last_errno = mtar_filter_gzip_out_last_errno,
-	.pos        = mtar_filter_gzip_out_pos,
-	.write      = mtar_filter_gzip_out_write,
+	.close            = mtar_filter_gzip_out_close,
+	.flush            = mtar_filter_gzip_out_flush,
+	.free             = mtar_filter_gzip_out_free,
+	.last_errno       = mtar_filter_gzip_out_last_errno,
+	.pos              = mtar_filter_gzip_out_pos,
+	.reopenForReading = mtar_filter_gzip_out_reopenForReading,
+	.write            = mtar_filter_gzip_out_write,
 };
 
 
@@ -70,11 +73,18 @@ int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
 	if (self->closed)
 		return 0;
 
+	if (mtar_filter_gzip_out_finish(self))
+		return 1;
+
+	return self->io->ops->close(self->io);
+}
+
+int mtar_filter_gzip_out_finish(struct mtar_filter_gzip_out * self) {
 	char buffer[1024];
 	self->gz_stream.next_in = 0;
 	self->gz_stream.avail_in = 0;
 
-	int err;
+	int err = 0;
 	do {
 		self->gz_stream.next_out = (unsigned char *) buffer;
 		self->gz_stream.avail_out = 1024;
@@ -92,7 +102,7 @@ int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
 	deflateEnd(&self->gz_stream);
 	self->closed = 1;
 
-	return self->io->ops->close(self->io);
+	return err < 0;
 }
 
 int mtar_filter_gzip_out_flush(struct mtar_io_out * io) {
@@ -132,6 +142,20 @@ int mtar_filter_gzip_out_last_errno(struct mtar_io_out * io) {
 off_t mtar_filter_gzip_out_pos(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
 	return self->gz_stream.total_in;
+}
+
+struct mtar_io_in * mtar_filter_gzip_out_reopenForReading(struct mtar_io_out * io, const struct mtar_option * option) {
+	struct mtar_filter_gzip_out * self = io->data;
+	if (self->closed)
+		return 0;
+
+	if (mtar_filter_gzip_out_finish(self))
+		return 0;
+
+	struct mtar_io_in * in = self->io->ops->reopenForReading(self->io, option);
+	if (in)
+		return mtar_filter_gzip_new_in(in, option);
+	return 0;
 }
 
 ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {

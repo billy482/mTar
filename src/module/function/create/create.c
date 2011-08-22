@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 23:05:33 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:41:38 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -107,7 +107,44 @@ int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	mtar_hashtable_free(param.inode);
+	if (failed || !option->verify) {
+		param.format->ops->free(param.format);
+		return failed;
+	}
+
+	struct mtar_format_in * tar_in = param.format->ops->reopenForReading(param.format, option);
 	param.format->ops->free(param.format);
+	if (!tar_in) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Error: Cannot reopen file for verify\n");
+		return 1;
+	}
+
+	int ok = -1;
+	while (ok < 0) {
+		struct mtar_format_header header;
+		enum mtar_format_in_header_status status = tar_in->ops->get_header(tar_in, &header);
+
+		switch (status) {
+			case MTAR_FORMAT_HEADER_OK:
+				tar_in->ops->skip_file(tar_in);
+				break;
+
+			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
+				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad checksum\n");
+				ok = 3;
+				continue;
+
+			case MTAR_FORMAT_HEADER_BAD_HEADER:
+				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad header\n");
+				ok = 4;
+				continue;
+
+			case MTAR_FORMAT_HEADER_NOT_FOUND:
+				ok = 0;
+				continue;
+		}
+	}
+
 	return failed;
 }
 

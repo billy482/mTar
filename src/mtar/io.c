@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 21:43:07 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 15:44:39 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -118,12 +118,17 @@ int mtar_io_open(const char * filename, int flags) {
 	if (!strcmp("-", filename)) {
 		if (flags & O_RDONLY)
 			return 0;
-		if (flags & O_WRONLY)
+		if ((flags & O_WRONLY) || (flags & O_RDWR))
 			return 1;
 	}
 
-	if (access(filename, m))
+	if (access(filename, m)) {
+		if (flags & O_RDONLY) {
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can't open file (%s) for reading if file did not exist\n", filename);
+			return -1;
+		}
 		flags |= O_CREAT;
+	}
 
 	int fd = open(filename, flags, 0644);
 	if (fd < 0)

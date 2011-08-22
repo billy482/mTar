@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 20 Jul 2011 20:19:28 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:27:43 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -158,6 +158,7 @@ struct mtar_format_out {
 		int (*end_of_file)(struct mtar_format_out * f);
 		void (*free)(struct mtar_format_out * f);
 		int (*last_errno)(struct mtar_format_out * f);
+		struct mtar_format_in * (*reopenForReading)(struct mtar_format_out * f, const struct mtar_option * option);
 		ssize_t (*write)(struct mtar_format_out * f, const void * data, ssize_t length);
 	} * ops;
 	void * data;

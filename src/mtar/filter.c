@@ -24,10 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 17:54:03 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 15:50:07 +0200                       *
 \***********************************************************************/
 
-// O_RDONLY, O_WRONLY
+// O_RDONLY, O_RDWR
 #include <fcntl.h>
 // free, realloc
 #include <stdlib.h>
@@ -98,9 +98,9 @@ struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option) {
 
 	struct mtar_io_out * io = 0;
 	if (option->filename)
-		io = mtar_io_out_get_file(option->filename, O_WRONLY | O_TRUNC, option);
+		io = mtar_io_out_get_file(option->filename, O_RDWR | O_TRUNC, option);
 	else
-		io = mtar_io_out_get_fd(1, O_WRONLY, option);
+		io = mtar_io_out_get_fd(1, O_RDWR, option);
 
 	return mtar_filter_get_out2(io, option);
 }

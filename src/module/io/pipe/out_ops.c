@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:40:18 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:08:52 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -41,15 +41,17 @@ static int mtar_io_pipe_out_flush(struct mtar_io_out * io);
 static void mtar_io_pipe_out_free(struct mtar_io_out * io);
 static int mtar_io_pipe_out_last_errno(struct mtar_io_out * io);
 static off_t mtar_io_pipe_out_pos(struct mtar_io_out * io);
+static struct mtar_io_in * mtar_io_pipe_out_reopenForReading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_pipe_out_ops = {
-	.close      = mtar_io_pipe_out_close,
-	.flush      = mtar_io_pipe_out_flush,
-	.free       = mtar_io_pipe_out_free,
-	.last_errno = mtar_io_pipe_out_last_errno,
-	.pos        = mtar_io_pipe_out_pos,
-	.write      = mtar_io_pipe_out_write,
+	.close            = mtar_io_pipe_out_close,
+	.flush            = mtar_io_pipe_out_flush,
+	.free             = mtar_io_pipe_out_free,
+	.last_errno       = mtar_io_pipe_out_last_errno,
+	.pos              = mtar_io_pipe_out_pos,
+	.reopenForReading = mtar_io_pipe_out_reopenForReading,
+	.write            = mtar_io_pipe_out_write,
 };
 
 
@@ -101,6 +103,10 @@ ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize
 		self->last_errno = errno;
 
 	return nbWrite;
+}
+
+struct mtar_io_in * mtar_io_pipe_out_reopenForReading(struct mtar_io_out * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+	return 0;
 }
 
 struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {

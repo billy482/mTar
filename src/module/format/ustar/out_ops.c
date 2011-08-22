@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 19:16:27 +0200                       *
+*  Last modified: Mon, 22 Aug 2011 16:30:48 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -67,16 +67,18 @@ static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
+static struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_format_out * f, const struct mtar_option * option);
 static const char * mtar_format_ustar_skip_leading_slash(const char * str);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
-	.add_file     = mtar_format_ustar_out_add_file,
-	.add_label    = mtar_format_ustar_out_add_label,
-	.add_link     = mtar_format_ustar_out_add_link,
-	.end_of_file  = mtar_format_ustar_out_end_of_file,
-	.free         = mtar_format_ustar_out_free,
-	.last_errno   = mtar_format_ustar_out_last_errno,
-	.write        = mtar_format_ustar_out_write,
+	.add_file         = mtar_format_ustar_out_add_file,
+	.add_label        = mtar_format_ustar_out_add_label,
+	.add_link         = mtar_format_ustar_out_add_link,
+	.end_of_file      = mtar_format_ustar_out_end_of_file,
+	.free             = mtar_format_ustar_out_free,
+	.last_errno       = mtar_format_ustar_out_last_errno,
+	.reopenForReading = mtar_format_ustar_out_reopenForReading,
+	.write            = mtar_format_ustar_out_write,
 };
 
 
@@ -342,6 +344,16 @@ void mtar_format_ustar_out_free(struct mtar_format_out * f) {
 int mtar_format_ustar_out_last_errno(struct mtar_format_out * f) {
 	struct mtar_format_ustar_out * format = f->data;
 	return format->io->ops->last_errno(format->io);
+}
+
+struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_format_out * f, const struct mtar_option * option) {
+	struct mtar_format_ustar_out * format = f->data;
+	struct mtar_io_in * in = format->io->ops->reopenForReading(format->io, option);
+
+	if (in)
+		return mtar_format_ustar_new_in(in, option);
+
+	return 0;
 }
 
 ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length) {
