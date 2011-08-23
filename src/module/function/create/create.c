@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 16:41:38 +0200                       *
+*  Last modified: Tue, 23 Aug 2011 08:11:24 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -143,6 +143,12 @@ int mtar_function_create(const struct mtar_option * option) {
 				ok = 0;
 				continue;
 		}
+	}
+
+	if (!ok) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Verifying archive ok\n");
+	} else {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Verifying archive failed\n");
 	}
 
 	return failed;
