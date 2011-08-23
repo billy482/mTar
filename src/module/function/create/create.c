@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 23 Aug 2011 08:11:24 +0200                       *
+*  Last modified: Tue, 23 Aug 2011 11:08:40 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -124,8 +124,41 @@ int mtar_function_create(const struct mtar_option * option) {
 		struct mtar_format_header header;
 		enum mtar_format_in_header_status status = tar_in->ops->get_header(tar_in, &header);
 
+		struct stat st;
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
+				if (header.is_label)
+					break;
+
+				lstat(header.path, &st);
+
+				if ((st.st_mode & 0777) != (header.mode & 0777))
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: mode differs\n", header.path);
+
+				if (S_ISREG(st.st_mode)) {
+					if (st.st_size != header.size)
+						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: size differs\n", header.path);
+				} else if (S_ISLNK(st.st_mode)) {
+					char link[256];
+					readlink(header.path, link, 256);
+
+					if (strcmp(link, header.link))
+						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: link differs\n", header.path);
+				} else if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
+					if (st.st_rdev != header.dev)
+						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: dev differs\n", header.path);
+				}
+
+				if (st.st_mtime != header.mtime)
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: mtime differs => %03o\n", header.path, header.mode);
+
+				if (st.st_uid != header.uid)
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: uid differs => %03o\n", header.path, header.uid);
+
+				if (st.st_gid != header.gid)
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: gid differs => %03o\n", header.path, header.gid);
+
+
 				tar_in->ops->skip_file(tar_in);
 				break;
 
