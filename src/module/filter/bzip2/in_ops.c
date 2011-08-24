@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Jul 2011 22:19:48 +0200                       *
+*  Last modified: Wed, 24 Aug 2011 07:26:41 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -168,6 +168,10 @@ struct mtar_io_in * mtar_filter_bzip2_new_in(struct mtar_io_in * io, const struc
 	self->strm.bzalloc = 0;
 	self->strm.bzfree = 0;
 	self->strm.opaque = 0;
+	self->strm.next_in = 0;
+	self->strm.avail_in = 0;
+	self->strm.total_in_lo32 = 0;
+	self->strm.total_in_hi32 = 0;
 
 	BZ2_bzDecompressInit(&self->strm, 0, 0);
 
