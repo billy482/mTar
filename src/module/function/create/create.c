@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 23 Aug 2011 11:08:40 +0200                       *
+*  Last modified: Tue, 23 Aug 2011 21:30:36 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -130,7 +130,13 @@ int mtar_function_create(const struct mtar_option * option) {
 				if (header.is_label)
 					break;
 
-				lstat(header.path, &st);
+				if (lstat(header.path, &st)) {
+					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: Error while getting information\n", header.path);
+					tar_in->ops->skip_file(tar_in);
+					continue;
+				}
+
+				mtar_function_create_display(header.path, &st, 0);
 
 				if ((st.st_mode & 0777) != (header.mode & 0777))
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: mode differs\n", header.path);
