@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 23:00:31 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 09:13:57 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -39,6 +39,10 @@ struct mtar_option {
 
 	// overwrite control
 	char verify;
+
+	// handling of file attributes
+	const char * group;
+	const char * owner;
 
 	// device selection and switching
 	const char * filename;

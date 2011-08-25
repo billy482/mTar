@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 19:30:23 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 09:16:39 +0200                       *
 \***********************************************************************/
 
 // sscanf, snprintf
@@ -318,26 +318,6 @@ ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * self, voi
 	return nbRead;
 }
 
-struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
-	if (!io)
-		return 0;
-
-	struct mtar_format_ustar_in * data = malloc(sizeof(struct mtar_format_ustar_in));
-	data->io = io;
-	data->position = 0;
-	data->buffer = 0;
-	data->bufferSize = 0;
-	data->bufferUsed = 0;
-	data->filesize = 0;
-	data->skipsize = 0;
-
-	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
-	self->ops = &mtar_format_ustar_in_ops;
-	self->data = data;
-
-	return self;
-}
-
 int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
 	if (self->skipsize == 0)
@@ -364,5 +344,25 @@ int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 		return new_pos != next_pos;
 	}
 	return 0;
+}
+
+struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
+	if (!io)
+		return 0;
+
+	struct mtar_format_ustar_in * data = malloc(sizeof(struct mtar_format_ustar_in));
+	data->io = io;
+	data->position = 0;
+	data->buffer = 0;
+	data->bufferSize = 0;
+	data->bufferUsed = 0;
+	data->filesize = 0;
+	data->skipsize = 0;
+
+	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
+	self->ops = &mtar_format_ustar_in_ops;
+	self->data = data;
+
+	return self;
 }
 

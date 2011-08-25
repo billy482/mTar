@@ -24,28 +24,28 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 18 Jul 2011 23:27:46 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 12:48:40 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
 
 #include "common.h"
 
-static void format_init(void) __attribute__((constructor));
-static void mtar_format_show_description(void);
+static void mtar_format_ustar_format_init(void) __attribute__((constructor));
+static void mtar_format_ustar_show_description(void);
 
 static struct mtar_format mtar_format_ustar = {
 	.name             = "ustar",
 	.new_in           = mtar_format_ustar_new_in,
 	.new_out          = mtar_format_ustar_new_out,
-	.show_description = mtar_format_show_description,
+	.show_description = mtar_format_ustar_show_description,
 };
 
-void format_init() {
+void mtar_format_ustar_format_init() {
 	mtar_format_register(&mtar_format_ustar);
 }
 
-void mtar_format_show_description() {
+void mtar_format_ustar_show_description() {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    ustar : default format in gnu tar\n");
 }
 

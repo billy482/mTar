@@ -24,13 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 23:01:50 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 23:06:45 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
 #include <string.h>
 // calloc, free, realloc
 #include <stdlib.h>
+
+#include <mtar/file.h>
 
 #include "filter.h"
 #include "format.h"
@@ -47,6 +49,21 @@ int mtar_option_check(struct mtar_option * option) {
 	if (!option->doWork) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No function defined\n");
 		return 1;
+	}
+
+	if (option->owner) {
+		uid_t uid = mtar_file_user2uid(option->owner);
+		if (uid == (uid_t) -1) {
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid user (%s)\n", option->owner);
+			return 1;
+		}
+	}
+	if (option->group) {
+		gid_t gid = mtar_file_group2gid(option->group);
+		if (gid == (gid_t) -1) {
+			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid group (%s)\n", option->group);
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -278,6 +295,15 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				} else {
 					option->doWork = mtar_function_get(opt);
 				}
+			} else if (!strncmp(argv[optArg], "--group", 7)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (opt)
+					option->group = opt;
 			} else if (!strcmp(argv[optArg], "--gzip")) {
 				option->compress_module = "gzip";
 			} else if (!strcmp(argv[optArg], "--help")) {
@@ -310,6 +336,15 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				mtar_option_show_version(*argv);
 				mtar_io_show_description();
 				return 1;
+			} else if (!strncmp(argv[optArg], "--owner", 7)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				if (opt)
+					option->owner = opt;
 			} else if (!strcmp(argv[optArg], "--plugin")) {
 				optArg++;
 
@@ -362,6 +397,10 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Main operation mode:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify : attempt to verify the archive after writing it\n\n");
 
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Handling of file attributes:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --group=NAME : force NAME as group for added files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --owner=NAME : force NAME as owner for added files\n\n");
+
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
 
@@ -369,7 +408,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Archive format selection:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format=FORMAT : use FORMAT as tar format\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -V, --label=TEXT    : create archive with volume name TEXT\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FORMAT is one of the following:\n");
@@ -378,7 +417,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                 : filter the archive through bzip2\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip                  : filter the archive through gzip\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --compression-level LEVEL * : Set the level of compression (1 <= LEVEL <= 9)\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n\n");

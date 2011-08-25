@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 16:30:48 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 23:02:48 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -33,11 +33,11 @@
 #include <stdio.h>
 // memset, strcpy, strlen, strncpy
 #include <string.h>
-// bzero
+// bzero, strncpy
 #include <strings.h>
-// stat
+// lstat, stat
 #include <sys/stat.h>
-// stat
+// lstat, stat
 #include <sys/types.h>
 // time
 #include <time.h>
@@ -46,6 +46,7 @@
 
 #include <mtar/file.h>
 #include <mtar/io.h>
+#include <mtar/option.h>
 #include <mtar/verbose.h>
 
 #include "common.h"
@@ -54,21 +55,25 @@ struct mtar_format_ustar_out {
 	struct mtar_io_out * io;
 	off_t position;
 	ssize_t size;
+
+	// handling of file attributes
+	const char * group;
+	const char * owner;
 };
 
 
-static void mtar_format_ustar_compute_checksum(const void * header, char * checksum);
-static void mtar_format_ustar_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
-static void mtar_format_ustar_compute_size(char * csize, ssize_t size);
 static int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename);
 static int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label);
 static int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target);
+static void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum);
+static void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
+static void mtar_format_ustar_out_compute_size(char * csize, ssize_t size);
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_format_out * f, const struct mtar_option * option);
-static const char * mtar_format_ustar_skip_leading_slash(const char * str);
+static const char * mtar_format_ustar_out_skip_leading_slash(const char * str);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.add_file         = mtar_format_ustar_out_add_file,
@@ -82,49 +87,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 };
 
 
-void mtar_format_ustar_compute_checksum(const void * header, char * checksum) {
-	const unsigned char * ptr = header;
-
-	memset(checksum, ' ', 8);
-
-	unsigned int i, sum = 0;
-	for (i = 0; i < 512; i++)
-		sum += ptr[i];
-
-	snprintf(checksum, 7, "%06o", sum);
-}
-
-void mtar_format_ustar_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile) {
-	strcpy(header->filename, "././@LongLink");
-	memset(header->filemode, '0', 7);
-	memset(header->uid, '0', 7);
-	memset(header->gid, '0', 7);
-	mtar_format_ustar_compute_size(header->size, filename_length);
-	memset(header->mtime, '0', 11);
-	header->flag = flag;
-	strcpy(header->magic, "ustar  ");
-	mtar_file_uid2name(header->uname, 32, sfile->st_uid);
-	mtar_file_gid2name(header->gname, 32, sfile->st_gid);
-
-	mtar_format_ustar_compute_checksum(header, header->checksum);
-
-	strcpy(link, filename);
-}
-
-void mtar_format_ustar_compute_size(char * csize, ssize_t size) {
-	if (size > 0777777777777) {
-		*csize = (char) 0x80;
-		unsigned int i;
-		for (i = 11; i > 0; i--) {
-			csize[i] = size & 0xFF;
-			size >>= 8;
-		}
-	} else {
-		snprintf(csize, 12, "%0*lo", 11, size);
-	}
-}
-
-struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option) {
 	if (!io)
 		return 0;
 
@@ -132,6 +95,10 @@ struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, cons
 	data->io = io;
 	data->position = 0;
 	data->size = 0;
+
+	// handling of file attributes
+	data->owner = option->owner;
+	data->group = option->group;
 
 	struct mtar_format_out * self = malloc(sizeof(struct mtar_format_out));
 	self->ops = &mtar_format_ustar_out_ops;
@@ -171,8 +138,8 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 			current_header = header = realloc(header, block_size);
 
 			bzero(current_header, block_size - 512);
-			mtar_format_ustar_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'K', &sfile);
-			mtar_format_ustar_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'K', &sfile);
+			mtar_format_ustar_out_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
 
 			current_header += 4;
 		} else if (filename_length > 100) {
@@ -180,7 +147,7 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 			current_header = header = realloc(header, block_size);
 
 			bzero(current_header, block_size - 512);
-			mtar_format_ustar_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
 
 			current_header += 2;
 		} else if (link_length > 100) {
@@ -188,7 +155,7 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 			current_header = header = realloc(header, block_size);
 
 			bzero(current_header, block_size - 512);
-			mtar_format_ustar_compute_link(current_header, (char *) (current_header + 1), link, link_length, 'L', &sfile);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), link, link_length, 'L', &sfile);
 
 			current_header += 2;
 		}
@@ -197,20 +164,18 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 		current_header = header = realloc(header, block_size);
 
 		bzero(current_header, 1024);
-		mtar_format_ustar_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
+		mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
 
 		current_header += 2;
 	}
 
 	bzero(current_header, 512);
-	strncpy(current_header->filename, mtar_format_ustar_skip_leading_slash(filename), 100);
+	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(filename), 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
-	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
-	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 
 	if (S_ISREG(sfile.st_mode)) {
-		mtar_format_ustar_compute_size(current_header->size, sfile.st_size);
+		mtar_format_ustar_out_compute_size(current_header->size, sfile.st_size);
 		current_header->flag = '0';
 	} else if (S_ISLNK(sfile.st_mode)) {
 		current_header->flag = '2';
@@ -230,12 +195,26 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 	}
 
 	strcpy(current_header->magic, "ustar  ");
-	mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
-	mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
-
-	mtar_format_ustar_compute_checksum(current_header, current_header->checksum);
 
 	struct mtar_format_ustar_out * format = f->data;
+	if (format->owner) {
+		snprintf(current_header->uid, 8, "%07o", mtar_file_user2uid(format->owner));
+		strncpy(current_header->uname, format->owner, 32);
+	} else {
+		snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
+		mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
+	}
+
+	if (format->group) {
+		snprintf(current_header->gid, 8, "%07o", mtar_file_group2gid(format->group));
+		strncpy(current_header->gname, format->group, 32);
+	} else {
+		snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
+		mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
+	}
+
+	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
+
 	format->position = 0;
 	format->size = sfile.st_size;
 
@@ -258,7 +237,7 @@ int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * lab
 	snprintf(header->mtime, 12, "%0*o", 11, (unsigned int) time(0));
 	header->flag = 'V';
 
-	mtar_format_ustar_compute_checksum(header, header->checksum);
+	mtar_format_ustar_out_compute_checksum(header, header->checksum);
 
 	struct mtar_format_ustar_out * format = f->data;
 	format->position = 0;
@@ -299,7 +278,7 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
 	mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
 
-	mtar_format_ustar_compute_checksum(current_header, current_header->checksum);
+	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
 
 	struct mtar_format_ustar_out * format = f->data;
 	format->position = 0;
@@ -310,6 +289,48 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	free(header);
 
 	return block_size != nbWrite;
+}
+
+void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum) {
+	const unsigned char * ptr = header;
+
+	memset(checksum, ' ', 8);
+
+	unsigned int i, sum = 0;
+	for (i = 0; i < 512; i++)
+		sum += ptr[i];
+
+	snprintf(checksum, 7, "%06o", sum);
+}
+
+void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile) {
+	strcpy(header->filename, "././@LongLink");
+	memset(header->filemode, '0', 7);
+	memset(header->uid, '0', 7);
+	memset(header->gid, '0', 7);
+	mtar_format_ustar_out_compute_size(header->size, filename_length);
+	memset(header->mtime, '0', 11);
+	header->flag = flag;
+	strcpy(header->magic, "ustar  ");
+	mtar_file_uid2name(header->uname, 32, sfile->st_uid);
+	mtar_file_gid2name(header->gname, 32, sfile->st_gid);
+
+	mtar_format_ustar_out_compute_checksum(header, header->checksum);
+
+	strcpy(link, filename);
+}
+
+void mtar_format_ustar_out_compute_size(char * csize, ssize_t size) {
+	if (size > 0777777777777) {
+		*csize = (char) 0x80;
+		unsigned int i;
+		for (i = 11; i > 0; i--) {
+			csize[i] = size & 0xFF;
+			size >>= 8;
+		}
+	} else {
+		snprintf(csize, 12, "%0*lo", 11, size);
+	}
 }
 
 int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f) {
@@ -373,7 +394,7 @@ ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * dat
 	return nbWrite;
 }
 
-const char * mtar_format_ustar_skip_leading_slash(const char * str) {
+const char * mtar_format_ustar_out_skip_leading_slash(const char * str) {
 	if (!str)
 		return 0;
 

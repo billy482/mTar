@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 07 Jul 2011 22:48:17 +0200                       *
+*  Last modified: Thu, 25 Aug 2011 17:08:13 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILE_H__
@@ -49,6 +49,8 @@ void mtar_file_convert_mode(char * buffer, mode_t mode);
  */
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
 
+gid_t mtar_file_group2gid(const char * group);
+
 /**
  * \brief Convert an uid to user's name
  * \param[out] name : write user's name into it
@@ -57,6 +59,8 @@ void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
  * \note For better performance, this function maintain a cache
  */
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
+
+uid_t mtar_file_user2uid(const char * user);
 
 #endif
 
