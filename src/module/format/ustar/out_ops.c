@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 25 Aug 2011 23:02:48 +0200                       *
+*  Last modified: Fri, 26 Aug 2011 08:52:01 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -71,6 +71,7 @@ static void mtar_format_ustar_out_compute_size(char * csize, ssize_t size);
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
+static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_format_out * f, const struct mtar_option * option);
 static const char * mtar_format_ustar_out_skip_leading_slash(const char * str);
@@ -169,9 +170,11 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 		current_header += 2;
 	}
 
+	struct mtar_format_ustar_out * format = f->data;
 	bzero(current_header, 512);
 	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(filename), 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
+	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 
 	if (S_ISREG(sfile.st_mode)) {
@@ -195,23 +198,6 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 	}
 
 	strcpy(current_header->magic, "ustar  ");
-
-	struct mtar_format_ustar_out * format = f->data;
-	if (format->owner) {
-		snprintf(current_header->uid, 8, "%07o", mtar_file_user2uid(format->owner));
-		strncpy(current_header->uname, format->owner, 32);
-	} else {
-		snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
-		mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
-	}
-
-	if (format->group) {
-		snprintf(current_header->gid, 8, "%07o", mtar_file_group2gid(format->group));
-		strncpy(current_header->gname, format->group, 32);
-	} else {
-		snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
-		mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
-	}
 
 	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
 
@@ -266,21 +252,18 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	struct mtar_format_ustar * header = malloc(block_size);
 	struct mtar_format_ustar * current_header = header;
 
+	struct mtar_format_ustar_out * format = f->data;
 	bzero(current_header, 512);
 	strncpy(current_header->filename, src, 100);
 	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
-	snprintf(current_header->uid, 8, "%07o", sfile.st_uid);
-	snprintf(current_header->gid, 8, "%07o", sfile.st_gid);
+	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 	current_header->flag = '1';
 	strncpy(current_header->linkname, target, 100);
 	strcpy(current_header->magic, "ustar  ");
-	mtar_file_uid2name(current_header->uname, 32, sfile.st_uid);
-	mtar_file_gid2name(current_header->gname, 32, sfile.st_gid);
 
 	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
 
-	struct mtar_format_ustar_out * format = f->data;
 	format->position = 0;
 	format->size = 0;
 
@@ -375,6 +358,24 @@ struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_forma
 		return mtar_format_ustar_new_in(in, option);
 
 	return 0;
+}
+
+void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile) {
+	if (format->owner) {
+		snprintf(header->uid, 8, "%07o", mtar_file_user2uid(format->owner));
+		strncpy(header->uname, format->owner, 32);
+	} else {
+		snprintf(header->uid, 8, "%07o", sfile->st_uid);
+		mtar_file_uid2name(header->uname, 32, sfile->st_uid);
+	}
+
+	if (format->group) {
+		snprintf(header->gid, 8, "%07o", mtar_file_group2gid(format->group));
+		strncpy(header->gname, format->group, 32);
+	} else {
+		snprintf(header->gid, 8, "%07o", sfile->st_gid);
+		mtar_file_gid2name(header->gname, 32, sfile->st_gid);
+	}
 }
 
 ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length) {
