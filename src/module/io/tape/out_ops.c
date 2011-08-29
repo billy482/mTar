@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 16:10:27 +0200                       *
+*  Last modified: Mon, 29 Aug 2011 10:21:06 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -50,6 +50,7 @@ struct mtar_io_tape_out {
 	unsigned int buffer_used;
 };
 
+static ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io);
 static int mtar_io_tape_out_close(struct mtar_io_out * io);
 static int mtar_io_tape_out_flush(struct mtar_io_out * io);
 static void mtar_io_tape_out_free(struct mtar_io_out * io);
@@ -59,6 +60,7 @@ static struct mtar_io_in * mtar_io_tape_out_reopenForReading(struct mtar_io_out 
 static ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_tape_out_ops = {
+	.block_size       = mtar_io_tape_out_block_size,
 	.close            = mtar_io_tape_out_close,
 	.flush            = mtar_io_tape_out_flush,
 	.free             = mtar_io_tape_out_free,
@@ -68,6 +70,11 @@ static struct mtar_io_out_ops mtar_io_tape_out_ops = {
 	.write            = mtar_io_tape_out_write,
 };
 
+
+ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io) {
+	struct mtar_io_tape_out * self = io->data;
+	return self->buffer_size;
+}
 
 int mtar_io_tape_out_close(struct mtar_io_out * io) {
 	struct mtar_io_tape_out * self = io->data;

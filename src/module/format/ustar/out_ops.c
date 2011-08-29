@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 26 Aug 2011 08:52:01 +0200                       *
+*  Last modified: Mon, 29 Aug 2011 10:28:08 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -65,6 +65,7 @@ struct mtar_format_ustar_out {
 static int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename);
 static int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label);
 static int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target);
+static ssize_t mtar_format_ustar_out_block_size(struct mtar_format_out * f);
 static void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum);
 static void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
 static void mtar_format_ustar_out_compute_size(char * csize, ssize_t size);
@@ -80,6 +81,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.add_file         = mtar_format_ustar_out_add_file,
 	.add_label        = mtar_format_ustar_out_add_label,
 	.add_link         = mtar_format_ustar_out_add_link,
+	.block_size       = mtar_format_ustar_out_block_size,
 	.end_of_file      = mtar_format_ustar_out_end_of_file,
 	.free             = mtar_format_ustar_out_free,
 	.last_errno       = mtar_format_ustar_out_last_errno,
@@ -272,6 +274,11 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	free(header);
 
 	return block_size != nbWrite;
+}
+
+ssize_t mtar_format_ustar_out_block_size(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * format = f->data;
+	return format->io->ops->block_size(format->io);
 }
 
 void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum) {

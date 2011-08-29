@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 25 Aug 2011 09:05:14 +0200                       *
+*  Last modified: Mon, 29 Aug 2011 13:47:47 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -58,6 +58,7 @@
 struct mtar_function_create_param {
 	const char * filename;
 	struct mtar_format_out * format;
+	ssize_t block_size;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
 };
@@ -81,13 +82,15 @@ int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
 	struct mtar_function_create_param param = {
-		.filename = 0,
-		.format   = 0,
-		.inode    = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
-		.option   = option,
+		.filename   = 0,
+		.format     = 0,
+		.block_size = 1024,
+		.inode      = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
+		.option     = option,
 	};
 
 	param.format = mtar_format_get_out(option);
+	param.block_size = param.format->ops->block_size(param.format);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -202,7 +205,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		return 0;
 
 	char * key = malloc(16);
-	snprintf(key, 16, "%llx_%lx", (long long int) st.st_dev, st.st_ino);
+	snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
 	if (mtar_hashtable_hasKey(param->inode, key)) {
 		const char * target = mtar_hashtable_value(param->inode, key);
 		mtar_function_create_display(param->filename, &st, target);
@@ -219,23 +222,23 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	if (failed)
 		return failed;
 
-	mtar_plugin_add_file(param->filename);
+	// mtar_plugin_add_file(param->filename);
 
 	if (S_ISREG(st.st_mode)) {
 		int fd = open(param->filename, O_RDONLY);
 
-		char * buffer = malloc(1048576);
+		char * buffer = malloc(param->block_size);
 
 		ssize_t nbRead;
 		ssize_t totalNbRead = 0;
-		while ((nbRead = read(fd, buffer, 1048576)) > 0) {
+		while ((nbRead = read(fd, buffer, param->block_size)) > 0) {
 			param->format->ops->write(param->format, buffer, nbRead);
 
 			totalNbRead += nbRead;
 
 			mtar_function_create_progress(param->filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
 
-			mtar_plugin_write(buffer, nbRead);
+			// mtar_plugin_write(buffer, nbRead);
 		}
 
 		param->format->ops->end_of_file(param->format);
@@ -244,7 +247,7 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		free(buffer);
 		close(fd);
 
-		mtar_plugin_end_of_file();
+		// mtar_plugin_end_of_file();
 
 	} else if (S_ISDIR(st.st_mode)) {
 		const char * dirname = param->filename;

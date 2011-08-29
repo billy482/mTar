@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 16:19:12 +0200                       *
+*  Last modified: Mon, 29 Aug 2011 10:23:05 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -42,6 +42,7 @@ struct mtar_filter_bzip2_out {
 	short closed;
 };
 
+static ssize_t mtar_filter_bzip2_out_block_size(struct mtar_io_out * io);
 static int mtar_filter_bzip2_out_close(struct mtar_io_out * io);
 static int mtar_filter_bzip2_out_finish(struct mtar_filter_bzip2_out * io);
 static int mtar_filter_bzip2_out_flush(struct mtar_io_out * io);
@@ -52,6 +53,7 @@ static struct mtar_io_in * mtar_filter_bzip2_out_reopenForReading(struct mtar_io
 static ssize_t mtar_filter_bzip2_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_filter_bzip2_out_ops = {
+	.block_size       = mtar_filter_bzip2_out_block_size,
 	.close            = mtar_filter_bzip2_out_close,
 	.flush            = mtar_filter_bzip2_out_flush,
 	.free             = mtar_filter_bzip2_out_free,
@@ -61,6 +63,11 @@ static struct mtar_io_out_ops mtar_filter_bzip2_out_ops = {
 	.write            = mtar_filter_bzip2_out_write,
 };
 
+
+ssize_t mtar_filter_bzip2_out_block_size(struct mtar_io_out * io) {
+	struct mtar_filter_bzip2_out * self = io->data;
+	return self->io->ops->block_size(self->io);
+}
 
 int mtar_filter_bzip2_out_close(struct mtar_io_out * io) {
 	struct mtar_filter_bzip2_out * self = io->data;
