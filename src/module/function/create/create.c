@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 30 Aug 2011 09:14:23 +0200                       *
+*  Last modified: Tue, 30 Aug 2011 09:23:04 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -60,6 +60,7 @@
 struct mtar_function_create_param {
 	const char * filename;
 	struct mtar_format_out * format;
+	char * buffer;
 	ssize_t block_size;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
@@ -86,6 +87,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	struct mtar_function_create_param param = {
 		.filename   = 0,
 		.format     = 0,
+		.buffer     = 0,
 		.block_size = 1024,
 		.inode      = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
 		.option     = option,
@@ -93,6 +95,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	param.format = mtar_format_get_out(option);
 	param.block_size = param.format->ops->block_size(param.format);
+	param.buffer = malloc(param.block_size);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -111,6 +114,7 @@ int mtar_function_create(const struct mtar_option * option) {
 		failed = mtar_function_create2(&param);
 	}
 
+	free(param.buffer);
 	mtar_hashtable_free(param.inode);
 	if (failed || !option->verify) {
 		param.format->ops->free(param.format);
@@ -229,12 +233,10 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 	if (S_ISREG(st.st_mode)) {
 		int fd = open(param->filename, O_RDONLY);
 
-		char * buffer = malloc(param->block_size);
-
 		ssize_t nbRead;
 		ssize_t totalNbRead = 0;
-		while ((nbRead = read(fd, buffer, param->block_size)) > 0) {
-			param->format->ops->write(param->format, buffer, nbRead);
+		while ((nbRead = read(fd, param->buffer, param->block_size)) > 0) {
+			param->format->ops->write(param->format, param->buffer, nbRead);
 
 			totalNbRead += nbRead;
 
@@ -245,8 +247,6 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 
 		param->format->ops->end_of_file(param->format);
 		mtar_verbose_clean();
-
-		free(buffer);
 		close(fd);
 
 		// mtar_plugin_end_of_file();
