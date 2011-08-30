@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 25 Aug 2011 09:13:57 +0200                       *
+*  Last modified: Tue, 30 Aug 2011 09:05:08 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -41,6 +41,11 @@ struct mtar_option {
 	char verify;
 
 	// handling of file attributes
+	enum mtar_option_atime {
+		MTAR_OPTION_ATIME_NONE,
+		MTAR_OPTION_ATIME_REPLACE,
+		MTAR_OPTION_ATIME_SYSTEM,
+	} atime_preserve;
 	const char * group;
 	const char * owner;
 

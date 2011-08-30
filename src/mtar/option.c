@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 25 Aug 2011 23:06:45 +0200                       *
+*  Last modified: Tue, 30 Aug 2011 09:09:34 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -108,11 +108,16 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// overwrite control
 	option->verify = 0;
 
+	// handling of file attributes
+	option->atime_preserve = MTAR_OPTION_ATIME_NONE;
+	option->group = 0;
+	option->owner = 0;
+
 	// device selection and switching
 	option->filename = 0;
 
 	// device blocking
-	option->block_factor = 1;
+	option->block_factor = 10;
 
 	// archive format selection
 	option->format = "ustar";
@@ -223,7 +228,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	if (optArg < argc && !strncmp(argv[optArg], "--", 2)) {
 		while (optArg < argc) {
-			if (!strncmp(argv[optArg], "--blocking-factor", 17)) {
+			if (!strncmp(argv[optArg], "--atime-preserve", 16)) {
+				option->atime_preserve = MTAR_OPTION_ATIME_REPLACE;
+			} else if (!strncmp(argv[optArg], "--blocking-factor", 17)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
 					opt++;

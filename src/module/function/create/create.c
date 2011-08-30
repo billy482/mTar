@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 13:47:47 +0200                       *
+*  Last modified: Tue, 30 Aug 2011 09:14:23 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -40,10 +40,12 @@
 #include <string.h>
 // open, stat
 #include <sys/stat.h>
-// open, stat
+// open, stat, utime
 #include <sys/types.h>
 // chdir, read, stat
 #include <unistd.h>
+// utime
+#include <utime.h>
 
 #include <mtar/format.h>
 #include <mtar/function.h>
@@ -272,6 +274,14 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 		free(namelist);
 
 		param->filename = dirname;
+	}
+
+	if (param->option->atime_preserve == MTAR_OPTION_ATIME_REPLACE) {
+		struct utimbuf buf = {
+			.actime  = st.st_atime,
+			.modtime = st.st_mtime,
+		};
+		utime(param->filename, &buf);
 	}
 
 	return 0;
