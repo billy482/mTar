@@ -24,11 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 30 Aug 2011 09:05:08 +0200                       *
+*  Last modified: Tue, 30 Aug 2011 19:32:20 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
 #define __MTAR_OPTION_H__
+
+// mode_t
+#include <sys/types.h>
 
 #include "function.h"
 #include "verbose.h"
@@ -47,6 +50,7 @@ struct mtar_option {
 		MTAR_OPTION_ATIME_SYSTEM,
 	} atime_preserve;
 	const char * group;
+	mode_t mode;
 	const char * owner;
 
 	// device selection and switching

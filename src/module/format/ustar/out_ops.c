@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 18:42:25 +0200                       *
+*  Last modified: Thu, 01 Sep 2011 09:40:21 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -58,6 +58,7 @@ struct mtar_format_ustar_out {
 
 	// handling of file attributes
 	const char * group;
+	mode_t mode;
 	const char * owner;
 };
 
@@ -72,6 +73,7 @@ static void mtar_format_ustar_out_compute_size(char * csize, ssize_t size);
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
+static void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_format_out * f, const struct mtar_option * option);
@@ -95,16 +97,17 @@ struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, cons
 		return 0;
 
 	struct mtar_format_ustar_out * data = malloc(sizeof(struct mtar_format_ustar_out));
-	data->io = io;
+	data->io       = io;
 	data->position = 0;
-	data->size = 0;
+	data->size     = 0;
 
 	// handling of file attributes
+	data->mode  = option->mode;
 	data->owner = option->owner;
 	data->group = option->group;
 
 	struct mtar_format_out * self = malloc(sizeof(struct mtar_format_out));
-	self->ops = &mtar_format_ustar_out_ops;
+	self->ops  = &mtar_format_ustar_out_ops;
 	self->data = data;
 
 	return self;
@@ -175,7 +178,7 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 	struct mtar_format_ustar_out * format = f->data;
 	bzero(current_header, 512);
 	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(filename), 100);
-	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
+	mtar_format_ustar_out_set_mode(format, current_header, &sfile);
 	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 
@@ -257,7 +260,7 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	struct mtar_format_ustar_out * format = f->data;
 	bzero(current_header, 512);
 	strncpy(current_header->filename, src, 100);
-	snprintf(current_header->filemode, 8, "%07o", sfile.st_mode & 0777);
+	mtar_format_ustar_out_set_mode(format, current_header, &sfile);
 	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 	current_header->flag = '1';
@@ -365,6 +368,13 @@ struct mtar_format_in * mtar_format_ustar_out_reopenForReading(struct mtar_forma
 		return mtar_format_ustar_new_in(in, option);
 
 	return 0;
+}
+
+void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile) {
+	if (format->mode)
+		snprintf(header->filemode, 8, "%07o", format->mode & 0777);
+	else
+		snprintf(header->filemode, 8, "%07o", sfile->st_mode & 0777);
 }
 
 void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile) {

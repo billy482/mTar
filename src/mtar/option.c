@@ -24,11 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 30 Aug 2011 09:09:34 +0200                       *
+*  Last modified: Wed, 31 Aug 2011 23:25:54 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
 #include <string.h>
+// sscanf
+#include <stdio.h>
 // calloc, free, realloc
 #include <stdlib.h>
 
@@ -111,6 +113,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// handling of file attributes
 	option->atime_preserve = MTAR_OPTION_ATIME_NONE;
 	option->group = 0;
+	option->mode = 0;
 	option->owner = 0;
 
 	// device selection and switching
@@ -343,6 +346,14 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				mtar_option_show_version(*argv);
 				mtar_io_show_description();
 				return 1;
+			} else if (!strncmp(argv[optArg], "--mode", 6)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				sscanf(opt, "%o", &option->mode);
 			} else if (!strncmp(argv[optArg], "--owner", 7)) {
 				char * opt = strchr(argv[optArg], '=');
 				if (opt)
@@ -405,8 +416,10 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify : attempt to verify the archive after writing it\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Handling of file attributes:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --group=NAME : force NAME as group for added files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --owner=NAME : force NAME as owner for added files\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --atime-preserve : preserve access times on dumped files,\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                       either by restoring the times after reading\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --group=NAME     : force NAME as group for added files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --owner=NAME     : force NAME as owner for added files\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
