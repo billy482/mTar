@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 22:44:18 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 22:41:24 +0200                       *
 \***********************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// bzero, strcmp
+// bzero, strcmp, strlen
 #include <string.h>
 
 #include "filter.h"
@@ -145,8 +145,16 @@ void mtar_format_register(struct mtar_format * f) {
 void mtar_format_show_description() {
 	mtar_loader_loadAll("format");
 
-	unsigned int i;
-	for (i = 0; i < mtar_format_nb_formats; i++)
+	unsigned int i, length = 0;
+	for (i = 0; i < mtar_format_nb_formats; i++) {
+		unsigned int ll = strlen(mtar_format_formats[i]->name);
+		if (ll > length)
+			length = ll;
+	}
+
+	for (i = 0; i < mtar_format_nb_formats; i++) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_format_formats[i]->name);
 		mtar_format_formats[i]->show_description();
+	}
 }
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 21:46:14 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 22:30:41 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -453,7 +453,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-formats *   : list available format\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-functions * : list available function\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-ios *       : list available io backend\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --plugin PLUGIN *  : load a plugin which will interact with an\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --plugin PLUGIN *  : load a plugin which will interact with a\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                             function\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
