@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 31 Aug 2011 23:25:54 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 21:46:14 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -404,11 +404,11 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Main operation mode:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create               : create new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list                 : list files from tar archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -x, --extract              : extract new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function FUNCTION *      : use FUNCTION as action\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create                   : create new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list                     : list files from tar archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -x, --extract                  : extract new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --function FUNCTION *      : use FUNCTION as action\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FUNCTION is one of:\n");
 	mtar_function_show_description();
 
@@ -416,10 +416,10 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify : attempt to verify the archive after writing it\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Handling of file attributes:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --atime-preserve : preserve access times on dumped files,\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                       either by restoring the times after reading\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --group=NAME     : force NAME as group for added files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --owner=NAME     : force NAME as owner for added files\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --atime-preserve : preserve access times on dumped files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --group=NAME     : force NAME as group for added files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --mode=CHANGES   : force (symbolic) mode CHANGES for added files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --owner=NAME     : force NAME as owner for added files\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
@@ -435,9 +435,10 @@ void mtar_option_show_help(const char * path) {
 	mtar_format_show_description();
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                 : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip                  : filter the archive through gzip\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                     : filter the archive through bzip2\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip                      : filter the archive through gzip\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --compression-level=LEVEL * : Set the level of compression\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                      (1 <= LEVEL <= 9)\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n\n");
@@ -448,11 +449,12 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Other options:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -?, --help : give this help list\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-filters *   : list available io filters\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-formats *   : list available format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-functions * : list available function\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --list-ios *       : list available io backend\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    --plugin PLUGIN *  : load a plugin which will interact with an function\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-filters *   : list available io filters\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-formats *   : list available format\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-functions * : list available function\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-ios *       : list available io backend\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --plugin PLUGIN *  : load a plugin which will interact with an\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                             function\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
 }
