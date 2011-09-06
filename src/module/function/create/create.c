@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 10:10:25 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 22:23:20 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -297,7 +297,7 @@ void mtar_function_create_init() {
 }
 
 void mtar_function_create_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    create : Create new archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Create new archive\n");
 }
 
 void mtar_function_create_show_help() {

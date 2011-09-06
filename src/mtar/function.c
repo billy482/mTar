@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 22:50:08 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 22:22:44 +0200                       *
 \***********************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// strcmp
+// strcmp, strlen
 #include <string.h>
 
 #include "function.h"
@@ -82,9 +82,17 @@ void mtar_function_register(struct mtar_function * f) {
 void mtar_function_show_description() {
 	mtar_loader_loadAll("function");
 
-	unsigned int i;
-	for (i = 0; i < mtar_function_nb_functions; i++)
+	unsigned int i, length = 0;
+	for (i = 0; i < mtar_function_nb_functions; i++) {
+		unsigned int ll = strlen(mtar_function_functions[i]->name);
+		if (ll > length)
+			length = ll;
+	}
+
+	for (i = 0; i < mtar_function_nb_functions; i++) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_function_functions[i]->name);
 		mtar_function_functions[i]->show_description();
+	}
 }
 
 void mtar_function_showHelp(const char * function) {

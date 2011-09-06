@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 23:05:57 +0200                       *
+*  Last modified: Tue, 06 Sep 2011 22:23:52 +0200                       *
 \***********************************************************************/
 
 // open
@@ -103,7 +103,7 @@ void mtar_function_list_init() {
 }
 
 void mtar_function_list_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    list : List files from tar archive\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "List files from tar archive\n");
 }
 
 void mtar_function_list_show_help() {
