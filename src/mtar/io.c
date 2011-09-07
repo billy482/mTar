@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 15:44:39 +0200                       *
+*  Last modified: Wed, 07 Sep 2011 10:06:34 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -173,8 +173,16 @@ void mtar_io_show_description() {
 	mtar_loader_loadAll("io");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend ios :\n");
 
-	unsigned int i;
-	for (i = 0; i < mtar_io_nbIos; i++)
+	unsigned int i, length = 0;
+	for (i = 0; i < mtar_io_nbIos; i++) {
+		unsigned int ll = strlen(mtar_io_ios[i]->name);
+		if (ll > length)
+			length = ll;
+	}
+
+	for (i = 0; i < mtar_io_nbIos; i++) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_io_ios[i]->name);
 		mtar_io_ios[i]->show_description();
+	}
 }
 

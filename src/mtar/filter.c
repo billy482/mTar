@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 22 Aug 2011 15:50:07 +0200                       *
+*  Last modified: Wed, 07 Sep 2011 09:58:46 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_RDWR
 #include <fcntl.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp
+// strcmp, strlen
 #include <string.h>
 
 #include "filter.h"
@@ -139,8 +139,16 @@ void mtar_filter_show_description() {
 	mtar_loader_loadAll("filter");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend filters :\n");
 
-	unsigned int i;
-	for (i = 0; i < mtar_filter_nb_filters; i++)
+	unsigned int i, length = 0;
+	for (i = 0; i < mtar_filter_nb_filters; i++) {
+		unsigned int ll = strlen(mtar_filter_filters[i]->name);
+		if (ll > length)
+			length = ll;
+	}
+
+	for (i = 0; i < mtar_filter_nb_filters; i++) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_filter_filters[i]->name);
 		mtar_filter_filters[i]->show_description();
+	}
 }
 
