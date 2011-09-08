@@ -24,64 +24,67 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:49:53 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 20:55:17 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// free
+#include <stdlib.h>
+// strlen
+#include <string.h>
 
-// mode_t
-#include <sys/types.h>
+#include <mtar/exclude.h>
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
-#include "function.h"
-#include "verbose.h"
+static int mtar_exclude_simple_filter(struct mtar_exclude * ex, const char * filename);
+static void mtar_exclude_simple_free(struct mtar_exclude * ex);
+static void mtar_exclude_simple_init(void) __attribute__((constructor));
+static struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option);
+static void mtar_exclude_simple_show_description(void);
 
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	const char ** files;
-	unsigned int nbFiles;
-	const char * working_directory;
-	const char * exclude_engine;
-	const char ** excludes;
-	unsigned int nbExcludes;
-
-	// informative output
-	enum mtar_verbose_level verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+static struct mtar_exclude_ops mtar_exclude_simple_ops = {
+	.filter = mtar_exclude_simple_filter,
+	.free   = mtar_exclude_simple_free,
 };
 
-#endif
+static struct mtar_exclude_driver mtar_exclude_simple_driver = {
+	.name             = "simple",
+	.new              = mtar_exclude_simple_new,
+	.show_description = mtar_exclude_simple_show_description,
+};
+
+
+int mtar_exclude_simple_filter(struct mtar_exclude * ex, const char * filename) {
+	unsigned int i;
+	for (i = 0; i < ex->nb_excludes; i++) {
+		size_t length = strlen(ex->excludes[i]);
+		if (!strncmp(filename, ex->excludes[i], length))
+			return 1;
+	}
+
+	return 0;
+}
+
+void mtar_exclude_simple_free(struct mtar_exclude * ex) {
+	if (ex)
+		free(ex);
+}
+
+void mtar_exclude_simple_init() {
+	mtar_exclude_register(&mtar_exclude_simple_driver);
+}
+
+struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option) {
+	struct mtar_exclude * ex = malloc(sizeof(struct mtar_exclude));
+	ex->excludes = option->excludes;
+	ex->nb_excludes = option->nbExcludes;
+	ex->ops = &mtar_exclude_simple_ops;
+	ex->data = 0;
+
+	return ex;
+}
+
+void mtar_exclude_simple_show_description(void) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "strcmp based exclusion files\n");
+}
 

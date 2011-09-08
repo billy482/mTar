@@ -24,64 +24,78 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:49:53 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 19:37:14 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// free, realloc
+#include <stdlib.h>
+// strcmp
+#include <string.h>
 
-// mode_t
-#include <sys/types.h>
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
-#include "function.h"
-#include "verbose.h"
+#include "exclude.h"
+#include "loader.h"
 
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
+static struct mtar_exclude_driver ** mtar_exclude_exs = 0;
+static unsigned int mtar_exclude_nbExs = 0;
 
-	// overwrite control
-	char verify;
+static void mtar_exclude_exit(void) __attribute__((destructor));
 
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
 
-	// device selection and switching
-	const char * filename;
+void mtar_exclude_exit() {
+	if (mtar_exclude_nbExs > 0)
+		free(mtar_exclude_exs);
+	mtar_exclude_exs = 0;
+}
 
-	// device blocking
-	int block_factor;
+struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option) {
+	if (option->nbExcludes < 1)
+		return 0;
 
-	// archive format selection
-	const char * format;
-	const char * label;
+	unsigned int i;
+	for (i = 0; i < mtar_exclude_nbExs; i++)
+		if (!strcmp(option->exclude_engine, mtar_exclude_exs[i]->name))
+			return mtar_exclude_exs[i]->new(option);
+	if (mtar_loader_load("exclude", option->exclude_engine))
+		return 0;
+	for (i = 0; i < mtar_exclude_nbExs; i++)
+		if (!strcmp(option->exclude_engine, mtar_exclude_exs[i]->name))
+			return mtar_exclude_exs[i]->new(option);
 
-	// compression options
-	const char * compress_module;
-	int compress_level;
+	return 0;
+}
 
-	// local file selections
-	const char ** files;
-	unsigned int nbFiles;
-	const char * working_directory;
-	const char * exclude_engine;
-	const char ** excludes;
-	unsigned int nbExcludes;
+void mtar_exclude_register(struct mtar_exclude_driver * driver) {
+	if (!driver)
+		return;
 
-	// informative output
-	enum mtar_verbose_level verbose;
+	unsigned int i;
+	for (i = 0; i < mtar_exclude_nbExs; i++)
+		if (!strcmp(driver->name, mtar_exclude_exs[i]->name))
+			return;
 
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
-};
+	mtar_exclude_exs = realloc(mtar_exclude_exs, (mtar_exclude_nbExs + 1) * sizeof(struct mtar_exclude_driver *));
+	mtar_exclude_exs[mtar_exclude_nbExs] = driver;
+	mtar_exclude_nbExs++;
 
-#endif
+	mtar_loader_register_ok();
+}
+
+void mtar_exclude_show_description() {
+	mtar_loader_loadAll("exclude");
+
+	unsigned int i, length = 0;
+	for (i = 0; i < mtar_exclude_nbExs; i++) {
+		unsigned int ll = strlen(mtar_exclude_exs[i]->name);
+		if (ll > length)
+			length = ll;
+	}
+
+	for (i = 0; i < mtar_exclude_nbExs; i++) {
+		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_exclude_exs[i]->name);
+		mtar_exclude_exs[i]->show_description();
+	}
+}
 

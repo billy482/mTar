@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 22:23:20 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 20:27:13 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -47,6 +47,7 @@
 // utime
 #include <utime.h>
 
+#include <mtar/exclude.h>
 #include <mtar/format.h>
 #include <mtar/function.h>
 #include <mtar/hashtable.h>
@@ -64,6 +65,7 @@ struct mtar_function_create_param {
 	ssize_t block_size;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
+	struct mtar_exclude * exclude;
 };
 
 static int mtar_function_create(const struct mtar_option * option);
@@ -96,6 +98,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	param.format = mtar_format_get_out(option);
 	param.block_size = param.format->ops->block_size(param.format);
 	param.buffer = malloc(param.block_size);
+	param.exclude = mtar_exclude_get(option);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -115,6 +118,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	free(param.buffer);
+	param.exclude->ops->free(param.exclude);
 	mtar_hashtable_free(param.inode);
 	if (failed || !option->verify) {
 		param.format->ops->free(param.format);
@@ -203,6 +207,9 @@ int mtar_function_create(const struct mtar_option * option) {
 }
 
 int mtar_function_create2(struct mtar_function_create_param * param) {
+	if (param->exclude && param->exclude->ops->filter(param->exclude, param->filename))
+		return 0;
+
 	struct stat st;
 	if (lstat(param->filename, &st))
 		return 1;

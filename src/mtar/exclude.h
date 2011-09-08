@@ -24,64 +24,15 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:49:53 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 19:31:36 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_EXCLUDE_P_H__
+#define __MTAR_EXCLUDE_P_H__
 
-// mode_t
-#include <sys/types.h>
+#include <mtar/exclude.h>
 
-#include "function.h"
-#include "verbose.h"
-
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	const char ** files;
-	unsigned int nbFiles;
-	const char * working_directory;
-	const char * exclude_engine;
-	const char ** excludes;
-	unsigned int nbExcludes;
-
-	// informative output
-	enum mtar_verbose_level verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
-};
+void mtar_exclude_show_description(void);
 
 #endif
 

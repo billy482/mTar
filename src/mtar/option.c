@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 22:30:41 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 20:32:59 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -36,6 +36,7 @@
 
 #include <mtar/file.h>
 
+#include "exclude.h"
 #include "filter.h"
 #include "format.h"
 #include "function.h"
@@ -94,6 +95,11 @@ void mtar_option_free(struct mtar_option * option) {
 		option->nbFiles = 0;
 	}
 	option->working_directory = 0;
+	if (option->nbExcludes > 0) {
+		free(option->excludes);
+		option->excludes = 0;
+		option->nbExcludes = 0;
+	}
 
 	// mtar specific option
 	if (option->nb_plugins > 0) {
@@ -134,6 +140,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->files = 0;
 	option->nbFiles = 0;
 	option->working_directory = 0;
+	option->exclude_engine = "simple";
+	option->excludes = 0;
+	option->nbExcludes = 0;
 
 	// informative output
 	option->verbose = 0;
@@ -263,6 +272,16 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					opt = argv[++optArg];
 
 				option->compress_level = atoi(opt);
+			} else if (!strncmp(argv[optArg], "--exclude", 9)) {
+				char * opt = strchr(argv[optArg], '=');
+				if (opt)
+					opt++;
+				else if (optArg <= argc)
+					opt = argv[++optArg];
+
+				option->excludes = realloc(option->excludes, (option->nbExcludes + 1) * sizeof(char *));
+				option->excludes[option->nbExcludes] = opt;
+				option->nbExcludes++;
 			} else if (!strcmp(argv[optArg], "--extract")) {
 				option->doWork = mtar_function_get("extract");
 			} else if (!strncmp(argv[optArg], "--file", 6)) {
@@ -441,9 +460,14 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                      (1 <= LEVEL <= 9)\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Informative output:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where ENGINE is one of the following:\n");
+	mtar_exclude_show_description();
+
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Informative output:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose : verbosely list files processed\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Other options:\n");

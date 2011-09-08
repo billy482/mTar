@@ -31,7 +31,7 @@
 #include <errno.h>
 // open
 #include <fcntl.h>
-// realloc
+// free, realloc
 #include <stdlib.h>
 // strerror, strcmp
 #include <string.h>

@@ -24,64 +24,32 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:49:53 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 20:44:54 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_EXCLUDE_H__
+#define __MTAR_EXCLUDE_H__
 
-// mode_t
-#include <sys/types.h>
+struct mtar_option;
 
-#include "function.h"
-#include "verbose.h"
-
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	const char ** files;
-	unsigned int nbFiles;
-	const char * working_directory;
-	const char * exclude_engine;
+struct mtar_exclude {
 	const char ** excludes;
-	unsigned int nbExcludes;
-
-	// informative output
-	enum mtar_verbose_level verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+	unsigned int nb_excludes;
+	struct mtar_exclude_ops {
+		int (*filter)(struct mtar_exclude * ex, const char * filename);
+		void (*free)(struct mtar_exclude * ex);
+	} * ops;
+	void * data;
 };
+
+struct mtar_exclude_driver {
+	const char * name;
+	struct mtar_exclude * (*new)(const struct mtar_option * option);
+	void (*show_description)(void);
+};
+
+struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option);
+void mtar_exclude_register(struct mtar_exclude_driver * ex);
 
 #endif
 
