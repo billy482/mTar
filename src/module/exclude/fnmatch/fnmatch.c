@@ -24,67 +24,65 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 21:16:48 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 21:19:48 +0200                       *
 \***********************************************************************/
 
+// fnmatch
+#include <fnmatch.h>
 // free, malloc
 #include <stdlib.h>
-// strlen
-#include <string.h>
 
 #include <mtar/exclude.h>
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
-static int mtar_exclude_simple_filter(struct mtar_exclude * ex, const char * filename);
-static void mtar_exclude_simple_free(struct mtar_exclude * ex);
-static void mtar_exclude_simple_init(void) __attribute__((constructor));
-static struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option);
-static void mtar_exclude_simple_show_description(void);
+static int mtar_exclude_fnmatch_filter(struct mtar_exclude * ex, const char * filename);
+static void mtar_exclude_fnmatch_free(struct mtar_exclude * ex);
+static void mtar_exclude_fnmatch_init(void) __attribute__((constructor));
+static struct mtar_exclude * mtar_exclude_fnmatch_new(const struct mtar_option * option);
+static void mtar_exclude_fnmatch_show_description(void);
 
-static struct mtar_exclude_ops mtar_exclude_simple_ops = {
-	.filter = mtar_exclude_simple_filter,
-	.free   = mtar_exclude_simple_free,
+static struct mtar_exclude_ops mtar_exclude_fnmatch_ops = {
+	.filter = mtar_exclude_fnmatch_filter,
+	.free   = mtar_exclude_fnmatch_free,
 };
 
-static struct mtar_exclude_driver mtar_exclude_simple_driver = {
-	.name             = "simple",
-	.new              = mtar_exclude_simple_new,
-	.show_description = mtar_exclude_simple_show_description,
+static struct mtar_exclude_driver mtar_exclude_fnmatch_driver = {
+	.name             = "fnmatch",
+	.new              = mtar_exclude_fnmatch_new,
+	.show_description = mtar_exclude_fnmatch_show_description,
 };
 
 
-int mtar_exclude_simple_filter(struct mtar_exclude * ex, const char * filename) {
+int mtar_exclude_fnmatch_filter(struct mtar_exclude * ex, const char * filename) {
 	unsigned int i;
-	for (i = 0; i < ex->nb_excludes; i++) {
-		size_t length = strlen(ex->excludes[i]);
-		if (!strncmp(filename, ex->excludes[i], length))
+	for (i = 0; i < ex->nb_excludes; i++)
+		if (!fnmatch(ex->excludes[i], filename, FNM_PATHNAME))
 			return 1;
-	}
 
 	return 0;
 }
 
-void mtar_exclude_simple_free(struct mtar_exclude * ex) {
+void mtar_exclude_fnmatch_free(struct mtar_exclude * ex) {
 	if (ex)
 		free(ex);
 }
 
-void mtar_exclude_simple_init() {
-	mtar_exclude_register(&mtar_exclude_simple_driver);
+void mtar_exclude_fnmatch_init() {
+	mtar_exclude_register(&mtar_exclude_fnmatch_driver);
 }
 
-struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option) {
+struct mtar_exclude * mtar_exclude_fnmatch_new(const struct mtar_option * option) {
 	struct mtar_exclude * ex = malloc(sizeof(struct mtar_exclude));
 	ex->excludes = option->excludes;
 	ex->nb_excludes = option->nbExcludes;
-	ex->ops = &mtar_exclude_simple_ops;
+	ex->ops = &mtar_exclude_fnmatch_ops;
 	ex->data = 0;
 
 	return ex;
 }
 
-void mtar_exclude_simple_show_description(void) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "strcmp based exclusion files\n");
+void mtar_exclude_fnmatch_show_description(void) {
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "fnmatch based exclusion files\n");
 }
 

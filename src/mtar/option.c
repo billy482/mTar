@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:32:59 +0200                       *
+*  Last modified: Thu, 08 Sep 2011 21:22:55 +0200                       *
 \***********************************************************************/
 
 // strcmp, strlen, strncmp, strrchr, strspn
@@ -140,7 +140,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->files = 0;
 	option->nbFiles = 0;
 	option->working_directory = 0;
-	option->exclude_engine = "simple";
+	option->exclude_engine = "fnmatch";
 	option->excludes = 0;
 	option->nbExcludes = 0;
 
