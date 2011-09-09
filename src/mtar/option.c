@@ -24,9 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 21:22:55 +0200                       *
+*  Last modified: Fri, 09 Sep 2011 14:14:16 +0200                       *
 \***********************************************************************/
 
+// getopt_long
+#include <getopt.h>
 // strcmp, strlen, strncmp, strrchr, strspn
 #include <string.h>
 // sscanf
@@ -166,12 +168,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	unsigned int i;
-	int optArg = 2;
 	if (strncmp(argv[1], "--", 2)) {
+		optind = 2;
 		for (i = 0; i < length; i++) {
 			switch (argv[1][i]) {
 				case 'b':
-					option->block_factor = atoi(argv[optArg++]);
+					option->block_factor = atoi(argv[optind++]);
 					break;
 
 				case 'c':
@@ -179,7 +181,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'C':
-					option->working_directory = argv[optArg++];
+					option->working_directory = argv[optind++];
 					break;
 
 				case 'f':
@@ -188,16 +190,16 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 						mtar_option_show_help(*argv);
 						return 2;
 					}
-					if (optArg >= argc) {
+					if (optind >= argc) {
 						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
 						mtar_option_show_help(*argv);
 						return 2;
 					}
-					option->filename = argv[optArg++];
+					option->filename = argv[optind++];
 					break;
 
 				case 'H':
-					option->format = argv[optArg++];
+					option->format = argv[optind++];
 					break;
 
 				case 'j':
@@ -214,7 +216,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'V':
-					option->label = argv[optArg++];
+					option->label = argv[optind++];
 					break;
 
 				case 'W':
@@ -234,179 +236,195 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					return 1;
 			}
 		}
-	} else {
-		optArg = 1;
 	}
 
-	if (optArg < argc && !strncmp(argv[optArg], "--", 2)) {
-		while (optArg < argc) {
-			if (!strncmp(argv[optArg], "--atime-preserve", 16)) {
+	enum {
+		OPT_BLOCKING_FACTOR = 'b',
+		OPT_BZIP2           = 'j',
+		OPT_CREATE          = 'c',
+		OPT_DIRECTORY       = 'C',
+		OPT_FILE            = 'f',
+		OPT_FORMAT          = 'H',
+		OPT_GZIP            = 'z',
+		OPT_HELP            = '?',
+		OPT_LABEL           = 'V',
+		OPT_LIST            = 't',
+		OPT_VERBOSE         = 'v',
+		OPT_VERIFY          = 'W',
+
+		OPT_ATIME_PRESERVE = 256,
+		OPT_COMPRESSION_LEVEL,
+		OPT_EXCLUDE,
+		OPT_FUNCTION,
+		OPT_GROUP,
+		OPT_LIST_FILTERS,
+		OPT_LIST_FORMATS,
+		OPT_LIST_FUNCTINOS,
+		OPT_LIST_IOS,
+		OPT_MODE,
+		OPT_OWNER,
+		OPT_PLUGIN,
+	};
+
+	static struct option long_options[] = {
+		{"atime-preserve",    2, 0, OPT_ATIME_PRESERVE},
+		{"blocking-factor",   1, 0, OPT_BLOCKING_FACTOR},
+		{"bzip2",             0, 0, OPT_BZIP2},
+		{"compression-level", 1, 0, OPT_COMPRESSION_LEVEL},
+		{"create",            0, 0, OPT_CREATE},
+		{"directory",         1, 0, OPT_DIRECTORY},
+		{"exclude",           1, 0, OPT_EXCLUDE},
+		{"file",              1, 0, OPT_FILE},
+		{"format",            1, 0, OPT_FORMAT},
+		{"function",          1, 0, OPT_FUNCTION},
+		{"group",             1, 0, OPT_GROUP},
+		{"gzip",              0, 0, OPT_GZIP},
+		{"help",              0, 0, OPT_HELP},
+		{"label",             1, 0, OPT_LABEL},
+		{"list",              0, 0, OPT_LIST},
+		{"list-filters",      0, 0, OPT_LIST_FILTERS},
+		{"list-formats",      0, 0, OPT_LIST_FORMATS},
+		{"list-functions",    0, 0, OPT_LIST_FUNCTINOS},
+		{"list-ios",          0, 0, OPT_LIST_IOS},
+		{"mode",              1, 0, OPT_MODE},
+		{"owner",             1, 0, OPT_OWNER},
+		{"plugin",            1, 0, OPT_PLUGIN},
+		{"verbose",           0, 0, OPT_VERBOSE},
+		{"verify",            0, 0, OPT_VERIFY},
+
+		{0, 0, 0, 0},
+	};
+
+	while (optind < argc) {
+		int option_index;
+		int c = getopt_long(argc, argv, "bcCfHjtvVWxz?", long_options, &option_index);
+		if (c == -1)
+			break;
+
+		switch (c) {
+			case OPT_ATIME_PRESERVE:
 				option->atime_preserve = MTAR_OPTION_ATIME_REPLACE;
-			} else if (!strncmp(argv[optArg], "--blocking-factor", 17)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+				break;
 
-				if (opt)
-					option->block_factor = atoi(opt);
-			} else if (!strcmp(argv[optArg], "--bzip2")) {
+			case OPT_BLOCKING_FACTOR:
+				option->block_factor = atoi(optarg);
+				break;
+
+			case OPT_BZIP2:
 				option->compress_module = "bzip2";
-			} else if (!strcmp(argv[optArg], "--create")) {
+				break;
+
+			case OPT_COMPRESSION_LEVEL:
+				option->compress_level = atoi(optarg);
+				break;
+
+			case OPT_CREATE:
 				option->doWork = mtar_function_get("create");
-			} else if (!strncmp(argv[optArg], "--directory", 11)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+				break;
 
-				if (opt)
-					option->working_directory = opt;
-			} else if (!strncmp(argv[optArg], "--compression-level", 19)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+			case OPT_DIRECTORY:
+				option->working_directory = optarg;
+				break;
 
-				option->compress_level = atoi(opt);
-			} else if (!strncmp(argv[optArg], "--exclude", 9)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
-
+			case OPT_EXCLUDE:
 				option->excludes = realloc(option->excludes, (option->nbExcludes + 1) * sizeof(char *));
-				option->excludes[option->nbExcludes] = opt;
+				option->excludes[option->nbExcludes] = optarg;
 				option->nbExcludes++;
-			} else if (!strcmp(argv[optArg], "--extract")) {
-				option->doWork = mtar_function_get("extract");
-			} else if (!strncmp(argv[optArg], "--file", 6)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+				break;
 
+			case OPT_FILE:
 				if (option->filename) {
 					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
 					mtar_option_show_help(*argv);
 					return 2;
 				}
-				if (!opt) {
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
-					mtar_option_show_help(*argv);
-					return 2;
-				}
-				option->filename = opt;
-			} else if (!strncmp(argv[optArg], "--format", 8)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+				option->filename = optarg;
+				break;
 
-				option->format = opt;
-			} else if (!strncmp(argv[optArg], "--function", 10)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+			case OPT_FORMAT:
+				option->format = optarg;
+				break;
 
-				if (!strncmp(opt, "help=", 5)) {
+			case OPT_FUNCTION:
+				if (!strncmp(optarg, "help=", 5)) {
 					mtar_option_show_version(*argv);
-					mtar_function_showHelp(strchr(opt, '=') + 1);
+					mtar_function_showHelp(optarg + 5);
 					return 1;
 				} else {
-					option->doWork = mtar_function_get(opt);
+					option->doWork = mtar_function_get(optarg);
 				}
-			} else if (!strncmp(argv[optArg], "--group", 7)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+				break;
 
-				if (opt)
-					option->group = opt;
-			} else if (!strcmp(argv[optArg], "--gzip")) {
+			case OPT_GROUP:
+				option->group = optarg;
+				break;
+
+			case OPT_GZIP:
 				option->compress_module = "gzip";
-			} else if (!strcmp(argv[optArg], "--help")) {
+				break;
+
+			case OPT_HELP:
 				mtar_option_show_help(*argv);
 				return 1;
-			} else if (!strncmp(argv[optArg], "--label", 7)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
 
-				if (opt)
-					option->label = opt;
-			} else if (!strcmp(argv[optArg], "--list")) {
+			case OPT_LABEL:
+				option->label = optarg;
+				break;
+
+			case OPT_LIST:
 				option->doWork = mtar_function_get("list");
-			} else if (!strcmp(argv[optArg], "--list-filters")) {
+				break;
+
+			case OPT_LIST_FILTERS:
 				mtar_option_show_version(*argv);
 				mtar_filter_show_description();
 				return 1;
-			} else if (!strcmp(argv[optArg], "--list-formats")) {
+
+			case OPT_LIST_FORMATS:
 				mtar_option_show_version(*argv);
 				mtar_format_show_description();
 				return 1;
-			} else if (!strcmp(argv[optArg], "--list-functions")) {
+
+			case OPT_LIST_FUNCTINOS:
 				mtar_option_show_version(*argv);
 				mtar_function_show_description();
 				return 1;
-			} else if (!strcmp(argv[optArg], "--list-ios")) {
+
+			case OPT_LIST_IOS:
 				mtar_option_show_version(*argv);
 				mtar_io_show_description();
 				return 1;
-			} else if (!strncmp(argv[optArg], "--mode", 6)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
 
-				sscanf(opt, "%o", &option->mode);
-			} else if (!strncmp(argv[optArg], "--owner", 7)) {
-				char * opt = strchr(argv[optArg], '=');
-				if (opt)
-					opt++;
-				else if (optArg <= argc)
-					opt = argv[++optArg];
+			case OPT_MODE:
+				sscanf(optarg, "%o", &option->mode);
+				break;
 
-				if (opt)
-					option->owner = opt;
-			} else if (!strcmp(argv[optArg], "--plugin")) {
-				optArg++;
+			case OPT_OWNER:
+				option->owner = optarg;
+				break;
 
+			case OPT_PLUGIN:
 				option->plugins = realloc(option->plugins, (option->nb_plugins + 1) * sizeof(char *));
-				option->plugins[option->nb_plugins] = argv[optArg];
+				option->plugins[option->nb_plugins] = optarg;
 				option->nb_plugins++;
-			} else if (!strcmp(argv[optArg], "--verbose")) {
+				break;
+
+			case OPT_VERBOSE:
 				if (option->verbose < 2)
 					option->verbose++;
-			} else if (!strcmp(argv[optArg], "--verify")) {
-				option->verify = 1;
-			} else if (!strcmp(argv[optArg], "--")) {
-				optArg++;
 				break;
-			}
 
-			optArg++;
+			case OPT_VERIFY:
+				option->verify = 1;
+				break;
 		}
 	}
 
-	if (optArg < argc) {
-		option->nbFiles = argc - optArg;
+	if (optind < argc) {
+		option->nbFiles = argc - optind;
 		option->files = calloc(option->nbFiles, sizeof(char *));
-		for (i = 0; optArg < argc; i++, optArg++)
-			option->files[i] = argv[optArg];
+		for (i = 0; optind < argc; i++, optind++)
+			option->files[i] = argv[optind];
 	}
 
 	return 0;
