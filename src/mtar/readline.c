@@ -24,25 +24,102 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:44:31 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 18:22:59 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+// free, malloc, realloc
+#include <stdlib.h>
+// memmove, strchr, strdup
+#include <string.h>
 
 #include <mtar/io.h>
+#include <mtar/readline.h>
 
-struct mtar_io_file {
-	int fd;
-	off_t pos;
-	int last_errno;
+struct mtar_readline {
+	struct mtar_io_in * io;
+	char * buffer;
+	unsigned int buffer_length;
+	unsigned int buffer_used;
+	char delimiter;
+	ssize_t blocksize;
 };
 
-ssize_t mtar_io_file_common_block_size(struct mtar_io_file * file);
-int mtar_io_file_common_close(struct mtar_io_file * file);
 
-struct mtar_io_in * mtar_io_file_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_file_new_out(int fd, int flags, const struct mtar_option * option);
+void mtar_readline_free(struct mtar_readline * rl) {
+	if (!rl)
+		return;
 
-#endif
+	rl->io->ops->free(rl->io);
+	free(rl->buffer);
+	free(rl);
+}
+
+char * mtar_readline_getline(struct mtar_readline * rl) {
+	if (!rl)
+		return 0;
+
+	char * pos = 0;
+
+	while (!pos) {
+		char * end = rl->buffer + rl->buffer_used;
+
+		if (rl->buffer_used > 0) {
+			pos = strchr(rl->buffer, rl->delimiter);
+
+			if (pos && pos < end) {
+				*pos = '\0';
+				pos++;
+
+				char * line = strdup(rl->buffer);
+
+				memmove(rl->buffer, pos, end - pos);
+				rl->buffer_used -= pos - rl->buffer;
+
+				return line;
+			}
+		}
+
+		ssize_t needRead = rl->buffer_length - rl->buffer_used;
+		if ((needRead << 1) < rl->buffer_length) {
+			rl->buffer_length <<= 1;
+			rl->buffer = realloc(rl->buffer, rl->buffer_length);
+			needRead = rl->buffer_length - rl->buffer_used;
+		}
+
+		if (needRead > rl->blocksize)
+			needRead = rl->blocksize;
+
+		ssize_t nbRead = rl->io->ops->read(rl->io, rl->buffer + rl->buffer_used, needRead - 1);
+
+		if (nbRead < 0)
+			return 0;
+
+		if (nbRead == 0 && rl->buffer_used) {
+			char * line = strdup(rl->buffer);
+			rl->buffer_used = 0;
+			return line;
+		}
+
+		if (nbRead == 0)
+			return 0;
+
+		rl->buffer_used += nbRead;
+		rl->buffer[rl->buffer_used] = '\0';
+
+		pos = 0;
+	}
+
+	return 0;
+}
+
+struct mtar_readline * mtar_readline_new(struct mtar_io_in * in, char delimiter) {
+	struct mtar_readline * rl = malloc(sizeof(struct mtar_readline));
+	rl->io = in;
+	rl->buffer = malloc(128);
+	rl->buffer_length = 128;
+	rl->buffer_used = 0;
+	rl->delimiter = delimiter;
+	rl->blocksize = rl->io->ops->block_size(rl->io);
+	return rl;
+}
 

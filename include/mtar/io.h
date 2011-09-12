@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 10:03:43 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:37:29 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -58,6 +58,7 @@ struct mtar_io_in {
 	 * \note use \b last_errno to know why an error occured
 	 */
 	struct mtar_io_in_ops {
+		ssize_t (*block_size)(struct mtar_io_in * io);
 		/**
 		 * \brief close the input stream
 		 * \param[in] io : io module

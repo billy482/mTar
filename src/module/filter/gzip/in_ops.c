@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 21 Jul 2011 22:26:07 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 17:40:50 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -44,6 +44,7 @@ struct mtar_filter_gzip_in {
 	char bufferIn[1024];
 };
 
+static ssize_t mtar_filter_gzip_in_block_size(struct mtar_io_in * io);
 static int mtar_filter_gzip_in_close(struct mtar_io_in * io);
 static off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_filter_gzip_in_free(struct mtar_io_in * io);
@@ -52,6 +53,7 @@ static off_t mtar_filter_gzip_in_pos(struct mtar_io_in * io);
 static ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
+	.block_size = mtar_filter_gzip_in_block_size,
 	.close      = mtar_filter_gzip_in_close,
 	.forward    = mtar_filter_gzip_in_forward,
 	.free       = mtar_filter_gzip_in_free,
@@ -60,6 +62,11 @@ static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
 	.read       = mtar_filter_gzip_in_read,
 };
 
+
+ssize_t mtar_filter_gzip_in_block_size(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_in * self = io->data;
+	return self->io->ops->block_size(self->io);
+}
 
 int mtar_filter_gzip_in_close(struct mtar_io_in * io) {
 	struct mtar_filter_gzip_in * self = io->data;

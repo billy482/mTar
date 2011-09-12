@@ -24,25 +24,41 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:44:31 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:44:00 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+// errno
+#include <errno.h>
+// fstat
+#include <sys/stat.h>
+// fstat, lseek
+#include <sys/types.h>
+// close, fstat
+#include <unistd.h>
 
-#include <mtar/io.h>
+#include "common.h"
 
-struct mtar_io_file {
-	int fd;
-	off_t pos;
-	int last_errno;
-};
+ssize_t mtar_io_file_common_block_size(struct mtar_io_file * self) {
+	if (self->fd < 0)
+		return 0;
 
-ssize_t mtar_io_file_common_block_size(struct mtar_io_file * file);
-int mtar_io_file_common_close(struct mtar_io_file * file);
+	struct stat st;
+	fstat(self->fd, &st);
 
-struct mtar_io_in * mtar_io_file_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_file_new_out(int fd, int flags, const struct mtar_option * option);
+	return st.st_blksize << 8;
+}
 
-#endif
+int mtar_io_file_common_close(struct mtar_io_file * self) {
+	if (self->fd < 0)
+		return 0;
+
+	int failed = close(self->fd);
+
+	if (failed)
+		self->last_errno = errno;
+	else
+		self->fd = -1;
+
+	return failed;
+}
 

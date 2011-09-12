@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 09 Sep 2011 14:14:16 +0200                       *
+*  Last modified: Sun, 11 Sep 2011 14:21:41 +0200                       *
 \***********************************************************************/
 
 // getopt_long
 #include <getopt.h>
-// strcmp, strlen, strncmp, strrchr, strspn
+// strlen, strncmp, strrchr, strspn
 #include <string.h>
 // sscanf
 #include <stdio.h>
@@ -152,7 +152,6 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// mtar specific option
 	option->plugins = 0;
 	option->nb_plugins = 0;
-
 
 	if (argc < 2) {
 		mtar_option_show_help(*argv);
@@ -297,7 +296,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	while (optind < argc) {
 		int option_index;
-		int c = getopt_long(argc, argv, "bcCfHjtvVWxz?", long_options, &option_index);
+		int c = getopt_long(argc, argv, "b:cC:f:H:jtvV:Wxz?", long_options, &option_index);
 		if (c == -1)
 			break;
 

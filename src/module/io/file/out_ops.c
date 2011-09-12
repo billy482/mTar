@@ -24,18 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 10:09:33 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:46:07 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
 // free
 #include <stdlib.h>
-// fstat
-#include <sys/stat.h>
-// fstat
-#include <sys/types.h>
-// fdatasync, fstat, read
+// fdatasync, read
 #include <unistd.h>
 
 #include "common.h"
@@ -62,31 +58,11 @@ static struct mtar_io_out_ops mtar_io_file_out_ops = {
 
 
 ssize_t mtar_io_file_out_block_size(struct mtar_io_out * io) {
-	struct mtar_io_file * self = io->data;
-
-	if (self->fd < 0)
-		return 0;
-
-	struct stat st;
-	fstat(self->fd, &st);
-
-	return st.st_blksize << 8;
+	return mtar_io_file_common_block_size(io->data);
 }
 
 int mtar_io_file_out_close(struct mtar_io_out * io) {
-	struct mtar_io_file * self = io->data;
-
-	if (self->fd < 0)
-		return 0;
-
-	int failed = close(self->fd);
-
-	if (failed)
-		self->last_errno = errno;
-	else
-		self->fd = -1;
-
-	return failed;
+	return mtar_io_file_common_close(io->data);
 }
 
 int mtar_io_file_out_flush(struct mtar_io_out * io) {
@@ -100,7 +76,7 @@ int mtar_io_file_out_flush(struct mtar_io_out * io) {
 }
 
 void mtar_io_file_out_free(struct mtar_io_out * io) {
-	mtar_io_file_out_close(io);
+	mtar_io_file_common_close(io->data);
 
 	free(io->data);
 	free(io);

@@ -24,20 +24,19 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:39:20 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:48:11 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
 // free
 #include <stdlib.h>
-// lseek
-#include <sys/types.h>
 // lseek, read
 #include <unistd.h>
 
 #include "common.h"
 
+static ssize_t mtar_io_file_in_block_size(struct mtar_io_in * io);
 static int mtar_io_file_in_close(struct mtar_io_in * io);
 static off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_io_file_in_free(struct mtar_io_in * io);
@@ -46,6 +45,7 @@ static off_t mtar_io_file_in_pos(struct mtar_io_in * io);
 static ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_io_file_in_ops = {
+	.block_size = mtar_io_file_in_block_size,
 	.close      = mtar_io_file_in_close,
 	.forward    = mtar_io_file_in_forward,
 	.free       = mtar_io_file_in_free,
@@ -55,20 +55,12 @@ static struct mtar_io_in_ops mtar_io_file_in_ops = {
 };
 
 
+ssize_t mtar_io_file_in_block_size(struct mtar_io_in * io) {
+	return mtar_io_file_common_block_size(io->data);
+}
+
 int mtar_io_file_in_close(struct mtar_io_in * io) {
-	struct mtar_io_file * self = io->data;
-
-	if (self->fd < 0)
-		return 0;
-
-	int failed = close(self->fd);
-
-	if (failed)
-		self->last_errno = errno;
-	else
-		self->fd = -1;
-
-	return failed;
+	return mtar_io_file_common_close(io->data);
 }
 
 off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
@@ -85,7 +77,7 @@ off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
 }
 
 void mtar_io_file_in_free(struct mtar_io_in * io) {
-	mtar_io_file_in_close(io);
+	mtar_io_file_common_close(io->data);
 
 	free(io->data);
 	free(io);

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 22 Jul 2011 22:26:20 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 17:37:17 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -51,6 +51,7 @@ struct mtar_io_tape_in {
 	char * buffer_pos;
 };
 
+static ssize_t mtar_io_tape_in_block_size(struct mtar_io_in * io);
 static int mtar_io_tape_in_close(struct mtar_io_in * io);
 static off_t mtar_io_tape_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_io_tape_in_free(struct mtar_io_in * io);
@@ -59,6 +60,7 @@ static off_t mtar_io_tape_in_pos(struct mtar_io_in * io);
 static ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_io_tape_in_ops = {
+	.block_size = mtar_io_tape_in_block_size,
 	.close      = mtar_io_tape_in_close,
 	.forward    = mtar_io_tape_in_forward,
 	.free       = mtar_io_tape_in_free,
@@ -67,6 +69,11 @@ static struct mtar_io_in_ops mtar_io_tape_in_ops = {
 	.read       = mtar_io_tape_in_read,
 };
 
+
+ssize_t mtar_io_tape_in_block_size(struct mtar_io_in * io) {
+	struct mtar_io_tape_in * self = io->data;
+	return self->buffer_size;
+}
 
 int mtar_io_tape_in_close(struct mtar_io_in * io) {
 	struct mtar_io_tape_in * self = io->data;

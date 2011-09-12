@@ -24,25 +24,18 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:44:31 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:20:03 +0200                       *
 \***********************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+#ifndef __MTAR_READLINE_H__
+#define __MTAR_READLINE_H__
 
-#include <mtar/io.h>
+struct mtar_io_in;
+struct mtar_readline;
 
-struct mtar_io_file {
-	int fd;
-	off_t pos;
-	int last_errno;
-};
-
-ssize_t mtar_io_file_common_block_size(struct mtar_io_file * file);
-int mtar_io_file_common_close(struct mtar_io_file * file);
-
-struct mtar_io_in * mtar_io_file_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_file_new_out(int fd, int flags, const struct mtar_option * option);
+void mtar_readline_free(struct mtar_readline * rl);
+char * mtar_readline_getline(struct mtar_readline * rl);
+struct mtar_readline * mtar_readline_new(struct mtar_io_in * in, char delimiter);
 
 #endif
 

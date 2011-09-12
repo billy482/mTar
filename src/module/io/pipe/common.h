@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 17 Jul 2011 20:40:29 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 16:50:56 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_IO_PIPE_H__
@@ -37,6 +37,9 @@ struct mtar_io_pipe {
 	off_t pos;
 	int last_errno;
 };
+
+ssize_t mtar_io_pipe_common_block_size(struct mtar_io_pipe * file);
+int mtar_io_pipe_common_close(struct mtar_io_pipe * file);
 
 struct mtar_io_in * mtar_io_pipe_new_in(int fd, int flags, const struct mtar_option * option);
 struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags, const struct mtar_option * option);
