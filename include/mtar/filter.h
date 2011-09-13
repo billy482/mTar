@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 27 Jul 2011 17:07:05 +0200                       *
+*  Last modified: Mon, 12 Sep 2011 18:47:03 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -75,8 +75,10 @@ struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option);
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
 struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar_option * option);
 struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option);
 struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mtar_option * option);
 
 /**
  * \brief Register a filter io

@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 07 Sep 2011 09:58:46 +0200                       *
+*  Last modified: Tue, 13 Sep 2011 09:55:59 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_RDWR
 #include <fcntl.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp, strlen
+// strcmp, strlen, strrchr
 #include <string.h>
 
 #include "filter.h"
@@ -44,6 +44,7 @@ static unsigned int mtar_filter_nb_filters = 0;
 
 static void mtar_filter_exit(void) __attribute__((destructor));
 static struct mtar_filter * mtar_filter_get(const char * module);
+static const char * mtar_filter_get_module(const char * filename);
 
 
 void mtar_filter_exit() {
@@ -92,6 +93,52 @@ struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mta
 	return io;
 }
 
+struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar_option * option) {
+	if (!filename || !option)
+		return 0;
+
+	struct mtar_io_in * io = mtar_io_in_get_file(filename, O_RDONLY, option);
+	const char * module = mtar_filter_get_module(filename);
+
+	if (module) {
+		struct mtar_filter * filter = mtar_filter_get(module);
+		if (!filter)
+			return 0;
+
+		return filter->new_in(io, option);
+	}
+
+	return io;
+}
+
+const char * mtar_filter_get_module(const char * filename) {
+	char * pos = strrchr(filename, '.');
+	if (!pos)
+		return 0;
+
+	static struct {
+		const char * ext;
+		const char * module;
+	} filenames[] = {
+		{ ".bz2",  "bzip2" },
+		{ ".tz2",  "bzip2" },
+		{ ".tbz2", "bzip2" },
+		{ ".tbz",  "bzip2" },
+		{ ".gz",   "gzip"  },
+		{ ".tgz",  "gzip"  },
+		{ ".taz",  "gzip"  },
+
+		{ 0, 0 },
+	};
+
+	unsigned int i;
+	for (i = 0; filenames[i].ext; i++)
+		if (!strcmp(filenames[i].ext, pos))
+			return filenames[i].module;
+
+	return 0;
+}
+
 struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option) {
 	if (!option)
 		return 0;
@@ -116,6 +163,24 @@ struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct 
 
 		return filter->new_out(io, option);
 	}
+	return io;
+}
+
+struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mtar_option * option) {
+	if (!filename || !option)
+		return 0;
+
+	struct mtar_io_out * io = mtar_io_out_get_file(filename, O_RDWR | O_TRUNC, option);
+	const char * module = mtar_filter_get_module(filename);
+
+	if (module) {
+		struct mtar_filter * filter = mtar_filter_get(module);
+		if (!filter)
+			return 0;
+
+		return filter->new_out(io, option);
+	}
+
 	return io;
 }
 
