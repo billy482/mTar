@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 11 Sep 2011 14:21:41 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 09:32:39 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -145,6 +145,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->exclude_engine = "fnmatch";
 	option->excludes = 0;
 	option->nbExcludes = 0;
+	option->delimiter = '\n';
 
 	// informative output
 	option->verbose = 0;
@@ -159,7 +160,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-bcCfHjtvVWxz?");
+	size_t goodArg = strspn(argv[1], "-bcCfHjtTvVWxz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
@@ -209,6 +210,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					option->doWork = mtar_function_get("list");
 					break;
 
+				case 'T':
+					option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
+					break;
+
 				case 'v':
 					if (option->verbose < 2)
 						option->verbose++;
@@ -243,6 +248,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_CREATE          = 'c',
 		OPT_DIRECTORY       = 'C',
 		OPT_FILE            = 'f',
+		OPT_FILES_FROM      = 'T',
 		OPT_FORMAT          = 'H',
 		OPT_GZIP            = 'z',
 		OPT_HELP            = '?',
@@ -261,6 +267,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_LIST_FUNCTINOS,
 		OPT_LIST_IOS,
 		OPT_MODE,
+		OPT_NO_NULL,
+		OPT_NULL,
 		OPT_OWNER,
 		OPT_PLUGIN,
 	};
@@ -274,6 +282,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"directory",         1, 0, OPT_DIRECTORY},
 		{"exclude",           1, 0, OPT_EXCLUDE},
 		{"file",              1, 0, OPT_FILE},
+		{"files-from",        1, 0, OPT_FILES_FROM},
 		{"format",            1, 0, OPT_FORMAT},
 		{"function",          1, 0, OPT_FUNCTION},
 		{"group",             1, 0, OPT_GROUP},
@@ -286,6 +295,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"list-functions",    0, 0, OPT_LIST_FUNCTINOS},
 		{"list-ios",          0, 0, OPT_LIST_IOS},
 		{"mode",              1, 0, OPT_MODE},
+		{"no-null",           0, 0, OPT_NO_NULL},
+		{"null",              0, 0, OPT_NULL},
 		{"owner",             1, 0, OPT_OWNER},
 		{"plugin",            1, 0, OPT_PLUGIN},
 		{"verbose",           0, 0, OPT_VERBOSE},
@@ -338,6 +349,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					return 2;
 				}
 				option->filename = optarg;
+				break;
+
+			case OPT_FILES_FROM:
+				option->files = mtar_file_add_from_file(optarg, option->files, &option->nbFiles, option);
 				break;
 
 			case OPT_FORMAT:
@@ -396,6 +411,14 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_MODE:
 				sscanf(optarg, "%o", &option->mode);
+				break;
+
+			case OPT_NO_NULL:
+				option->delimiter = '\n';
+				break;
+
+			case OPT_NULL:
+				option->delimiter = '\0';
 				break;
 
 			case OPT_OWNER:
@@ -479,7 +502,11 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --no-null                 : disable the effect of the previous --null\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    option\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --null                    : -T or -X reads null-terminated names\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -T, --files-from=FILE         : get names to extract or create from FILE\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where ENGINE is one of the following:\n");
 	mtar_exclude_show_description();

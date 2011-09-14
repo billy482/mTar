@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:49:53 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 09:16:48 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -74,6 +74,7 @@ struct mtar_option {
 	const char * exclude_engine;
 	const char ** excludes;
 	unsigned int nbExcludes;
+	char delimiter;
 
 	// informative output
 	enum mtar_verbose_level verbose;
