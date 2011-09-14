@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 09:32:39 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 10:32:38 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -286,6 +286,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"format",            1, 0, OPT_FORMAT},
 		{"function",          1, 0, OPT_FUNCTION},
 		{"group",             1, 0, OPT_GROUP},
+		{"gunzip",            0, 0, OPT_GZIP},
 		{"gzip",              0, 0, OPT_GZIP},
 		{"help",              0, 0, OPT_HELP},
 		{"label",             1, 0, OPT_LABEL},
@@ -299,6 +300,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"null",              0, 0, OPT_NULL},
 		{"owner",             1, 0, OPT_OWNER},
 		{"plugin",            1, 0, OPT_PLUGIN},
+		{"ungzip",            0, 0, OPT_GZIP},
 		{"verbose",           0, 0, OPT_VERBOSE},
 		{"verify",            0, 0, OPT_VERIFY},
 
@@ -495,7 +497,7 @@ void mtar_option_show_help(const char * path) {
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                     : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip                      : filter the archive through gzip\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip, --gunzip, --ungzip  : filter the archive through gzip\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --compression-level=LEVEL * : Set the level of compression\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                      (1 <= LEVEL <= 9)\n\n");
 
