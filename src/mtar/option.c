@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 10:32:38 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 11:35:19 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -257,7 +257,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_VERBOSE         = 'v',
 		OPT_VERIFY          = 'W',
 
-		OPT_ATIME_PRESERVE = 256,
+		OPT_ADD_FILE = 256,
+		OPT_ATIME_PRESERVE,
 		OPT_COMPRESSION_LEVEL,
 		OPT_EXCLUDE,
 		OPT_FUNCTION,
@@ -274,6 +275,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	};
 
 	static struct option long_options[] = {
+		{"add-file",          1, 0, OPT_ADD_FILE},
 		{"atime-preserve",    2, 0, OPT_ATIME_PRESERVE},
 		{"blocking-factor",   1, 0, OPT_BLOCKING_FACTOR},
 		{"bzip2",             0, 0, OPT_BZIP2},
@@ -314,6 +316,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			break;
 
 		switch (c) {
+			case OPT_ADD_FILE:
+				option->files = realloc(option->files, (option->nbFiles + 1) * sizeof(char *));
+				option->files[option->nbFiles] = optarg;
+				option->nbFiles++;
+				break;
+
 			case OPT_ATIME_PRESERVE:
 				option->atime_preserve = MTAR_OPTION_ATIME_REPLACE;
 				break;
@@ -502,6 +510,8 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                      (1 <= LEVEL <= 9)\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --add-file=FILE           : add given FILE to the archive (useful if\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    its name starts with a dash)\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
