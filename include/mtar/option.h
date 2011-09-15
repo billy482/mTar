@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 09:16:48 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 15:44:08 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -35,6 +35,8 @@
 
 #include "function.h"
 #include "verbose.h"
+
+struct mtar_exclude_pattern;
 
 struct mtar_option {
 	// main operation mode
@@ -72,7 +74,7 @@ struct mtar_option {
 	unsigned int nbFiles;
 	const char * working_directory;
 	const char * exclude_engine;
-	const char ** excludes;
+	struct mtar_exclude_pattern * excludes;
 	unsigned int nbExcludes;
 	char delimiter;
 

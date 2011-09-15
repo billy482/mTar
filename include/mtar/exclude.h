@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 20:44:54 +0200                       *
+*  Last modified: Thu, 15 Sep 2011 09:14:01 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_EXCLUDE_H__
@@ -32,8 +32,16 @@
 
 struct mtar_option;
 
+struct mtar_exclude_pattern {
+	const char * pattern;
+	enum mtar_exclude_pattern_status {
+		MTAR_EXCLUDE_PATTERN_RAW,
+		MTAR_EXCLUDE_PATTERN_SPECIFIC,
+	} status;
+};
+
 struct mtar_exclude {
-	const char ** excludes;
+	struct mtar_exclude_pattern * excludes;
 	unsigned int nb_excludes;
 	struct mtar_exclude_ops {
 		int (*filter)(struct mtar_exclude * ex, const char * filename);

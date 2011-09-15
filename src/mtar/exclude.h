@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 08 Sep 2011 19:31:36 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 16:56:44 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_EXCLUDE_P_H__
@@ -32,6 +32,7 @@
 
 #include <mtar/exclude.h>
 
+struct mtar_exclude_pattern * mtar_exclude_add_from_file(const char * filename, struct mtar_exclude_pattern * patterns, unsigned int * nbPatterns, struct mtar_option * option);
 void mtar_exclude_show_description(void);
 
 #endif

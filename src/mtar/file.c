@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 09:51:32 +0200                       *
+*  Last modified: Wed, 14 Sep 2011 16:57:31 +0200                       *
 \***********************************************************************/
 
 // open
@@ -77,7 +77,6 @@ const char ** mtar_file_add_from_file(const char * filename, const char ** files
 		files[*nbFiles] = line;
 		(*nbFiles)++;
 	}
-
 	mtar_readline_free(rl);
 
 	return files;
