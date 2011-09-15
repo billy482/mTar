@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 16:57:31 +0200                       *
+*  Last modified: Thu, 15 Sep 2011 09:55:03 +0200                       *
 \***********************************************************************/
 
 // open
 #include <fcntl.h>
-// snprintf
+// sscanf, snprintf
 #include <stdio.h>
-// realloc
+// free, realloc
 #include <stdlib.h>
 // strchr, strcpy, strlen, strncpy, strstr
 #include <string.h>
@@ -73,6 +73,11 @@ const char ** mtar_file_add_from_file(const char * filename, const char ** files
 	struct mtar_readline * rl = mtar_readline_new(file, option->delimiter);
 	char * line;
 	while ((line = mtar_readline_getline(rl))) {
+		if (strlen(line) == 0) {
+			free(line);
+			continue;
+		}
+
 		files = realloc(files, (*nbFiles + 1) * sizeof(char *));
 		files[*nbFiles] = line;
 		(*nbFiles)++;

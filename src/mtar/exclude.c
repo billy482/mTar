@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 14 Sep 2011 17:00:12 +0200                       *
+*  Last modified: Thu, 15 Sep 2011 09:50:57 +0200                       *
 \***********************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// strcmp
+// strcmp, strlen
 #include <string.h>
 
 #include <mtar/filter.h>
@@ -57,6 +57,11 @@ struct mtar_exclude_pattern * mtar_exclude_add_from_file(const char * filename, 
 	struct mtar_readline * rl = mtar_readline_new(file, option->delimiter);
 	char * line;
 	while ((line = mtar_readline_getline(rl))) {
+		if (strlen(line) == 0) {
+			free(line);
+			continue;
+		}
+
 		patterns = realloc(patterns, (*nbPatterns + 1) * sizeof(struct mtar_exclude_pattern));
 		patterns[*nbPatterns].pattern = line;
 		patterns[*nbPatterns].status = MTAR_EXCLUDE_PATTERN_SPECIFIC;
