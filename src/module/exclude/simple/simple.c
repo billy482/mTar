@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 15 Sep 2011 09:45:50 +0200                       *
+*  Last modified: Fri, 16 Sep 2011 09:14:00 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -57,8 +57,8 @@ static struct mtar_exclude_driver mtar_exclude_simple_driver = {
 int mtar_exclude_simple_filter(struct mtar_exclude * ex, const char * filename) {
 	unsigned int i;
 	for (i = 0; i < ex->nb_excludes; i++) {
-		size_t length = strlen(ex->excludes[i].pattern);
-		if (!strncmp(filename, ex->excludes[i].pattern, length))
+		size_t length = strlen(ex->excludes[i]);
+		if (!strncmp(filename, ex->excludes[i], length))
 			return 1;
 	}
 

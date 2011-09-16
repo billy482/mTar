@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 15 Sep 2011 09:23:57 +0200                       *
+*  Last modified: Fri, 16 Sep 2011 10:16:22 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -145,6 +145,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->exclude_engine = "fnmatch";
 	option->excludes = 0;
 	option->nbExcludes = 0;
+	option->exclude_option = MTAR_EXCLUDE_OPTION_DEFAULT;
 	option->delimiter = '\n';
 
 	// informative output
@@ -232,7 +233,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'X':
-					option->excludes = mtar_exclude_add_from_file(argv[optind++], option->excludes, &option->nbExcludes, option);
+					option->excludes = mtar_file_add_from_file(argv[optind++], option->excludes, &option->nbExcludes, option);
 					break;
 
 				case 'z':
@@ -266,6 +267,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_ATIME_PRESERVE,
 		OPT_COMPRESSION_LEVEL,
 		OPT_EXCLUDE,
+		OPT_EXCLUDE_BACKUPS,
+		OPT_EXCLUDE_VCS,
 		OPT_FUNCTION,
 		OPT_GROUP,
 		OPT_LIST_FILTERS,
@@ -288,7 +291,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"create",            0, 0, OPT_CREATE},
 		{"directory",         1, 0, OPT_DIRECTORY},
 		{"exclude",           1, 0, OPT_EXCLUDE},
+		{"exclude-backups",   0, 0, OPT_EXCLUDE_BACKUPS},
 		{"exclude-from",      1, 0, OPT_EXCLUDE_FROM},
+		{"exclude-vcs",       0, 0, OPT_EXCLUDE_VCS},
 		{"file",              1, 0, OPT_FILE},
 		{"files-from",        1, 0, OPT_FILES_FROM},
 		{"format",            1, 0, OPT_FORMAT},
@@ -354,13 +359,20 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_EXCLUDE:
 				option->excludes = realloc(option->excludes, (option->nbExcludes + 1) * sizeof(char *));
-				option->excludes[option->nbExcludes].pattern = optarg;
-				option->excludes[option->nbExcludes].status = MTAR_EXCLUDE_PATTERN_SPECIFIC;
+				option->excludes[option->nbExcludes] = optarg;
 				option->nbExcludes++;
+				break;
+
+			case OPT_EXCLUDE_BACKUPS:
+				option->exclude_option |= MTAR_EXCLUDE_OPTION_BACKUP;
 				break;
 
 			case OPT_EXCLUDE_FROM:
 				option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
+				break;
+
+			case OPT_EXCLUDE_VCS:
+				option->exclude_option |= MTAR_EXCLUDE_OPTION_VCS;
 				break;
 
 			case OPT_FILE:
@@ -525,12 +537,14 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    its name starts with a dash)\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-backups         : exclude backup and lock files\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -X, --exclude-from=FILE       : exclude patterns listed in FILE\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-vcs             : exclude version control system directories\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -T, --files-from=FILE         : get names to extract or create from FILE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --no-null                 : disable the effect of the previous --null\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    option\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --null                    : -T or -X reads null-terminated names\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -X, --exclude-from=FILE       : exclude patterns listed in FILE\n\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --null                    : -T or -X reads null-terminated names\n\n");
 
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where ENGINE is one of the following:\n");
 	mtar_exclude_show_description();

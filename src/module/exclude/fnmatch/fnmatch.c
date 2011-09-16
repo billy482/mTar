@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 15 Sep 2011 09:45:53 +0200                       *
+*  Last modified: Fri, 16 Sep 2011 09:10:57 +0200                       *
 \***********************************************************************/
 
 // fnmatch
@@ -57,7 +57,7 @@ static struct mtar_exclude_driver mtar_exclude_fnmatch_driver = {
 int mtar_exclude_fnmatch_filter(struct mtar_exclude * ex, const char * filename) {
 	unsigned int i;
 	for (i = 0; i < ex->nb_excludes; i++)
-		if (!fnmatch(ex->excludes[i].pattern, filename, 0))
+		if (!fnmatch(ex->excludes[i], filename, 0))
 			return 1;
 
 	return 0;

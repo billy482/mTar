@@ -24,17 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 15 Sep 2011 09:50:57 +0200                       *
+*  Last modified: Fri, 16 Sep 2011 11:59:01 +0200                       *
 \***********************************************************************/
 
+// fnmatch
+#include <fnmatch.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp, strlen
+// strcmp, strlen, strrchr
 #include <string.h>
 
-#include <mtar/filter.h>
 #include <mtar/option.h>
-#include <mtar/readline.h>
 #include <mtar/verbose.h>
 
 #include "exclude.h"
@@ -46,30 +46,39 @@ static unsigned int mtar_exclude_nbExs = 0;
 static void mtar_exclude_exit(void) __attribute__((destructor));
 
 
-struct mtar_exclude_pattern * mtar_exclude_add_from_file(const char * filename, struct mtar_exclude_pattern * patterns, unsigned int * nbPatterns, struct mtar_option * option) {
-	if (!filename || !nbPatterns || !option)
+int mtar_exclude_filter(const char * filename, const struct mtar_option * option) {
+	if (!option)
 		return 0;
 
-	struct mtar_io_in * file = mtar_filter_get_in3(filename, option);
-	if (!file)
-		return 0;
+	const char * file = strrchr(filename, '/');
+	if (file)
+		file++;
+	else
+		file = filename;
 
-	struct mtar_readline * rl = mtar_readline_new(file, option->delimiter);
-	char * line;
-	while ((line = mtar_readline_getline(rl))) {
-		if (strlen(line) == 0) {
-			free(line);
-			continue;
-		}
+	unsigned int i;
+	if (option->exclude_option & MTAR_EXCLUDE_OPTION_BACKUP) {
+		static const char * patterns[] = { ".#*", "*~", "#*#", 0 };
 
-		patterns = realloc(patterns, (*nbPatterns + 1) * sizeof(struct mtar_exclude_pattern));
-		patterns[*nbPatterns].pattern = line;
-		patterns[*nbPatterns].status = MTAR_EXCLUDE_PATTERN_SPECIFIC;
-		(*nbPatterns)++;
+		for (i = 0; patterns[i]; i++)
+			if (!fnmatch(patterns[i], file, 0))
+				return 1;
 	}
-	mtar_readline_free(rl);
 
-	return patterns;
+	if (option->exclude_option & MTAR_EXCLUDE_OPTION_VCS) {
+		static const char * patterns[] = {
+			"CVS", "RCS", "SCCS", ".git", ".gitignore", ".cvsignore", ".svn",
+			".arch-ids", "{arch}", "=RELEASE-ID", "=meta-update", "=update",
+			".bzr", ".bzrignore", ".bzrtags", ".hg", ".hgignore", ".hgrags",
+			"_darcs", 0
+		};
+
+		for (i = 0; patterns[i]; i++)
+			if (!strcmp(patterns[i], file))
+				return 1;
+	}
+
+	return 0;
 }
 
 void mtar_exclude_exit() {
