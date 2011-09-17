@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:51:28 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 21:03:22 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -293,6 +293,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_NULL,
 		OPT_OWNER,
 		OPT_PLUGIN,
+		OPT_VERSION,
 	};
 
 	static struct option long_options[] = {
@@ -335,6 +336,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"ungzip",               0, 0, OPT_GZIP},
 		{"verbose",              0, 0, OPT_VERBOSE},
 		{"verify",               0, 0, OPT_VERIFY},
+		{"version",              0, 0, OPT_VERSION},
 
 		{0, 0, 0, 0},
 	};
@@ -515,6 +517,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case OPT_VERIFY:
 				option->verify = 1;
 				break;
+
+			case OPT_VERSION:
+				mtar_option_show_version(*argv);
+				return 1;
 		}
 	}
 
