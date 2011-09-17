@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 09:10:57 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 12:32:13 +0200                       *
 \***********************************************************************/
 
 // fnmatch
@@ -75,7 +75,7 @@ void mtar_exclude_fnmatch_init() {
 struct mtar_exclude * mtar_exclude_fnmatch_new(const struct mtar_option * option) {
 	struct mtar_exclude * ex = malloc(sizeof(struct mtar_exclude));
 	ex->excludes = option->excludes;
-	ex->nb_excludes = option->nbExcludes;
+	ex->nb_excludes = option->nb_excludes;
 	ex->ops = &mtar_exclude_fnmatch_ops;
 	ex->data = 0;
 

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 11:59:01 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:20:50 +0200                       *
 \***********************************************************************/
 
 // fnmatch
@@ -33,6 +33,12 @@
 #include <stdlib.h>
 // strcmp, strlen, strrchr
 #include <string.h>
+// stat
+#include <sys/types.h>
+// stat
+#include <sys/stat.h>
+// access, stat
+#include <unistd.h>
 
 #include <mtar/option.h>
 #include <mtar/verbose.h>
@@ -45,6 +51,14 @@ static unsigned int mtar_exclude_nbExs = 0;
 
 static void mtar_exclude_exit(void) __attribute__((destructor));
 
+
+struct mtar_exclude_tag * mtar_exclude_add_tag(struct mtar_exclude_tag * tags, unsigned int * nb_tags, const char * tag, enum mtar_exclude_tag_option option) {
+	tags = realloc(tags, (*nb_tags + 1) * sizeof(struct mtar_exclude_tag));
+	tags[*nb_tags].tag = tag;
+	tags[*nb_tags].option = option;
+	(*nb_tags)++;
+	return tags;
+}
 
 int mtar_exclude_filter(const char * filename, const struct mtar_option * option) {
 	if (!option)
@@ -78,6 +92,63 @@ int mtar_exclude_filter(const char * filename, const struct mtar_option * option
 				return 1;
 	}
 
+	if (option->nb_exclude_tags) {
+		char path[256];
+		size_t length;
+		struct stat st;
+		stat(filename, &st);
+
+		if (S_ISDIR(st.st_mode)) {
+			strcpy(path, filename);
+			length = strlen(path);
+			if (path[length - 1] != '/') {
+				strcat(path, "/");
+				length++;
+			}
+
+			for (i = 0; i < option->nb_exclude_tags; i++) {
+				strcpy(path + length, option->exclude_tags[i].tag);
+
+				if (!access(path, F_OK)) {
+					switch (option->exclude_tags[i].option) {
+						case MTAR_EXCLUDE_TAG:
+						case MTAR_EXCLUDE_TAG_UNDER:
+							continue;
+
+						case MTAR_EXCLUDE_TAG_ALL:
+							return 1;
+					}
+				}
+			}
+
+			return 0;
+		}
+
+		for (i = 0; i < option->nb_exclude_tags; i++) {
+			if (!strcmp(file, option->exclude_tags[i].tag)) {
+				switch (option->exclude_tags[i].option) {
+					case MTAR_EXCLUDE_TAG:
+						continue;
+
+					case MTAR_EXCLUDE_TAG_ALL:
+					case MTAR_EXCLUDE_TAG_UNDER:
+						return 1;
+				}
+			}
+		}
+
+		length = file - filename;
+		if (length > 0)
+			strncpy(path, filename, length);
+
+		for (i = 0; i < option->nb_exclude_tags; i++) {
+			strcpy(path + length, option->exclude_tags[i].tag);
+
+			if (strcmp(path, filename) && !access(path, F_OK))
+				return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -88,7 +159,7 @@ void mtar_exclude_exit() {
 }
 
 struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option) {
-	if (option->nbExcludes < 1)
+	if (option->nb_excludes < 1)
 		return 0;
 
 	unsigned int i;

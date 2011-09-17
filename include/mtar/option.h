@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 10:08:43 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 12:29:09 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -35,6 +35,8 @@
 
 #include "function.h"
 #include "verbose.h"
+
+struct mtar_exclude_tag;
 
 struct mtar_option {
 	// main operation mode
@@ -73,12 +75,14 @@ struct mtar_option {
 	const char * working_directory;
 	const char * exclude_engine;
 	const char ** excludes;
-	unsigned int nbExcludes;
+	unsigned int nb_excludes;
 	enum mtar_exclude_option {
 		MTAR_EXCLUDE_OPTION_DEFAULT = 0x0,
 		MTAR_EXCLUDE_OPTION_BACKUP  = 0x1,
 		MTAR_EXCLUDE_OPTION_VCS     = 0x2,
 	} exclude_option;
+	struct mtar_exclude_tag * exclude_tags;
+	unsigned int nb_exclude_tags;
 	char delimiter;
 
 	// informative output

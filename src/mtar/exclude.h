@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 08:57:52 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 13:59:43 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_EXCLUDE_P_H__
@@ -32,6 +32,18 @@
 
 #include <mtar/exclude.h>
 
+enum mtar_exclude_tag_option {
+	MTAR_EXCLUDE_TAG,
+	MTAR_EXCLUDE_TAG_ALL,
+	MTAR_EXCLUDE_TAG_UNDER,
+};
+
+struct mtar_exclude_tag {
+	const char * tag;
+	enum mtar_exclude_tag_option option;
+};
+
+struct mtar_exclude_tag * mtar_exclude_add_tag(struct mtar_exclude_tag * tags, unsigned int * nb_tags, const char * tag, enum mtar_exclude_tag_option option);
 void mtar_exclude_show_description(void);
 
 #endif

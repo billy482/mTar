@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 10:16:22 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 14:09:19 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -97,10 +97,15 @@ void mtar_option_free(struct mtar_option * option) {
 		option->nbFiles = 0;
 	}
 	option->working_directory = 0;
-	if (option->nbExcludes > 0) {
+	if (option->nb_excludes > 0) {
 		free(option->excludes);
 		option->excludes = 0;
-		option->nbExcludes = 0;
+		option->nb_excludes = 0;
+	}
+	if (option->nb_exclude_tags > 0) {
+		free(option->exclude_tags);
+		option->exclude_tags = 0;
+		option->nb_exclude_tags = 0;
 	}
 
 	// mtar specific option
@@ -144,8 +149,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->working_directory = 0;
 	option->exclude_engine = "fnmatch";
 	option->excludes = 0;
-	option->nbExcludes = 0;
+	option->nb_excludes = 0;
 	option->exclude_option = MTAR_EXCLUDE_OPTION_DEFAULT;
+	option->exclude_tags = 0;
+	option->nb_exclude_tags = 0;
 	option->delimiter = '\n';
 
 	// informative output
@@ -233,7 +240,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'X':
-					option->excludes = mtar_file_add_from_file(argv[optind++], option->excludes, &option->nbExcludes, option);
+					option->excludes = mtar_file_add_from_file(argv[optind++], option->excludes, &option->nb_excludes, option);
 					break;
 
 				case 'z':
@@ -268,6 +275,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_COMPRESSION_LEVEL,
 		OPT_EXCLUDE,
 		OPT_EXCLUDE_BACKUPS,
+		OPT_EXCLUDE_CACHES,
+		OPT_EXCLUDE_CACHES_ALL,
+		OPT_EXCLUDE_CACHES_UNDER,
+		OPT_EXCLUDE_TAG,
+		OPT_EXCLUDE_TAG_ALL,
+		OPT_EXCLUDE_TAG_UNDER,
 		OPT_EXCLUDE_VCS,
 		OPT_FUNCTION,
 		OPT_GROUP,
@@ -283,39 +296,45 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	};
 
 	static struct option long_options[] = {
-		{"add-file",          1, 0, OPT_ADD_FILE},
-		{"atime-preserve",    2, 0, OPT_ATIME_PRESERVE},
-		{"blocking-factor",   1, 0, OPT_BLOCKING_FACTOR},
-		{"bzip2",             0, 0, OPT_BZIP2},
-		{"compression-level", 1, 0, OPT_COMPRESSION_LEVEL},
-		{"create",            0, 0, OPT_CREATE},
-		{"directory",         1, 0, OPT_DIRECTORY},
-		{"exclude",           1, 0, OPT_EXCLUDE},
-		{"exclude-backups",   0, 0, OPT_EXCLUDE_BACKUPS},
-		{"exclude-from",      1, 0, OPT_EXCLUDE_FROM},
-		{"exclude-vcs",       0, 0, OPT_EXCLUDE_VCS},
-		{"file",              1, 0, OPT_FILE},
-		{"files-from",        1, 0, OPT_FILES_FROM},
-		{"format",            1, 0, OPT_FORMAT},
-		{"function",          1, 0, OPT_FUNCTION},
-		{"group",             1, 0, OPT_GROUP},
-		{"gunzip",            0, 0, OPT_GZIP},
-		{"gzip",              0, 0, OPT_GZIP},
-		{"help",              0, 0, OPT_HELP},
-		{"label",             1, 0, OPT_LABEL},
-		{"list",              0, 0, OPT_LIST},
-		{"list-filters",      0, 0, OPT_LIST_FILTERS},
-		{"list-formats",      0, 0, OPT_LIST_FORMATS},
-		{"list-functions",    0, 0, OPT_LIST_FUNCTINOS},
-		{"list-ios",          0, 0, OPT_LIST_IOS},
-		{"mode",              1, 0, OPT_MODE},
-		{"no-null",           0, 0, OPT_NO_NULL},
-		{"null",              0, 0, OPT_NULL},
-		{"owner",             1, 0, OPT_OWNER},
-		{"plugin",            1, 0, OPT_PLUGIN},
-		{"ungzip",            0, 0, OPT_GZIP},
-		{"verbose",           0, 0, OPT_VERBOSE},
-		{"verify",            0, 0, OPT_VERIFY},
+		{"add-file",             1, 0, OPT_ADD_FILE},
+		{"atime-preserve",       2, 0, OPT_ATIME_PRESERVE},
+		{"blocking-factor",      1, 0, OPT_BLOCKING_FACTOR},
+		{"bzip2",                0, 0, OPT_BZIP2},
+		{"compression-level",    1, 0, OPT_COMPRESSION_LEVEL},
+		{"create",               0, 0, OPT_CREATE},
+		{"directory",            1, 0, OPT_DIRECTORY},
+		{"exclude",              1, 0, OPT_EXCLUDE},
+		{"exclude-backups",      0, 0, OPT_EXCLUDE_BACKUPS},
+		{"exclude-caches",       0, 0, OPT_EXCLUDE_CACHES},
+		{"exclude-caches-all",   0, 0, OPT_EXCLUDE_CACHES_ALL},
+		{"exclude-caches-under", 0, 0, OPT_EXCLUDE_CACHES_UNDER},
+		{"exclude-from",         1, 0, OPT_EXCLUDE_FROM},
+		{"exclude-tag",          1, 0, OPT_EXCLUDE_TAG},
+		{"exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL},
+		{"exclude-tag-under",    1, 0, OPT_EXCLUDE_TAG_UNDER},
+		{"exclude-vcs",          0, 0, OPT_EXCLUDE_VCS},
+		{"file",                 1, 0, OPT_FILE},
+		{"files-from",           1, 0, OPT_FILES_FROM},
+		{"format",               1, 0, OPT_FORMAT},
+		{"function",             1, 0, OPT_FUNCTION},
+		{"group",                1, 0, OPT_GROUP},
+		{"gunzip",               0, 0, OPT_GZIP},
+		{"gzip",                 0, 0, OPT_GZIP},
+		{"help",                 0, 0, OPT_HELP},
+		{"label",                1, 0, OPT_LABEL},
+		{"list",                 0, 0, OPT_LIST},
+		{"list-filters",         0, 0, OPT_LIST_FILTERS},
+		{"list-formats",         0, 0, OPT_LIST_FORMATS},
+		{"list-functions",       0, 0, OPT_LIST_FUNCTINOS},
+		{"list-ios",             0, 0, OPT_LIST_IOS},
+		{"mode",                 1, 0, OPT_MODE},
+		{"no-null",              0, 0, OPT_NO_NULL},
+		{"null",                 0, 0, OPT_NULL},
+		{"owner",                1, 0, OPT_OWNER},
+		{"plugin",               1, 0, OPT_PLUGIN},
+		{"ungzip",               0, 0, OPT_GZIP},
+		{"verbose",              0, 0, OPT_VERBOSE},
+		{"verify",               0, 0, OPT_VERIFY},
 
 		{0, 0, 0, 0},
 	};
@@ -358,17 +377,41 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_EXCLUDE:
-				option->excludes = realloc(option->excludes, (option->nbExcludes + 1) * sizeof(char *));
-				option->excludes[option->nbExcludes] = optarg;
-				option->nbExcludes++;
+				option->excludes = realloc(option->excludes, (option->nb_excludes + 1) * sizeof(char *));
+				option->excludes[option->nb_excludes] = optarg;
+				option->nb_excludes++;
 				break;
 
 			case OPT_EXCLUDE_BACKUPS:
 				option->exclude_option |= MTAR_EXCLUDE_OPTION_BACKUP;
 				break;
 
+			case OPT_EXCLUDE_CACHES:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG);
+				break;
+
+			case OPT_EXCLUDE_CACHES_ALL:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG_ALL);
+				break;
+
+			case OPT_EXCLUDE_CACHES_UNDER:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG_UNDER);
+				break;
+
 			case OPT_EXCLUDE_FROM:
 				option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
+				break;
+
+			case OPT_EXCLUDE_TAG:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG);
+				break;
+
+			case OPT_EXCLUDE_TAG_ALL:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG_ALL);
+				break;
+
+			case OPT_EXCLUDE_TAG_UNDER:
+				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG_UNDER);
 				break;
 
 			case OPT_EXCLUDE_VCS:
@@ -538,8 +581,20 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-backups         : exclude backup and lock files\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches          : exclude contents of directories containing\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    CACHEDIR.TAG, except for the tag file\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    itself\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches-all      : exclude directories containing\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    CACHEDIR.TAG\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches-under    : exclude everything under directories\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    containing CACHEDIR.TAG\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -X, --exclude-from=FILE       : exclude patterns listed in FILE\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag=FILE        : exclude contents of directories containing\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    FILE, except for FILE itself\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag-all=FILE    : exclude directories containing FILE\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag-under=FILE  : exclude everything under directories\n");
+	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    containing FILE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-vcs             : exclude version control system directories\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -T, --files-from=FILE         : get names to extract or create from FILE\n");
 	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --no-null                 : disable the effect of the previous --null\n");
