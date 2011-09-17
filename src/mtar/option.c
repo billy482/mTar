@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 21:03:22 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 21:52:36 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -278,6 +278,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_EXCLUDE_CACHES,
 		OPT_EXCLUDE_CACHES_ALL,
 		OPT_EXCLUDE_CACHES_UNDER,
+		OPT_EXCLUDE_ENGINE,
 		OPT_EXCLUDE_TAG,
 		OPT_EXCLUDE_TAG_ALL,
 		OPT_EXCLUDE_TAG_UNDER,
@@ -309,6 +310,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"exclude-caches",       0, 0, OPT_EXCLUDE_CACHES},
 		{"exclude-caches-all",   0, 0, OPT_EXCLUDE_CACHES_ALL},
 		{"exclude-caches-under", 0, 0, OPT_EXCLUDE_CACHES_UNDER},
+		{"exclude-engine",       1, 0, OPT_EXCLUDE_ENGINE},
 		{"exclude-from",         1, 0, OPT_EXCLUDE_FROM},
 		{"exclude-tag",          1, 0, OPT_EXCLUDE_TAG},
 		{"exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL},
@@ -398,6 +400,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_EXCLUDE_CACHES_UNDER:
 				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG_UNDER);
+				break;
+
+			case OPT_EXCLUDE_ENGINE:
+				option->exclude_engine = optarg;
 				break;
 
 			case OPT_EXCLUDE_FROM:
