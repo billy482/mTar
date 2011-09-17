@@ -24,12 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 23:00:51 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:51:15 +0200                       *
 \***********************************************************************/
+
+#include <mtar/verbose.h>
 
 #include "option.h"
 #include "plugin.h"
-#include "verbose.h"
 
 int main(int argc, char ** argv) {
 	static struct mtar_option option;
@@ -38,8 +39,6 @@ int main(int argc, char ** argv) {
 	failed = mtar_option_parse(&option, argc, argv);
 	if (failed)
 		return failed - 1;
-
-	mtar_verbose_configure(&option);
 
 	failed = mtar_option_check(&option);
 	if (failed)

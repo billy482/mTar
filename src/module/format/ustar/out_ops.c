@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 21:20:41 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:53:13 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -116,17 +116,17 @@ struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, cons
 
 int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * h_out) {
 	if (access(filename, F_OK)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", filename);
+		mtar_verbose_printf("Can access to file: %s\n", filename);
 		return 1;
 	}
 	if (access(filename, R_OK)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can read file: %s\n", filename);
+		mtar_verbose_printf("Can read file: %s\n", filename);
 		return 1;
 	}
 
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", filename);
+		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
 		return 1;
 	}
 
@@ -221,7 +221,7 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 
 int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label) {
 	if (!label) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Label should be defined\n");
+		mtar_verbose_printf("Label should be defined\n");
 		return 1;
 	}
 
@@ -246,13 +246,13 @@ int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * lab
 
 int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * h_out) {
 	if (access(src, F_OK)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can access to file: %s\n", src);
+		mtar_verbose_printf("Can access to file: %s\n", src);
 		return 1;
 	}
 
 	struct stat sfile;
 	if (stat(src, &sfile)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "An unexpected error occured while getting information about: %s\n", src);
+		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", src);
 		return 1;
 	}
 

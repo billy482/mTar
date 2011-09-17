@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 06 Jul 2011 17:44:38 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:51:46 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -45,14 +45,12 @@
 #include <time.h>
 
 #include <mtar/option.h>
-
-#include "verbose.h"
+#include <mtar/verbose.h>
 
 static void mtar_verbose_init(void) __attribute__((constructor));
 static size_t mtar_verbose_strlen(const char * str);
 static void mtar_verbose_updateSize(int signal);
 
-static enum mtar_verbose_level mtar_verbose_level = MTAR_VERBOSE_LEVEL_ERROR;
 static int mtar_verbose_terminalWidth = 72;
 
 static struct timeval mtar_verbose_progress_begin;
@@ -70,19 +68,12 @@ void mtar_verbose_clean() {
 	*buffer = '\0';
 }
 
-void mtar_verbose_configure(const struct mtar_option * option) {
-	mtar_verbose_level = option->verbose;
-}
-
 void mtar_verbose_init() {
 	mtar_verbose_updateSize(0);
 	signal(SIGWINCH, mtar_verbose_updateSize);
 }
 
-void mtar_verbose_printf(enum mtar_verbose_level level, const char * format, ...) {
-	if (mtar_verbose_level < level)
-		return;
-
+void mtar_verbose_printf(const char * format, ...) {
 	va_list args;
 	va_start(args, format);
 	vdprintf(2, format, args);

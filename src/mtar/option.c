@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 14:09:19 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:51:28 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -37,6 +37,7 @@
 #include <stdlib.h>
 
 #include <mtar/file.h>
+#include <mtar/verbose.h>
 
 #include "exclude.h"
 #include "filter.h"
@@ -44,7 +45,6 @@
 #include "function.h"
 #include "io.h"
 #include "option.h"
-#include "verbose.h"
 
 static void mtar_option_show_help(const char * path);
 static void mtar_option_show_version(const char * path);
@@ -52,21 +52,21 @@ static void mtar_option_show_version(const char * path);
 
 int mtar_option_check(struct mtar_option * option) {
 	if (!option->doWork) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No function defined\n");
+		mtar_verbose_printf("No function defined\n");
 		return 1;
 	}
 
 	if (option->owner) {
 		uid_t uid = mtar_file_user2uid(option->owner);
 		if (uid == (uid_t) -1) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid user (%s)\n", option->owner);
+			mtar_verbose_printf("Invalid user (%s)\n", option->owner);
 			return 1;
 		}
 	}
 	if (option->group) {
 		gid_t gid = mtar_file_group2gid(option->group);
 		if (gid == (gid_t) -1) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid group (%s)\n", option->group);
+			mtar_verbose_printf("Invalid group (%s)\n", option->group);
 			return 1;
 		}
 	}
@@ -170,7 +170,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	size_t length = strlen(argv[1]);
 	size_t goodArg = strspn(argv[1], "-bcCfHjtTvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Invalid argument '%c'\n", argv[1][goodArg]);
+		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help(*argv);
 		return 2;
 	}
@@ -194,12 +194,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				case 'f':
 					if (option->filename) {
-						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
+						mtar_verbose_printf("File is already defined (%s)\n", option->filename);
 						mtar_option_show_help(*argv);
 						return 2;
 					}
 					if (optind >= argc) {
-						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Argument 'f' require a parameter\n");
+						mtar_verbose_printf("Argument 'f' require a parameter\n");
 						mtar_option_show_help(*argv);
 						return 2;
 					}
@@ -420,7 +420,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_FILE:
 				if (option->filename) {
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "File is already defined (%s)\n", option->filename);
+					mtar_verbose_printf("File is already defined (%s)\n", option->filename);
 					mtar_option_show_help(*argv);
 					return 2;
 				}
@@ -535,89 +535,89 @@ void mtar_option_show_help(const char * path) {
 	else
 		ptr = path;
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
+	mtar_verbose_printf("%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
+	mtar_verbose_printf("  Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Main operation mode:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -c, --create                   : create new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -t, --list                     : list files from tar archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -x, --extract                  : extract new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --function FUNCTION *      : use FUNCTION as action\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FUNCTION is one of:\n");
+	mtar_verbose_printf("  Main operation mode:\n");
+	mtar_verbose_printf("    -c, --create                   : create new archive\n");
+	mtar_verbose_printf("    -t, --list                     : list files from tar archive\n");
+	mtar_verbose_printf("    -x, --extract                  : extract new archive\n");
+	mtar_verbose_printf("        --function FUNCTION *      : use FUNCTION as action\n");
+	mtar_verbose_printf("        --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
+	mtar_verbose_printf("  where FUNCTION is one of:\n");
 	mtar_function_show_description();
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Main operation mode:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify : attempt to verify the archive after writing it\n\n");
+	mtar_verbose_printf("\n  Main operation mode:\n");
+	mtar_verbose_printf("    -W, --verify : attempt to verify the archive after writing it\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Handling of file attributes:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --atime-preserve : preserve access times on dumped files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --group=NAME     : force NAME as group for added files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --mode=CHANGES   : force (symbolic) mode CHANGES for added files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --owner=NAME     : force NAME as owner for added files\n\n");
+	mtar_verbose_printf("  Handling of file attributes:\n");
+	mtar_verbose_printf("        --atime-preserve : preserve access times on dumped files\n");
+	mtar_verbose_printf("        --group=NAME     : force NAME as group for added files\n");
+	mtar_verbose_printf("        --mode=CHANGES   : force (symbolic) mode CHANGES for added files\n");
+	mtar_verbose_printf("        --owner=NAME     : force NAME as owner for added files\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device selection and switching:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
+	mtar_verbose_printf("  Device selection and switching:\n");
+	mtar_verbose_printf("    -f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Device blocking:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record\n\n");
+	mtar_verbose_printf("  Device blocking:\n");
+	mtar_verbose_printf("    -b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Archive format selection:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format=FORMAT : use FORMAT as tar format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -V, --label=TEXT    : create archive with volume name TEXT\n\n");
+	mtar_verbose_printf("  Archive format selection:\n");
+	mtar_verbose_printf("    -H, --format=FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf("    -V, --label=TEXT    : create archive with volume name TEXT\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where FORMAT is one of the following:\n");
+	mtar_verbose_printf("  where FORMAT is one of the following:\n");
 	mtar_format_show_description();
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Compression options:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2                     : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip, --gunzip, --ungzip  : filter the archive through gzip\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --compression-level=LEVEL * : Set the level of compression\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                      (1 <= LEVEL <= 9)\n\n");
+	mtar_verbose_printf("\n  Compression options:\n");
+	mtar_verbose_printf("    -j, --bzip2                     : filter the archive through bzip2\n");
+	mtar_verbose_printf("    -z, --gzip, --gunzip, --ungzip  : filter the archive through gzip\n");
+	mtar_verbose_printf("        --compression-level=LEVEL * : Set the level of compression\n");
+	mtar_verbose_printf("                                      (1 <= LEVEL <= 9)\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Local file selection:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --add-file=FILE           : add given FILE to the archive (useful if\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    its name starts with a dash)\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR           : change to directory DIR\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-backups         : exclude backup and lock files\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches          : exclude contents of directories containing\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    CACHEDIR.TAG, except for the tag file\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    itself\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches-all      : exclude directories containing\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    CACHEDIR.TAG\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-caches-under    : exclude everything under directories\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    containing CACHEDIR.TAG\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -X, --exclude-from=FILE       : exclude patterns listed in FILE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag=FILE        : exclude contents of directories containing\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    FILE, except for FILE itself\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag-all=FILE    : exclude directories containing FILE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-tag-under=FILE  : exclude everything under directories\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    containing FILE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --exclude-vcs             : exclude version control system directories\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -T, --files-from=FILE         : get names to extract or create from FILE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --no-null                 : disable the effect of the previous --null\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                                    option\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --null                    : -T or -X reads null-terminated names\n\n");
+	mtar_verbose_printf("  Local file selection:\n");
+	mtar_verbose_printf("        --add-file=FILE           : add given FILE to the archive (useful if\n");
+	mtar_verbose_printf("                                    its name starts with a dash)\n");
+	mtar_verbose_printf("    -C, --directory=DIR           : change to directory DIR\n");
+	mtar_verbose_printf("        --exclude=PATTERN         : exclude files, given as a PATTERN\n");
+	mtar_verbose_printf("        --exclude-backups         : exclude backup and lock files\n");
+	mtar_verbose_printf("        --exclude-caches          : exclude contents of directories containing\n");
+	mtar_verbose_printf("                                    CACHEDIR.TAG, except for the tag file\n");
+	mtar_verbose_printf("                                    itself\n");
+	mtar_verbose_printf("        --exclude-caches-all      : exclude directories containing\n");
+	mtar_verbose_printf("                                    CACHEDIR.TAG\n");
+	mtar_verbose_printf("        --exclude-caches-under    : exclude everything under directories\n");
+	mtar_verbose_printf("                                    containing CACHEDIR.TAG\n");
+	mtar_verbose_printf("        --exclude-engine=ENGINE * : use ENGINE to exclude filename\n");
+	mtar_verbose_printf("    -X, --exclude-from=FILE       : exclude patterns listed in FILE\n");
+	mtar_verbose_printf("        --exclude-tag=FILE        : exclude contents of directories containing\n");
+	mtar_verbose_printf("                                    FILE, except for FILE itself\n");
+	mtar_verbose_printf("        --exclude-tag-all=FILE    : exclude directories containing FILE\n");
+	mtar_verbose_printf("        --exclude-tag-under=FILE  : exclude everything under directories\n");
+	mtar_verbose_printf("                                    containing FILE\n");
+	mtar_verbose_printf("        --exclude-vcs             : exclude version control system directories\n");
+	mtar_verbose_printf("    -T, --files-from=FILE         : get names to extract or create from FILE\n");
+	mtar_verbose_printf("        --no-null                 : disable the effect of the previous --null\n");
+	mtar_verbose_printf("                                    option\n");
+	mtar_verbose_printf("        --null                    : -T or -X reads null-terminated names\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  where ENGINE is one of the following:\n");
+	mtar_verbose_printf("  where ENGINE is one of the following:\n");
 	mtar_exclude_show_description();
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\n  Informative output:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose : verbosely list files processed\n\n");
+	mtar_verbose_printf("\n  Informative output:\n");
+	mtar_verbose_printf("    -v, --verbose : verbosely list files processed\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Other options:\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -?, --help : give this help list\n\n");
+	mtar_verbose_printf("  Other options:\n");
+	mtar_verbose_printf("    -?, --help : give this help list\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-filters *   : list available io filters\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-formats *   : list available format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-functions * : list available function\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --list-ios *       : list available io backend\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "        --plugin PLUGIN *  : load a plugin which will interact with a\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "                             function\n\n");
+	mtar_verbose_printf("        --list-filters *   : list available io filters\n");
+	mtar_verbose_printf("        --list-formats *   : list available format\n");
+	mtar_verbose_printf("        --list-functions * : list available function\n");
+	mtar_verbose_printf("        --list-ios *       : list available io backend\n");
+	mtar_verbose_printf("        --plugin PLUGIN *  : load a plugin which will interact with a\n");
+	mtar_verbose_printf("                             function\n\n");
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Parameters marked with * do not exist into gnu tar\n");
+	mtar_verbose_printf("  Parameters marked with * do not exist into gnu tar\n");
 }
 
 void mtar_option_show_version(const char * path) {
@@ -627,6 +627,6 @@ void mtar_option_show_version(const char * path) {
 	else
 		ptr = path;
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
+	mtar_verbose_printf("%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
 }
 

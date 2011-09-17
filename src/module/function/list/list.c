@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 22:23:52 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:55:32 +0200                       *
 \***********************************************************************/
 
 // open
@@ -73,12 +73,12 @@ int mtar_function_list(const struct mtar_option * option) {
 				break;
 
 			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
-				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad checksum\n");
+				mtar_verbose_printf("Bad checksum\n");
 				ok = 3;
 				continue;
 
 			case MTAR_FORMAT_HEADER_BAD_HEADER:
-				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad header\n");
+				mtar_verbose_printf("Bad header\n");
 				ok = 4;
 				continue;
 
@@ -88,7 +88,7 @@ int mtar_function_list(const struct mtar_option * option) {
 		}
 
 		if (format->ops->skip_file(format)) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to skip file\n");
+			mtar_verbose_printf("Failed to skip file\n");
 			ok = 2;
 		}
 	}
@@ -103,15 +103,15 @@ void mtar_function_list_init() {
 }
 
 void mtar_function_list_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "List files from tar archive\n");
+	mtar_verbose_printf("List files from tar archive\n");
 }
 
 void mtar_function_list_show_help() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  List files from tar archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2         : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip          : filter the archive through gzip\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose       : verbosely list files processed\n");
+	mtar_verbose_printf("  List files from tar archive\n");
+	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
+	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf("    -j, --bzip2         : filter the archive through bzip2\n");
+	mtar_verbose_printf("    -z, --gzip          : filter the archive through gzip\n");
+	mtar_verbose_printf("    -v, --verbose       : verbosely list files processed\n");
 }
 

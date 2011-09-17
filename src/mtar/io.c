@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 07 Sep 2011 10:06:34 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:45:56 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -66,7 +66,7 @@ struct mtar_io * mtar_io_get(int fd) {
 	struct stat st;
 
 	if (fstat(fd, &st)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Getting information about file descriptor (%d) failed => %s\n", fd, strerror(errno));
+		mtar_verbose_printf("Getting information about file descriptor (%d) failed => %s\n", fd, strerror(errno));
 		return 0;
 	}
 
@@ -124,7 +124,7 @@ int mtar_io_open(const char * filename, int flags) {
 
 	if (access(filename, m)) {
 		if (flags & O_RDONLY) {
-			mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Can't open file (%s) for reading if file did not exist\n", filename);
+			mtar_verbose_printf("Can't open file (%s) for reading if file did not exist\n", filename);
 			return -1;
 		}
 		flags |= O_CREAT;
@@ -132,7 +132,7 @@ int mtar_io_open(const char * filename, int flags) {
 
 	int fd = open(filename, flags, 0644);
 	if (fd < 0)
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Failed to open (%s) => %s\n", filename, strerror(errno));
+		mtar_verbose_printf("Failed to open (%s) => %s\n", filename, strerror(errno));
 
 	return fd;
 }
@@ -171,7 +171,7 @@ void mtar_io_register(struct mtar_io * io) {
 
 void mtar_io_show_description() {
 	mtar_loader_loadAll("io");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend ios :\n");
+	mtar_verbose_printf("\nList of available backend ios :\n");
 
 	unsigned int i, length = 0;
 	for (i = 0; i < mtar_io_nbIos; i++) {
@@ -181,7 +181,7 @@ void mtar_io_show_description() {
 	}
 
 	for (i = 0; i < mtar_io_nbIos; i++) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_io_ios[i]->name);
+		mtar_verbose_printf("    %-*s : ", length, mtar_io_ios[i]->name);
 		mtar_io_ios[i]->show_description();
 	}
 }

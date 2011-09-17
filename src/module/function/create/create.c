@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Fri, 16 Sep 2011 11:29:44 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:53:53 +0200                       *
 \***********************************************************************/
 
 #define _GNU_SOURCE
@@ -101,7 +101,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	param.exclude = mtar_exclude_get(option);
 
 	if (option->working_directory && chdir(option->working_directory)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Fatal error: failed to change directory (%s)\n", option->working_directory);
+		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
 		return 1;
 	}
 
@@ -131,7 +131,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	struct mtar_format_in * tar_in = param.format->ops->reopenForReading(param.format, option);
 	param.format->ops->free(param.format);
 	if (!tar_in) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Error: Cannot reopen file for verify\n");
+		mtar_verbose_printf("Error: Cannot reopen file for verify\n");
 		return 1;
 	}
 
@@ -147,7 +147,7 @@ int mtar_function_create(const struct mtar_option * option) {
 					break;
 
 				if (lstat(header.path, &st)) {
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: Error while getting information\n", header.path);
+					mtar_verbose_printf("%s: Error while getting information\n", header.path);
 					tar_in->ops->skip_file(tar_in);
 					continue;
 				}
@@ -155,42 +155,42 @@ int mtar_function_create(const struct mtar_option * option) {
 				mtar_function_create_display(&header, 0);
 
 				if ((st.st_mode & 0777) != (header.mode & 0777))
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: mode differs\n", header.path);
+					mtar_verbose_printf("%s: mode differs\n", header.path);
 
 				if (S_ISREG(st.st_mode)) {
 					if (st.st_size != header.size)
-						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: size differs\n", header.path);
+						mtar_verbose_printf("%s: size differs\n", header.path);
 				} else if (S_ISLNK(st.st_mode)) {
 					char link[256];
 					readlink(header.path, link, 256);
 
 					if (strcmp(link, header.link))
-						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: link differs\n", header.path);
+						mtar_verbose_printf("%s: link differs\n", header.path);
 				} else if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
 					if (st.st_rdev != header.dev)
-						mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: dev differs\n", header.path);
+						mtar_verbose_printf("%s: dev differs\n", header.path);
 				}
 
 				if (st.st_mtime != header.mtime)
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: mtime differs => %03o\n", header.path, header.mode);
+					mtar_verbose_printf("%s: mtime differs => %03o\n", header.path, header.mode);
 
 				if (st.st_uid != header.uid)
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: uid differs => %03o\n", header.path, header.uid);
+					mtar_verbose_printf("%s: uid differs => %03o\n", header.path, header.uid);
 
 				if (st.st_gid != header.gid)
-					mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s: gid differs => %03o\n", header.path, header.gid);
+					mtar_verbose_printf("%s: gid differs => %03o\n", header.path, header.gid);
 
 
 				tar_in->ops->skip_file(tar_in);
 				break;
 
 			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
-				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad checksum\n");
+				mtar_verbose_printf("Bad checksum\n");
 				ok = 3;
 				continue;
 
 			case MTAR_FORMAT_HEADER_BAD_HEADER:
-				mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Bad header\n");
+				mtar_verbose_printf("Bad header\n");
 				ok = 4;
 				continue;
 
@@ -201,9 +201,9 @@ int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	if (!ok) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Verifying archive ok\n");
+		mtar_verbose_printf("Verifying archive ok\n");
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Verifying archive failed\n");
+		mtar_verbose_printf("Verifying archive failed\n");
 	}
 
 	return failed;
@@ -310,18 +310,18 @@ void mtar_function_create_init() {
 }
 
 void mtar_function_create_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Create new archive\n");
+	mtar_verbose_printf("Create new archive\n");
 }
 
 void mtar_function_create_show_help() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "  Create new archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -W, --verify        : attempt to verify the archive after writing it\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -H, --format FORMAT : use FORMAT as tar format\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -V, --label=TEXT    : create archive with volume name TEXT\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -j, --bzip2         : filter the archive through bzip2\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -z, --gzip          : filter the archive through gzip\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -C, --directory=DIR : change to directory DIR before creating archive\n");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    -v, --verbose       : verbosely list files processed\n");
+	mtar_verbose_printf("  Create new archive\n");
+	mtar_verbose_printf("    -W, --verify        : attempt to verify the archive after writing it\n");
+	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
+	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
+	mtar_verbose_printf("    -V, --label=TEXT    : create archive with volume name TEXT\n");
+	mtar_verbose_printf("    -j, --bzip2         : filter the archive through bzip2\n");
+	mtar_verbose_printf("    -z, --gzip          : filter the archive through gzip\n");
+	mtar_verbose_printf("    -C, --directory=DIR : change to directory DIR before creating archive\n");
+	mtar_verbose_printf("    -v, --verbose       : verbosely list files processed\n");
 }
 

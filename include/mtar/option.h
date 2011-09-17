@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 12:29:09 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:43:20 +0200                       *
 \***********************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -34,7 +34,6 @@
 #include <sys/types.h>
 
 #include "function.h"
-#include "verbose.h"
 
 struct mtar_exclude_tag;
 
@@ -86,7 +85,7 @@ struct mtar_option {
 	char delimiter;
 
 	// informative output
-	enum mtar_verbose_level verbose;
+	int verbose;
 
 	// mtar specific option
 	const char ** plugins;

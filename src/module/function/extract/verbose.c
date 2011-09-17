@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 26 Jul 2011 16:34:17 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:55:14 +0200                       *
 \***********************************************************************/
 
 // gettimeofday
@@ -54,12 +54,12 @@ void (*mtar_function_extract_progress)(const char * filename, const char * forma
 
 void mtar_function_extract_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
-		case MTAR_VERBOSE_LEVEL_ERROR:
+		case 0:
 			mtar_function_extract_display = mtar_function_extract_display1;
 			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
 
-		case MTAR_VERBOSE_LEVEL_WARNING:
+		case 1:
 			mtar_function_extract_display = mtar_function_extract_display2;
 			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
@@ -74,7 +74,7 @@ void mtar_function_extract_configure(const struct mtar_option * option) {
 void mtar_function_extract_display1(struct mtar_format_header * header __attribute__((unused))) {}
 
 void mtar_function_extract_display2(struct mtar_format_header * header) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", header->path);
+	mtar_verbose_printf("%s\n", header->path);
 }
 
 void mtar_function_extract_display3(struct mtar_format_header * header) {
@@ -101,20 +101,20 @@ void mtar_function_extract_display3(struct mtar_format_header * header) {
 
 	if (header->is_label) {
 		mode[0] = 'V';
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s --Volume Header: %s--\n", mode, mtime, header->path);
+		mtar_verbose_printf("%s %s --Volume Header: %s--\n", mode, mtime, header->path);
 	} else if (header->link[0] != '\0' && !(header->mode & S_IFMT)) {
 		mode[0] = 'h';
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
 	} else if (S_ISLNK(header->mode)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;

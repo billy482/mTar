@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 07 Sep 2011 10:07:26 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:56:03 +0200                       *
 \***********************************************************************/
 
 #include <mtar/verbose.h>
@@ -47,6 +47,6 @@ void mtar_io_tape_init() {
 }
 
 void mtar_io_tape_show_description() {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "used for tape (scsi tape device)\n");
+	mtar_verbose_printf("used for tape (scsi tape device)\n");
 }
 

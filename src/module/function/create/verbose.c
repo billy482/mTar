@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Wed, 07 Sep 2011 09:15:09 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:54:36 +0200                       *
 \***********************************************************************/
 
 // snprintf
@@ -67,13 +67,13 @@ void (*mtar_function_create_progress)(const char * filename, const char * format
 
 void mtar_function_create_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
-		case MTAR_VERBOSE_LEVEL_ERROR:
+		case 0:
 			mtar_function_create_display = mtar_function_create_display1;
 			mtar_function_create_display_label = mtar_function_create_display_label1;
 			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
-		case MTAR_VERBOSE_LEVEL_WARNING:
+		case 1:
 			mtar_function_create_display = mtar_function_create_display2;
 			mtar_function_create_display_label = mtar_function_create_display_label2;
 			mtar_function_create_progress = mtar_function_create_progress1;
@@ -90,7 +90,7 @@ void mtar_function_create_configure(const struct mtar_option * option) {
 void mtar_function_create_display1(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused))) {}
 
 void mtar_function_create_display2(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused))) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", header->path);
+	mtar_verbose_printf("%s\n", header->path);
 }
 
 void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink) {
@@ -115,11 +115,11 @@ void mtar_function_create_display3(struct mtar_format_header * header, const cha
 
 	if (hardlink) {
 		mode[0] = 'h';
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, hardlink);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, hardlink);
 	} else if (S_ISLNK(header->mode)) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
+		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
 	}
 
 	sug = ug2 - ug1;
@@ -129,7 +129,7 @@ void mtar_function_create_display3(struct mtar_format_header * header, const cha
 void mtar_function_create_display_label1(const char * label __attribute__((unused))) {}
 
 void mtar_function_create_display_label2(const char * label) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s\n", label);
+	mtar_verbose_printf("%s\n", label);
 }
 
 void mtar_function_create_display_label3(const char * label) {
@@ -144,7 +144,7 @@ void mtar_function_create_display_label3(const char * label) {
 	char mtime[24];
 	strftime(mtime, 24, "%Y-%m-%d %R", &tmval);
 
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "%s %s %s\n", mode, mtime, label);
+	mtar_verbose_printf("%s %s %s\n", mode, mtime, label);
 }
 
 void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:20:50 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:43:51 +0200                       *
 \***********************************************************************/
 
 // fnmatch
@@ -202,7 +202,7 @@ void mtar_exclude_show_description() {
 	}
 
 	for (i = 0; i < mtar_exclude_nbExs; i++) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_exclude_exs[i]->name);
+		mtar_verbose_printf("    %-*s : ", length, mtar_exclude_exs[i]->name);
 		mtar_exclude_exs[i]->show_description();
 	}
 }

@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 12:32:13 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:51:59 +0200                       *
 \***********************************************************************/
 
 // fnmatch
@@ -83,6 +83,6 @@ struct mtar_exclude * mtar_exclude_fnmatch_new(const struct mtar_option * option
 }
 
 void mtar_exclude_fnmatch_show_description(void) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "fnmatch based exclusion files\n");
+	mtar_verbose_printf("fnmatch based exclusion files\n");
 }
 

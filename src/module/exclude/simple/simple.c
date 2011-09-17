@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 12:32:34 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:52:04 +0200                       *
 \***********************************************************************/
 
 // free, malloc
@@ -85,6 +85,6 @@ struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option)
 }
 
 void mtar_exclude_simple_show_description(void) {
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "strcmp based exclusion files\n");
+	mtar_verbose_printf("strcmp based exclusion files\n");
 }
 

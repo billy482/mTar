@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 06 Sep 2011 22:22:44 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:50:51 +0200                       *
 \***********************************************************************/
 
 // free, realloc
@@ -32,9 +32,10 @@
 // strcmp, strlen
 #include <string.h>
 
+#include <mtar/verbose.h>
+
 #include "function.h"
 #include "loader.h"
-#include "verbose.h"
 
 static void mtar_function_exit(void) __attribute__((destructor));
 
@@ -90,7 +91,7 @@ void mtar_function_show_description() {
 	}
 
 	for (i = 0; i < mtar_function_nb_functions; i++) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_function_functions[i]->name);
+		mtar_verbose_printf("    %-*s : ", length, mtar_function_functions[i]->name);
 		mtar_function_functions[i]->show_description();
 	}
 }
@@ -111,10 +112,10 @@ void mtar_function_showHelp(const char * function) {
 	}
 
 	if (f) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "Help for function: %s\n", function);
+		mtar_verbose_printf("Help for function: %s\n", function);
 		f->show_help();
 	} else {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "No help found for function: %s\n", function);
+		mtar_verbose_printf("No help found for function: %s\n", function);
 	}
 }
 

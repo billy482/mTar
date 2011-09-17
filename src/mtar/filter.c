@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Tue, 13 Sep 2011 09:55:59 +0200                       *
+*  Last modified: Sat, 17 Sep 2011 20:50:23 +0200                       *
 \***********************************************************************/
 
 // O_RDONLY, O_RDWR
@@ -34,10 +34,11 @@
 // strcmp, strlen, strrchr
 #include <string.h>
 
+#include <mtar/verbose.h>
+
 #include "filter.h"
 #include "loader.h"
 #include "option.h"
-#include "verbose.h"
 
 static struct mtar_filter ** mtar_filter_filters = 0;
 static unsigned int mtar_filter_nb_filters = 0;
@@ -202,7 +203,7 @@ void mtar_filter_register(struct mtar_filter * filter) {
 
 void mtar_filter_show_description() {
 	mtar_loader_loadAll("filter");
-	mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "\nList of available backend filters :\n");
+	mtar_verbose_printf("\nList of available backend filters :\n");
 
 	unsigned int i, length = 0;
 	for (i = 0; i < mtar_filter_nb_filters; i++) {
@@ -212,7 +213,7 @@ void mtar_filter_show_description() {
 	}
 
 	for (i = 0; i < mtar_filter_nb_filters; i++) {
-		mtar_verbose_printf(MTAR_VERBOSE_LEVEL_ERROR, "    %-*s : ", length, mtar_filter_filters[i]->name);
+		mtar_verbose_printf("    %-*s : ", length, mtar_filter_filters[i]->name);
 		mtar_filter_filters[i]->show_description();
 	}
 }
