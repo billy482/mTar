@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 18 Sep 2011 18:37:37 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:47:27 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -260,6 +260,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_CREATE          = 'c',
 		OPT_DIRECTORY       = 'C',
 		OPT_EXCLUDE_FROM    = 'X',
+		OPT_EXTRACT         = 'x',
 		OPT_FILE            = 'f',
 		OPT_FILES_FROM      = 'T',
 		OPT_FORMAT          = 'H',
@@ -316,10 +317,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL},
 		{"exclude-tag-under",    1, 0, OPT_EXCLUDE_TAG_UNDER},
 		{"exclude-vcs",          0, 0, OPT_EXCLUDE_VCS},
+		{"extract",              0, 0, OPT_EXTRACT},
 		{"file",                 1, 0, OPT_FILE},
 		{"files-from",           1, 0, OPT_FILES_FROM},
 		{"format",               1, 0, OPT_FORMAT},
 		{"function",             1, 0, OPT_FUNCTION},
+		{"get",                  0, 0, OPT_EXTRACT},
 		{"group",                1, 0, OPT_GROUP},
 		{"gunzip",               0, 0, OPT_GZIP},
 		{"gzip",                 0, 0, OPT_GZIP},
@@ -424,6 +427,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_EXCLUDE_VCS:
 				option->exclude_option |= MTAR_EXCLUDE_OPTION_VCS;
+				break;
+
+			case OPT_EXTRACT:
+				option->doWork = mtar_function_get("extract");
 				break;
 
 			case OPT_FILE:
@@ -553,7 +560,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf("  Main operation mode:\n");
 	mtar_verbose_printf("    -c, --create                   : create new archive\n");
 	mtar_verbose_printf("    -t, --list                     : list files from tar archive\n");
-	mtar_verbose_printf("    -x, --extract                  : extract new archive\n");
+	mtar_verbose_printf("    -x, --extract, --get           : extract new archive\n");
 	mtar_verbose_printf("        --function FUNCTION *      : use FUNCTION as action\n");
 	mtar_verbose_printf("        --function help=FUNCTION * : show specific help from function FUNCTION\n\n");
 	mtar_verbose_printf("  where FUNCTION is one of:\n");
