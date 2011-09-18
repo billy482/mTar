@@ -24,16 +24,16 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 10:24:57 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:01:20 +0200                       *
 \***********************************************************************/
 
 // free, malloc
-#include <malloc.h>
+#include <stdlib.h>
 // snprintf
 #include <stdio.h>
 // time
 #include <time.h>
-// deflate, deflateEnd, deflateInit
+// crc32, deflate, deflateEnd, deflateInit2
 #include <zlib.h>
 
 #include <mtar/option.h>

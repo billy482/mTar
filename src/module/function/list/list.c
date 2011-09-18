@@ -24,15 +24,8 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:55:32 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:24:09 +0200                       *
 \***********************************************************************/
-
-// open
-#include <fcntl.h>
-// open
-#include <sys/stat.h>
-// open
-#include <sys/types.h>
 
 #include <mtar/function.h>
 #include <mtar/io.h>

@@ -27,7 +27,7 @@
 *  Last modified: Sat, 17 Sep 2011 20:50:23 +0200                       *
 \***********************************************************************/
 
-// O_RDONLY, O_RDWR
+// O_RDONLY, O_RDWR, O_TRUNC
 #include <fcntl.h>
 // free, realloc
 #include <stdlib.h>

@@ -31,9 +31,9 @@
 #include <stdio.h>
 // free, malloc, realloc
 #include <stdlib.h>
-// memcpy, memmove, memset
+// memcpy, memmove, memset, strncpy, strncmp
 #include <string.h>
-// S_IFREG
+// S_*
 #include <sys/stat.h>
 
 #include <mtar/io.h>

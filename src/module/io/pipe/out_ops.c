@@ -24,18 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:59:09 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:31:56 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
-// free
+// free, malloc
 #include <stdlib.h>
-// fstat
-#include <sys/stat.h>
-// fstat
-#include <sys/types.h>
-// fstat, read
+// write
 #include <unistd.h>
 
 #include "common.h"

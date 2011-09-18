@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:45:56 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 17:58:32 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -35,11 +35,11 @@
 #include <stdlib.h>
 // strerror, strcmp
 #include <string.h>
-// open, stat
+// fstat, open
 #include <sys/stat.h>
-// open, stat
+// fstat, open
 #include <sys/types.h>
-// access, stat
+// access, fstat
 #include <unistd.h>
 
 #include <mtar/option.h>
@@ -103,7 +103,7 @@ struct mtar_io_in * mtar_io_in_get_file(const char * filename, int flags, const 
 	if (fd < 0)
 		return 0;
 
-	return mtar_io_in_get_fd(fd, flags, option);;
+	return mtar_io_in_get_fd(fd, flags, option);
 }
 
 int mtar_io_open(const char * filename, int flags) {

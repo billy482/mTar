@@ -24,10 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 25 Apr 2011 22:06:38 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 17:55:19 +0200                       *
 \***********************************************************************/
 
-// calloc, free
+// calloc, free, malloc
 #include <stdlib.h>
 
 #include <mtar/hashtable.h>
@@ -35,26 +35,6 @@
 void mtar_hashtable_put2(struct mtar_hashtable * hashtable, unsigned int index, struct mtar_hashtable_node * new_node);
 void mtar_hashtable_rehash(struct mtar_hashtable * hashtable);
 
-
-struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_computeHash_f computeHash) {
-	return mtar_hashtable_new2(computeHash, 0);
-}
-
-struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_computeHash_f computeHash, mtar_hashtable_free_f releaseKeyValue) {
-	if (!computeHash)
-		return 0;
-
-	struct mtar_hashtable * l_hash = malloc(sizeof(struct mtar_hashtable));
-
-	l_hash->nodes = calloc(sizeof(struct mtar_hashtable_node *), 16);
-	l_hash->nbElements = 0;
-	l_hash->sizeNode = 16;
-	l_hash->allowRehash = 1;
-	l_hash->computeHash = computeHash;
-	l_hash->releaseKeyValue = releaseKeyValue;
-
-	return l_hash;
-}
 
 void mtar_hashtable_free(struct mtar_hashtable * hashtable) {
 	if (!hashtable)
@@ -78,7 +58,6 @@ void mtar_hashtable_free(struct mtar_hashtable * hashtable) {
 
 	free(hashtable);
 }
-
 
 short mtar_hashtable_hasKey(struct mtar_hashtable * hashtable, const void * key) {
 	if (!hashtable || !key)
@@ -115,6 +94,26 @@ const void ** mtar_hashtable_keys(struct mtar_hashtable * hashtable) {
 	keys[index] = 0;
 
 	return keys;
+}
+
+struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_computeHash_f computeHash) {
+	return mtar_hashtable_new2(computeHash, 0);
+}
+
+struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_computeHash_f computeHash, mtar_hashtable_free_f releaseKeyValue) {
+	if (!computeHash)
+		return 0;
+
+	struct mtar_hashtable * l_hash = malloc(sizeof(struct mtar_hashtable));
+
+	l_hash->nodes = calloc(sizeof(struct mtar_hashtable_node *), 16);
+	l_hash->nbElements = 0;
+	l_hash->sizeNode = 16;
+	l_hash->allowRehash = 1;
+	l_hash->computeHash = computeHash;
+	l_hash->releaseKeyValue = releaseKeyValue;
+
+	return l_hash;
 }
 
 void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * value) {

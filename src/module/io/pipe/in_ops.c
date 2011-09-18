@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:57:36 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:31:13 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
-// free
+// free, malloc
 #include <stdlib.h>
 // read
 #include <unistd.h>

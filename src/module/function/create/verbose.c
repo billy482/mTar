@@ -24,25 +24,17 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:54:36 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:20:05 +0200                       *
 \***********************************************************************/
 
-// snprintf
-#include <stdio.h>
-// free, malloc
-#include <stdlib.h>
-// strlen, strncpy
+// strcat, strcpy
 #include <string.h>
-// stat
+// S_*
 #include <sys/stat.h>
 // gettimeofday
 #include <sys/time.h>
-// stat
-#include <sys/types.h>
 // localtime_r, strftime
 #include <time.h>
-// readlink, stat
-#include <unistd.h>
 
 #include <mtar/file.h>
 #include <mtar/option.h>

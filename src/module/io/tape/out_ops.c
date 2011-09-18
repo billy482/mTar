@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 10:21:06 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:35:54 +0200                       *
 \***********************************************************************/
 
 // errno
@@ -33,7 +33,7 @@
 #include <stdlib.h>
 // memcpy
 #include <string.h>
-// bzero, read
+// bzero, write
 #include <unistd.h>
 
 #include <mtar/option.h>

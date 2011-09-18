@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 16:54:57 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:30:11 +0200                       *
 \***********************************************************************/
 
 // errno
 #include <errno.h>
 // fstat
 #include <sys/stat.h>
-// fstat, lseek
+// fstat
 #include <sys/types.h>
 // close, fstat
 #include <unistd.h>

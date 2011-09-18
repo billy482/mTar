@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:51:46 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 18:52:26 +0200                       *
 \***********************************************************************/
 
 // va_end, va_start
@@ -33,7 +33,7 @@
 #include <stdio.h>
 // signal
 #include <signal.h>
-// memset, strcpy
+// memcpy, memmove, memset, strcpy, strlen, strstr
 #include <string.h>
 // ioctl
 #include <sys/ioctl.h>

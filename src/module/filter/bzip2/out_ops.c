@@ -24,13 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 29 Aug 2011 10:23:05 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 19:05:24 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
 #include <bzlib.h>
 // free, malloc
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <mtar/option.h>
 

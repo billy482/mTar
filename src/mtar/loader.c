@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Thu, 28 Jul 2011 22:53:35 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 17:59:22 +0200                       *
 \***********************************************************************/
 
-// dlclose, dlerror, dlopen
+// dlclose, dlopen
 #include <dlfcn.h>
-// glob
+// glob, globfree
 #include <glob.h>
 // snprintf
 #include <stdio.h>

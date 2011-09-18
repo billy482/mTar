@@ -24,12 +24,12 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:52:04 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 18:55:57 +0200                       *
 \***********************************************************************/
 
 // free, malloc
 #include <stdlib.h>
-// strlen
+// strlen, strncmp
 #include <string.h>
 
 #include <mtar/exclude.h>

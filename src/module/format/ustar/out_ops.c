@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:53:13 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:10:53 +0200                       *
 \***********************************************************************/
 
 // free, malloc, realloc
@@ -33,7 +33,7 @@
 #include <stdio.h>
 // memset, strcpy, strlen, strncpy
 #include <string.h>
-// bzero, strncpy
+// bzero
 #include <strings.h>
 // lstat, stat
 #include <sys/stat.h>

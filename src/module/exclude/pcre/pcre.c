@@ -24,10 +24,10 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 18 Sep 2011 17:37:29 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 18:59:44 +0200                       *
 \***********************************************************************/
 
-// pcre_compile, pcre_free
+// pcre_compile, pcre_exec, pcre_free, pcre_version
 #include <pcre.h>
 // calloc, free
 #include <stdlib.h>
@@ -108,6 +108,6 @@ struct mtar_exclude * mtar_exclude_pcre_new(const struct mtar_option * option) {
 }
 
 void mtar_exclude_pcre_show_description(void) {
-	mtar_verbose_printf("pcre powered exclusion files\n");
+	mtar_verbose_printf("pcre powered exclusion files (using libpcre: v%s)\n", pcre_version());
 }
 

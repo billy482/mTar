@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 21:52:36 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 18:37:37 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -33,7 +33,7 @@
 #include <string.h>
 // sscanf
 #include <stdio.h>
-// calloc, free, realloc
+// atoi, calloc, free, realloc
 #include <stdlib.h>
 
 #include <mtar/file.h>

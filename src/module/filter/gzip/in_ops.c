@@ -24,11 +24,11 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 17:40:50 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 22:58:32 +0200                       *
 \***********************************************************************/
 
 // free, malloc
-#include <malloc.h>
+#include <stdlib.h>
 // strchr
 #include <string.h>
 // inflate, inflateEnd, inflateInit2

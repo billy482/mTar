@@ -24,13 +24,13 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Mon, 12 Sep 2011 17:40:17 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 19:03:19 +0200                       *
 \***********************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
 #include <bzlib.h>
 // free, malloc
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <mtar/verbose.h>
 

@@ -24,14 +24,14 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 20:43:51 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 17:43:14 +0200                       *
 \***********************************************************************/
 
 // fnmatch
 #include <fnmatch.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp, strlen, strrchr
+// strcat, strcmp, strcpy, strlen, strrchr
 #include <string.h>
 // stat
 #include <sys/types.h>

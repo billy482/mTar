@@ -32,17 +32,17 @@
 #include <dirent.h>
 // open
 #include <fcntl.h>
-// malloc
+// free, malloc
 #include <stdlib.h>
 // snprintf, sprintf
 #include <stdio.h>
 // strcmp, strcpy, strdup, strlen
 #include <string.h>
-// open, stat
+// lstat, open
 #include <sys/stat.h>
-// open, stat, utime
+// lstat, open, utime
 #include <sys/types.h>
-// chdir, read, stat
+// chdir, lstat, read, readlink
 #include <unistd.h>
 // utime
 #include <utime.h>
