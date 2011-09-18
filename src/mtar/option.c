@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sun, 18 Sep 2011 23:47:27 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 23:51:35 +0200                       *
 \***********************************************************************/
 
 // getopt_long
@@ -566,7 +566,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf("  where FUNCTION is one of:\n");
 	mtar_function_show_description();
 
-	mtar_verbose_printf("\n  Main operation mode:\n");
+	mtar_verbose_printf("\n  Overwrite control:\n");
 	mtar_verbose_printf("    -W, --verify : attempt to verify the archive after writing it\n\n");
 
 	mtar_verbose_printf("  Handling of file attributes:\n");
