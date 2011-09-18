@@ -24,7 +24,7 @@
 *                                                                       *
 *  -------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>  *
-*  Last modified: Sat, 17 Sep 2011 21:41:04 +0200                       *
+*  Last modified: Sun, 18 Sep 2011 17:37:29 +0200                       *
 \***********************************************************************/
 
 // pcre_compile, pcre_free
@@ -63,8 +63,9 @@ static struct mtar_exclude_driver mtar_exclude_pcre_driver = {
 int mtar_exclude_pcre_filter(struct mtar_exclude * ex, const char * filename) {
 	struct mtar_exclude_pcre * self = ex->data;
 	unsigned int i;
+	int cap[2];
 	for (i = 0; i < ex->nb_excludes; i++)
-		if (pcre_exec(self->patterns[i], 0, filename, strlen(filename), 0, 0, 0, 0) > 0)
+		if (pcre_exec(self->patterns[i], 0, filename, strlen(filename), 0, 0, cap, 2) > 0)
 			return 1;
 
 	return 0;
@@ -77,7 +78,7 @@ void mtar_exclude_pcre_free(struct mtar_exclude * ex) {
 	struct mtar_exclude_pcre * self = ex->data;
 	unsigned int i;
 	for (i = 0; i < ex->nb_excludes; i++)
-		pcre_free(self->patterns + i);
+		pcre_free(self->patterns[i]);
 	free(self->patterns);
 	free(self);
 	free(ex);
