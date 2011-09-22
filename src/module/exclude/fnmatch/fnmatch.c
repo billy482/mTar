@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 20:43:38 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -54,6 +54,7 @@ static struct mtar_exclude_driver mtar_exclude_fnmatch_driver = {
 	.name             = "fnmatch",
 	.new              = mtar_exclude_fnmatch_new,
 	.show_description = mtar_exclude_fnmatch_show_description,
+	.api_version      = MTAR_EXCLUDE_API_VERSION,
 };
 
 
@@ -85,7 +86,7 @@ struct mtar_exclude * mtar_exclude_fnmatch_new(const struct mtar_option * option
 	return ex;
 }
 
-void mtar_exclude_fnmatch_show_description(void) {
+void mtar_exclude_fnmatch_show_description() {
 	mtar_verbose_printf("fnmatch based exclusion files\n");
 }
 

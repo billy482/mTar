@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 18:49:31 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -213,10 +213,7 @@ int mtar_function_create(const struct mtar_option * option) {
 }
 
 int mtar_function_create2(struct mtar_function_create_param * param) {
-	if (param->exclude && param->exclude->ops->filter(param->exclude, param->filename))
-		return 0;
-
-	if (mtar_exclude_filter(param->filename, param->option))
+	if (mtar_exclude_filter(param->exclude, param->filename, param->option))
 		return 0;
 
 	struct stat st;

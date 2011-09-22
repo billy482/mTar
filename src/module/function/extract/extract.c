@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 18:50:18 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -81,7 +81,7 @@ int mtar_function_extract(const struct mtar_option * option) {
 
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
-				if ((exclude && exclude->ops->filter(exclude, header.path)) || mtar_exclude_filter(header.path, option)) {
+				if (mtar_exclude_filter(exclude, header.path, option)) {
 					format->ops->skip_file(format);
 					continue;
 				}

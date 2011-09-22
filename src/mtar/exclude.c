@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 18:49:02 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -63,7 +63,7 @@ struct mtar_exclude_tag * mtar_exclude_add_tag(struct mtar_exclude_tag * tags, u
 	return tags;
 }
 
-int mtar_exclude_filter(const char * filename, const struct mtar_option * option) {
+int mtar_exclude_filter(struct mtar_exclude * ex, const char * filename, const struct mtar_option * option) {
 	if (!option)
 		return 0;
 
@@ -72,6 +72,9 @@ int mtar_exclude_filter(const char * filename, const struct mtar_option * option
 		file++;
 	else
 		file = filename;
+
+	if (ex && ex->ops->filter(ex, filename))
+		return 0;
 
 	unsigned int i;
 	if (option->exclude_option & MTAR_EXCLUDE_OPTION_BACKUP) {
@@ -179,7 +182,7 @@ struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option) {
 }
 
 void mtar_exclude_register(struct mtar_exclude_driver * driver) {
-	if (!driver)
+	if (!driver || driver->api_version != MTAR_EXCLUDE_API_VERSION)
 		return;
 
 	unsigned int i;

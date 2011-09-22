@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 18:47:51 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_EXCLUDE_H__
@@ -49,11 +49,14 @@ struct mtar_exclude_driver {
 	const char * name;
 	struct mtar_exclude * (*new)(const struct mtar_option * option);
 	void (*show_description)(void);
+	int api_version;
 };
 
-int mtar_exclude_filter(const char * filename, const struct mtar_option * option);
+int mtar_exclude_filter(struct mtar_exclude * ex, const char * filename, const struct mtar_option * option);
 struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option);
 void mtar_exclude_register(struct mtar_exclude_driver * ex);
+
+#define MTAR_EXCLUDE_API_VERSION 1
 
 #endif
 

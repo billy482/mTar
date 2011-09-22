@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 20:47:06 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -54,6 +54,7 @@ static struct mtar_exclude_driver mtar_exclude_simple_driver = {
 	.name             = "simple",
 	.new              = mtar_exclude_simple_new,
 	.show_description = mtar_exclude_simple_show_description,
+	.api_version      = MTAR_EXCLUDE_API_VERSION,
 };
 
 
@@ -87,7 +88,7 @@ struct mtar_exclude * mtar_exclude_simple_new(const struct mtar_option * option)
 	return ex;
 }
 
-void mtar_exclude_simple_show_description(void) {
+void mtar_exclude_simple_show_description() {
 	mtar_verbose_printf("strcmp based exclusion files\n");
 }
 
