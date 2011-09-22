@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 18:49:02 +0200                           *
+*  Last modified: Thu, 22 Sep 2011 21:14:27 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -74,7 +74,7 @@ int mtar_exclude_filter(struct mtar_exclude * ex, const char * filename, const s
 		file = filename;
 
 	if (ex && ex->ops->filter(ex, filename))
-		return 0;
+		return 1;
 
 	unsigned int i;
 	if (option->exclude_option & MTAR_EXCLUDE_OPTION_BACKUP) {
