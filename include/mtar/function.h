@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:22:55 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FUNTION_H__
@@ -42,7 +42,10 @@ struct mtar_function {
 	mtar_function_f doWork;
 	void (*show_description)();
 	void (*show_help)();
+	int api_version;
 };
+
+#define MTAR_FUNCTION_API_VERSION 1
 
 void mtar_function_register(struct mtar_function * f);
 

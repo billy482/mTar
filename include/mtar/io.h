@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 09:36:46 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -170,7 +170,10 @@ struct mtar_io {
 	 * This function is called by \b mtar when argument is --list-ios
 	 */
 	void (*show_description)(void);
+	int api_version;
 };
+
+#define MTAR_IO_API_VERSION 1
 
 /**
  * \brief helper function

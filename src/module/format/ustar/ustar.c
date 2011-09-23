@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:22:08 +0200                           *
 \***************************************************************************/
 
 #include <mtar/verbose.h>
@@ -42,6 +42,7 @@ static struct mtar_format mtar_format_ustar = {
 	.new_in           = mtar_format_ustar_new_in,
 	.new_out          = mtar_format_ustar_new_out,
 	.show_description = mtar_format_ustar_show_description,
+	.api_version      = MTAR_FORMAT_API_VERSION,
 };
 
 

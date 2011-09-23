@@ -27,9 +27,10 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:24:05 +0200                           *
 \***************************************************************************/
 
+#include <mtar/exclude.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
@@ -47,6 +48,7 @@ static struct mtar_function mtar_function_list_functions = {
 	.doWork           = mtar_function_list,
 	.show_description = mtar_function_list_show_description,
 	.show_help        = mtar_function_list_show_help,
+	.api_version      = MTAR_FUNCTION_API_VERSION,
 };
 
 
@@ -56,6 +58,7 @@ int mtar_function_list(const struct mtar_option * option) {
 		return 1;
 
 	mtar_function_list_configure(option);
+	struct mtar_exclude * exclude = mtar_exclude_get(option);
 
 	struct mtar_format_header header;
 
@@ -65,6 +68,11 @@ int mtar_function_list(const struct mtar_option * option) {
 
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
+				if (mtar_exclude_filter(exclude, header.path, option)) {
+					format->ops->skip_file(format);
+					continue;
+				}
+
 				mtar_function_list_display(&header);
 				break;
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 09:37:38 +0200                           *
 \***************************************************************************/
 
 // zlibVersion
@@ -45,6 +45,7 @@ static struct mtar_filter mtar_filter_gzip = {
 	.new_in           = mtar_filter_gzip_new_in,
 	.new_out          = mtar_filter_gzip_new_out,
 	.show_description = mtar_filter_gzip_show_description,
+	.api_version      = MTAR_FILTER_API_VERSION,
 };
 
 

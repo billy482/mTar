@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:20:15 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -157,7 +157,7 @@ struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, cons
 }
 
 void mtar_io_register(struct mtar_io * io) {
-	if (!io)
+	if (!io || io->api_version != MTAR_IO_API_VERSION)
 		return;
 
 	unsigned int i;

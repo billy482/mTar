@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 09:38:29 +0200                           *
 \***************************************************************************/
 
 #include <mtar/verbose.h>
@@ -42,6 +42,7 @@ static struct mtar_io mtar_io_tape = {
 	.new_in           = mtar_io_tape_new_in,
 	.new_out          = mtar_io_tape_new_out,
 	.show_description = mtar_io_tape_show_description,
+	.api_version      = MTAR_IO_API_VERSION,
 };
 
 

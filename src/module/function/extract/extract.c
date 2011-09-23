@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 18:50:18 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:23:55 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -57,6 +57,7 @@ static struct mtar_function mtar_function_extract_functions = {
 	.doWork           = mtar_function_extract,
 	.show_description = mtar_function_extract_show_description,
 	.show_help        = mtar_function_extract_show_help,
+	.api_version      = MTAR_FUNCTION_API_VERSION,
 };
 
 

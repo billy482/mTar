@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 09:39:28 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -189,7 +189,7 @@ struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mt
 }
 
 void mtar_filter_register(struct mtar_filter * filter) {
-	if (!filter)
+	if (!filter || filter->api_version != MTAR_FILTER_API_VERSION)
 		return;
 
 	unsigned int i;

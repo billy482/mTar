@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 18:49:31 +0200                           *
+*  Last modified: Fri, 23 Sep 2011 17:23:45 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -83,6 +83,7 @@ static struct mtar_function mtar_function_create_functions = {
 	.doWork           = mtar_function_create,
 	.show_description = mtar_function_create_show_description,
 	.show_help        = mtar_function_create_show_help,
+	.api_version      = MTAR_FUNCTION_API_VERSION,
 };
 
 
