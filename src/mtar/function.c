@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:23:24 +0200                           *
+*  Last modified: Sat, 24 Sep 2011 13:07:57 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -68,7 +68,7 @@ mtar_function_f mtar_function_get(const char * name) {
 }
 
 void mtar_function_register(struct mtar_function * f) {
-	if (!f || f->api_version)
+	if (!f || f->api_version != MTAR_FUNCTION_API_VERSION)
 		return;
 
 	unsigned int i;
