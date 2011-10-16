@@ -27,27 +27,54 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 21:53:59 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_EXCLUDE_P_H__
-#define __MTAR_EXCLUDE_P_H__
+#ifndef __MTAR_PATTERN_H__
+#define __MTAR_PATTERN_H__
 
-#include <mtar/exclude.h>
+// size_t
+#include <stddef.h>
 
-enum mtar_exclude_tag_option {
-	MTAR_EXCLUDE_TAG,
-	MTAR_EXCLUDE_TAG_ALL,
-	MTAR_EXCLUDE_TAG_UNDER,
+#define MTAR_PATTERN_API_VERSION 1
+
+struct mtar_option;
+
+struct mtar_pattern_exclude {
+	struct mtar_pattern_exclude_ops {
+		void (*free)(struct mtar_pattern_exclude * pattern);
+		int (*match)(struct mtar_pattern_exclude * pattern, const char * filename);
+	} * ops;
+	void * data;
 };
 
-struct mtar_exclude_tag {
-	const char * tag;
-	enum mtar_exclude_tag_option option;
+struct mtar_pattern_include {
+	struct mtar_pattern_include_ops {
+		void (*free)(struct mtar_pattern_include * pattern);
+		int (*has_next)(struct mtar_pattern_include * pattern);
+		void (*next)(struct mtar_pattern_include * pattern, char * filename, size_t length);
+	} * ops;
+	void * data;
 };
 
-struct mtar_exclude_tag * mtar_exclude_add_tag(struct mtar_exclude_tag * tags, unsigned int * nb_tags, const char * tag, enum mtar_exclude_tag_option option);
-void mtar_exclude_show_description(void);
+enum mtar_pattern_option {
+	MTAR_PATTERN_OPTION_DEFAULT     = 0x0,
+	MTAR_PATTERN_OPTION_ANCHORED    = 0x1,
+	MTAR_PATTERN_OPTION_IGNORE_CASE = 0x2,
+};
+
+struct mtar_pattern_driver {
+	const char * name;
+	struct mtar_pattern_exclude * (*new_exclude)(const char * pattern, enum mtar_pattern_option option);
+	struct mtar_pattern_include * (*new_include)(const char * pattern, enum mtar_pattern_option option);
+	void (*show_description)(void);
+	int api_version;
+};
+
+struct mtar_pattern_exclude * mtar_pattern_get_exclude(const char * engine, const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * pattern, enum mtar_pattern_option option);
+int mtar_pattern_match(const struct mtar_option * option, const char * filename);
+void mtar_pattern_register(struct mtar_pattern_driver * driver);
 
 #endif
 

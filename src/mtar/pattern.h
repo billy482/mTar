@@ -27,74 +27,33 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:32:46 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 21:36:09 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+#ifndef __MTAR_PATTERN_P_H__
+#define __MTAR_PATTERN_P_H__
 
-// mode_t
-#include <sys/types.h>
+#include <mtar/pattern.h>
 
-#include "function.h"
+struct mtar_option;
 
-struct mtar_pattern_exclude;
-struct mtar_pattern_include;
-struct mtar_pattern_tag;
-
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	struct mtar_pattern_include ** files;
-	unsigned int nb_files;
-	const char * working_directory;
-	struct mtar_pattern_exclude ** excludes;
-	unsigned int nb_excludes;
-	enum mtar_exclude_option {
-		MTAR_EXCLUDE_OPTION_DEFAULT = 0x0,
-		MTAR_EXCLUDE_OPTION_BACKUP  = 0x1,
-		MTAR_EXCLUDE_OPTION_VCS     = 0x2,
-	} exclude_option;
-	struct mtar_pattern_tag * exclude_tags;
-	unsigned int nb_exclude_tags;
-	char delimiter;
-
-	// informative output
-	int verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+enum mtar_pattern_tag_option {
+	MTAR_PATTERN_TAG,
+	MTAR_PATTERN_TAG_ALL,
+	MTAR_PATTERN_TAG_UNDER,
 };
+
+struct mtar_pattern_tag {
+	char * tag;
+	enum mtar_pattern_tag_option option;
+};
+
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include ** mtar_pattern_add_include(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
+struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
+struct mtar_pattern_tag * mtar_pattern_add_tag(struct mtar_pattern_tag * tags, unsigned int * nb_tags, char * tag, enum mtar_pattern_tag_option option);
+void mtar_pattern_show_description(void);
 
 #endif
 

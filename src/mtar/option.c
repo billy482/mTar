@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 21:37:28 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -42,11 +42,11 @@
 #include <mtar/file.h>
 #include <mtar/verbose.h>
 
-#include "exclude.h"
 #include "filter.h"
 #include "format.h"
 #include "function.h"
 #include "io.h"
+#include "pattern.h"
 #include "option.h"
 
 static void mtar_option_show_help(const char * path);
@@ -94,10 +94,10 @@ void mtar_option_free(struct mtar_option * option) {
 	option->compress_module = 0;
 
 	// local file selections
-	if (option->nbFiles > 0) {
+	if (option->nb_files > 0) {
 		free(option->files);
 		option->files = 0;
-		option->nbFiles = 0;
+		option->nb_files = 0;
 	}
 	option->working_directory = 0;
 	if (option->nb_excludes > 0) {
@@ -148,15 +148,19 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	// local file selections
 	option->files = 0;
-	option->nbFiles = 0;
+	option->nb_files = 0;
 	option->working_directory = 0;
-	option->exclude_engine = "fnmatch";
 	option->excludes = 0;
 	option->nb_excludes = 0;
 	option->exclude_option = MTAR_EXCLUDE_OPTION_DEFAULT;
 	option->exclude_tags = 0;
 	option->nb_exclude_tags = 0;
 	option->delimiter = '\n';
+
+	char * include_pattern_engine = "simple";
+	enum mtar_pattern_option include_pattern_option = MTAR_PATTERN_OPTION_DEFAULT;
+	char * exclude_pattern_engine = "fnmatch";
+	enum mtar_pattern_option exclude_pattern_option = MTAR_PATTERN_OPTION_DEFAULT;
 
 	// informative output
 	option->verbose = 0;
@@ -222,7 +226,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'T':
-					option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
+					option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, include_pattern_engine, include_pattern_option, argv[optind++], option);
 					break;
 
 				case 'v':
@@ -243,7 +247,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'X':
-					option->excludes = mtar_file_add_from_file(argv[optind++], option->excludes, &option->nb_excludes, option);
+					option->excludes = mtar_pattern_add_exclude_from_file(option->excludes, &option->nb_excludes, exclude_pattern_engine, exclude_pattern_option, argv[optind++], option);
 					break;
 
 				case 'z':
@@ -350,6 +354,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	};
 
 	while (optind < argc) {
+		if (argv[optind][0] != '-') {
+			option->files = mtar_pattern_add_include(option->files, &option->nb_files, include_pattern_engine, argv[optind], include_pattern_option);
+			optind++;
+			continue;
+		}
+
 		int option_index;
 		int c = getopt_long(argc, argv, "b:cC:f:H:jtT:vV:WxX:z?", long_options, &option_index);
 		if (c == -1)
@@ -357,9 +367,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 		switch (c) {
 			case OPT_ADD_FILE:
-				option->files = realloc(option->files, (option->nbFiles + 1) * sizeof(char *));
-				option->files[option->nbFiles] = optarg;
-				option->nbFiles++;
+				option->files = mtar_pattern_add_include(option->files, &option->nb_files, include_pattern_engine, optarg, include_pattern_option);
 				break;
 
 			case OPT_ATIME_PRESERVE:
@@ -387,9 +395,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_EXCLUDE:
-				option->excludes = realloc(option->excludes, (option->nb_excludes + 1) * sizeof(char *));
-				option->excludes[option->nb_excludes] = optarg;
-				option->nb_excludes++;
+				option->excludes = mtar_pattern_add_exclude(option->excludes, &option->nb_excludes, exclude_pattern_engine, optarg, exclude_pattern_option);
 				break;
 
 			case OPT_EXCLUDE_BACKUPS:
@@ -397,35 +403,35 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_EXCLUDE_CACHES:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG);
 				break;
 
 			case OPT_EXCLUDE_CACHES_ALL:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG_ALL);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG_ALL);
 				break;
 
 			case OPT_EXCLUDE_CACHES_UNDER:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_EXCLUDE_TAG_UNDER);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG_UNDER);
 				break;
 
 			case OPT_EXCLUDE_ENGINE:
-				option->exclude_engine = optarg;
+				//option->exclude_engine = optarg;
 				break;
 
 			case OPT_EXCLUDE_FROM:
-				option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
+				//option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
 				break;
 
 			case OPT_EXCLUDE_TAG:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG);
 				break;
 
 			case OPT_EXCLUDE_TAG_ALL:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG_ALL);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG_ALL);
 				break;
 
 			case OPT_EXCLUDE_TAG_UNDER:
-				option->exclude_tags = mtar_exclude_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_EXCLUDE_TAG_UNDER);
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG_UNDER);
 				break;
 
 			case OPT_EXCLUDE_VCS:
@@ -446,7 +452,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_FILES_FROM:
-				option->files = mtar_file_add_from_file(optarg, option->files, &option->nbFiles, option);
+				option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, include_pattern_engine, include_pattern_option, optarg, option);
 				break;
 
 			case OPT_FORMAT:
@@ -540,12 +546,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		}
 	}
 
-	if (optind < argc) {
-		option->nbFiles = argc - optind;
-		option->files = calloc(option->nbFiles, sizeof(char *));
-		for (i = 0; optind < argc; i++, optind++)
-			option->files[i] = argv[optind];
-	}
+	while (optind < argc)
+		option->files = mtar_pattern_add_include(option->files, &option->nb_files, include_pattern_engine, argv[optind++], include_pattern_option);
 
 	return 0;
 }
@@ -624,7 +626,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf("        --null                    : -T or -X reads null-terminated names\n\n");
 
 	mtar_verbose_printf("  where ENGINE is one of the following:\n");
-	mtar_exclude_show_description();
+	mtar_pattern_show_description();
 
 	mtar_verbose_printf("\n  Informative output:\n");
 	mtar_verbose_printf("    -v, --verbose : verbosely list files processed\n\n");

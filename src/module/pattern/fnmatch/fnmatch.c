@@ -27,36 +27,30 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 18:47:51 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 22:18:50 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_EXCLUDE_H__
-#define __MTAR_EXCLUDE_H__
+#include <mtar/verbose.h>
 
-struct mtar_option;
+#include "common.h"
 
-struct mtar_exclude {
-	const char ** excludes;
-	unsigned int nb_excludes;
-	struct mtar_exclude_ops {
-		int (*filter)(struct mtar_exclude * ex, const char * filename);
-		void (*free)(struct mtar_exclude * ex);
-	} * ops;
-	void * data;
+static void mtar_pattern_fnmatch_init(void) __attribute__((constructor));
+static void mtar_pattern_fnmatch_show_description(void);
+
+static struct mtar_pattern_driver mtar_pattern_fnmatch_driver = {
+	.name             = "fnmatch",
+	.new_exclude      = mtar_pattern_fnmatch_new_exclude,
+	.new_include      = mtar_pattern_fnmatch_new_include,
+	.show_description = mtar_pattern_fnmatch_show_description,
+	.api_version      = MTAR_PATTERN_API_VERSION,
 };
 
-struct mtar_exclude_driver {
-	const char * name;
-	struct mtar_exclude * (*new)(const struct mtar_option * option);
-	void (*show_description)(void);
-	int api_version;
-};
 
-int mtar_exclude_filter(struct mtar_exclude * ex, const char * filename, const struct mtar_option * option);
-struct mtar_exclude * mtar_exclude_get(const struct mtar_option * option);
-void mtar_exclude_register(struct mtar_exclude_driver * ex);
+void mtar_pattern_fnmatch_init() {
+	mtar_pattern_register(&mtar_pattern_fnmatch_driver);
+}
 
-#define MTAR_EXCLUDE_API_VERSION 1
-
-#endif
+void mtar_pattern_fnmatch_show_description() {
+	mtar_verbose_printf("fnmatch based pattern matching\n");
+}
 

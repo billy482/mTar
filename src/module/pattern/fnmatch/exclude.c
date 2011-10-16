@@ -27,91 +27,52 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 20:46:54 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 21:56:31 +0200                           *
 \***************************************************************************/
 
-// pcre_compile, pcre_exec, pcre_free, pcre_version
-#include <pcre.h>
-// calloc, free
+// fnmatch
+#include <fnmatch.h>
+// free, malloc
 #include <stdlib.h>
-// strlen
-#include <string.h>
 
-#include <mtar/exclude.h>
-#include <mtar/option.h>
-#include <mtar/verbose.h>
+#include "common.h"
 
-struct mtar_exclude_pcre {
-	pcre ** patterns;
+struct mtar_pattern_fnmatch_exclude {
+	const char * pattern;
+	enum mtar_pattern_option option;
 };
 
-static int mtar_exclude_pcre_filter(struct mtar_exclude * ex, const char * filename);
-static void mtar_exclude_pcre_free(struct mtar_exclude * ex);
-static void mtar_exclude_pcre_init(void) __attribute__((constructor));
-static struct mtar_exclude * mtar_exclude_pcre_new(const struct mtar_option * option);
-static void mtar_exclude_pcre_show_description(void);
+static void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex);
+static int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
 
-static struct mtar_exclude_ops mtar_exclude_pcre_ops = {
-	.filter = mtar_exclude_pcre_filter,
-	.free   = mtar_exclude_pcre_free,
-};
-
-static struct mtar_exclude_driver mtar_exclude_pcre_driver = {
-	.name             = "pcre",
-	.new              = mtar_exclude_pcre_new,
-	.show_description = mtar_exclude_pcre_show_description,
-	.api_version      = MTAR_EXCLUDE_API_VERSION,
+static struct mtar_pattern_exclude_ops mtar_pattern_fnmatch_exclude_ops = {
+	.free  = mtar_pattern_fnmatch_exclude_free,
+	.match = mtar_pattern_fnmatch_exclude_match,
 };
 
 
-int mtar_exclude_pcre_filter(struct mtar_exclude * ex, const char * filename) {
-	struct mtar_exclude_pcre * self = ex->data;
-	unsigned int i;
-	int cap[2];
-	for (i = 0; i < ex->nb_excludes; i++)
-		if (pcre_exec(self->patterns[i], 0, filename, strlen(filename), 0, 0, cap, 2) > 0)
-			return 1;
-
-	return 0;
-}
-
-void mtar_exclude_pcre_free(struct mtar_exclude * ex) {
+void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex) {
 	if (!ex)
 		return;
 
-	struct mtar_exclude_pcre * self = ex->data;
-	unsigned int i;
-	for (i = 0; i < ex->nb_excludes; i++)
-		pcre_free(self->patterns[i]);
-	free(self->patterns);
-	free(self);
+	free(ex->data);
 	free(ex);
 }
 
-void mtar_exclude_pcre_init() {
-	mtar_exclude_register(&mtar_exclude_pcre_driver);
+int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
+	struct mtar_pattern_fnmatch_exclude * self = ex->data;
+	return !fnmatch(filename, self->pattern, 0) ? 1 : 0;
 }
 
-struct mtar_exclude * mtar_exclude_pcre_new(const struct mtar_option * option) {
-	struct mtar_exclude_pcre * self = malloc(sizeof(struct mtar_exclude_pcre));
-	self->patterns = calloc(option->nb_excludes, sizeof(pcre *));
+struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * pattern, enum mtar_pattern_option option) {
+	struct mtar_pattern_fnmatch_exclude * self = malloc(sizeof(struct mtar_pattern_fnmatch_exclude));
+	self->pattern = pattern;
+	self->option = option;
 
-	unsigned int i;
-	const char * error = 0;
-	int erroroffset = 0;
-	for (i = 0; i < option->nb_excludes; i++)
-		self->patterns[i] = pcre_compile(option->excludes[i], 0, &error, &erroroffset, 0);
-
-	struct mtar_exclude * ex = malloc(sizeof(struct mtar_exclude));
-	ex->excludes = option->excludes;
-	ex->nb_excludes = option->nb_excludes;
-	ex->ops = &mtar_exclude_pcre_ops;
+	struct mtar_pattern_exclude * ex = malloc(sizeof(struct mtar_pattern_exclude));
+	ex->ops = &mtar_pattern_fnmatch_exclude_ops;
 	ex->data = self;
 
 	return ex;
-}
-
-void mtar_exclude_pcre_show_description() {
-	mtar_verbose_printf("pcre powered exclusion files (using libpcre: v%s)\n", pcre_version());
 }
 

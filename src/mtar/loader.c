@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 22:30:16 +0200                           *
 \***************************************************************************/
 
 // dlclose, dlopen
@@ -40,6 +40,7 @@
 #include <unistd.h>
 
 #include <config.h>
+#include <mtar/verbose.h>
 
 #include "loader.h"
 
@@ -85,6 +86,7 @@ int mtar_loader_load_file(const char * filename) {
 
 	void * cookie = dlopen(filename, RTLD_NOW);
 	if (!cookie) {
+		mtar_verbose_printf("Error while loading file (%s) => %s\n", filename, dlerror());
 		return 3;
 	} else if (!mtar_loader_loaded) {
 		dlclose(cookie);

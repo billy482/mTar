@@ -27,74 +27,74 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:32:46 +0200                           *
+*  Last modified: Tue, 27 Sep 2011 19:13:36 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// free, malloc
+#include <stdlib.h>
+// strlen, strncmp
+#include <string.h>
 
-// mode_t
-#include <sys/types.h>
+#include <mtar/option.h>
+#include <mtar/pattern.h>
+#include <mtar/verbose.h>
 
-#include "function.h"
-
-struct mtar_pattern_exclude;
-struct mtar_pattern_include;
-struct mtar_pattern_tag;
-
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	struct mtar_pattern_include ** files;
-	unsigned int nb_files;
-	const char * working_directory;
-	struct mtar_pattern_exclude ** excludes;
-	unsigned int nb_excludes;
-	enum mtar_exclude_option {
-		MTAR_EXCLUDE_OPTION_DEFAULT = 0x0,
-		MTAR_EXCLUDE_OPTION_BACKUP  = 0x1,
-		MTAR_EXCLUDE_OPTION_VCS     = 0x2,
-	} exclude_option;
-	struct mtar_pattern_tag * exclude_tags;
-	unsigned int nb_exclude_tags;
-	char delimiter;
-
-	// informative output
-	int verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+struct mtar_pattern_simple {
+	const char * pattern;
+	size_t length;
+	enum mtar_pattern_option option;
 };
 
-#endif
+static void mtar_pattern_simple_free(struct mtar_pattern * ex);
+static void mtar_pattern_simple_init(void) __attribute__((constructor));
+static int mtar_pattern_simple_match(struct mtar_pattern * ex, const char * filename);
+static struct mtar_pattern * mtar_pattern_simple_new(const char * pattern, enum mtar_pattern_option option);
+static void mtar_pattern_simple_show_description(void);
+
+static struct mtar_pattern_ops mtar_pattern_simple_ops = {
+	.free  = mtar_pattern_simple_free,
+	.match = mtar_pattern_simple_match,
+};
+
+static struct mtar_pattern_driver mtar_pattern_simple_driver = {
+	.name             = "simple",
+	.new              = mtar_pattern_simple_new,
+	.show_description = mtar_pattern_simple_show_description,
+	.api_version      = MTAR_PATTERN_API_VERSION,
+};
+
+
+void mtar_pattern_simple_free(struct mtar_pattern * ex) {
+	if (!ex)
+		return;
+
+	free(ex->data);
+	free(ex);
+}
+
+void mtar_pattern_simple_init() {
+	mtar_pattern_register(&mtar_pattern_simple_driver);
+}
+
+int mtar_pattern_simple_match(struct mtar_pattern * ex, const char * filename) {
+	struct mtar_pattern_simple * self = ex->data;
+	return !strncmp(filename, self->pattern, self->length) ? 1 : 0;
+}
+
+struct mtar_pattern * mtar_pattern_simple_new(const char * pattern, enum mtar_pattern_option option) {
+	struct mtar_pattern_simple * self = malloc(sizeof(struct mtar_pattern_simple));
+	self->pattern = pattern;
+	self->length = strlen(pattern);
+	self->option = option;
+
+	struct mtar_pattern * ex = malloc(sizeof(struct mtar_pattern));
+	ex->ops = &mtar_pattern_simple_ops;
+	ex->data = self;
+
+	return ex;
+}
+
+void mtar_pattern_simple_show_description() {
+	mtar_verbose_printf("strcmp based pattern matching\n");
+}
 

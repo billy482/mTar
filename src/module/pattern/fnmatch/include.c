@@ -27,74 +27,47 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:32:46 +0200                           *
+*  Last modified: Mon, 10 Oct 2011 22:31:50 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_OPTION_H__
-#define __MTAR_OPTION_H__
+// fnmatch
+#include <fnmatch.h>
+// free, malloc
+#include <stdlib.h>
 
-// mode_t
-#include <sys/types.h>
+#include "common.h"
 
-#include "function.h"
-
-struct mtar_pattern_exclude;
-struct mtar_pattern_include;
-struct mtar_pattern_tag;
-
-struct mtar_option {
-	// main operation mode
-	mtar_function_f doWork;
-
-	// overwrite control
-	char verify;
-
-	// handling of file attributes
-	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
-	} atime_preserve;
-	const char * group;
-	mode_t mode;
-	const char * owner;
-
-	// device selection and switching
-	const char * filename;
-
-	// device blocking
-	int block_factor;
-
-	// archive format selection
-	const char * format;
-	const char * label;
-
-	// compression options
-	const char * compress_module;
-	int compress_level;
-
-	// local file selections
-	struct mtar_pattern_include ** files;
-	unsigned int nb_files;
-	const char * working_directory;
-	struct mtar_pattern_exclude ** excludes;
-	unsigned int nb_excludes;
-	enum mtar_exclude_option {
-		MTAR_EXCLUDE_OPTION_DEFAULT = 0x0,
-		MTAR_EXCLUDE_OPTION_BACKUP  = 0x1,
-		MTAR_EXCLUDE_OPTION_VCS     = 0x2,
-	} exclude_option;
-	struct mtar_pattern_tag * exclude_tags;
-	unsigned int nb_exclude_tags;
-	char delimiter;
-
-	// informative output
-	int verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+struct mtar_pattern_fnmatch_include {
+	const char * pattern;
+	enum mtar_pattern_option option;
 };
 
-#endif
+void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern);
+int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern);
+void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char * filename, size_t length);
+
+static struct mtar_pattern_include_ops mtar_pattern_fnmatch_include_ops = {
+	.free  = mtar_pattern_fnmatch_include_free,
+};
+
+
+void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern) {
+	if (!pattern)
+		return;
+
+	free(pattern->data);
+	free(pattern);
+}
+
+struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option) {
+	struct mtar_pattern_fnmatch_include * self = malloc(sizeof(struct mtar_pattern_fnmatch_include));
+	self->pattern = pattern;
+	self->option = option;
+
+	struct mtar_pattern_include * ex = malloc(sizeof(struct mtar_pattern_include));
+	ex->ops = &mtar_pattern_fnmatch_include_ops;
+	ex->data = self;
+
+	return ex;
+}
 

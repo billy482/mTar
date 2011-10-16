@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:23:45 +0200                           *
+*  Last modified: Tue, 27 Sep 2011 18:09:36 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -50,12 +50,11 @@
 // utime
 #include <utime.h>
 
-#include <mtar/exclude.h>
 #include <mtar/format.h>
 #include <mtar/function.h>
 #include <mtar/hashtable.h>
 #include <mtar/option.h>
-#include <mtar/plugin.h>
+#include <mtar/pattern.h>
 #include <mtar/util.h>
 #include <mtar/verbose.h>
 
@@ -68,7 +67,6 @@ struct mtar_function_create_param {
 	ssize_t block_size;
 	struct mtar_hashtable * inode;
 	const struct mtar_option * option;
-	struct mtar_exclude * exclude;
 };
 
 static int mtar_function_create(const struct mtar_option * option);
@@ -102,7 +100,6 @@ int mtar_function_create(const struct mtar_option * option) {
 	param.format = mtar_format_get_out(option);
 	param.block_size = param.format->ops->block_size(param.format);
 	param.buffer = malloc(param.block_size);
-	param.exclude = mtar_exclude_get(option);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -114,18 +111,20 @@ int mtar_function_create(const struct mtar_option * option) {
 		param.format->ops->add_label(param.format, option->label);
 	}
 
-	unsigned int i;
+	struct dirent ** namelist = 0;
+	int i, nb_files = scandir(".", &namelist, mtar_function_create_filter, versionsort);
 	int failed = 0;
-	for (i = 0; i < option->nbFiles && !failed; i++) {
-		param.filename = option->files[i];
-		failed = mtar_function_create2(&param);
+	for (i = 0; i < nb_files; i++) {
+		if (!failed) {
+			param.filename = namelist[i]->d_name;
+			failed = mtar_function_create2(&param);
+		}
+		free(namelist[i]);
 	}
+	free(namelist);
 
 	free(param.buffer);
 	mtar_hashtable_free(param.inode);
-
-	if (param.exclude)
-		param.exclude->ops->free(param.exclude);
 
 	if (failed || !option->verify) {
 		param.format->ops->free(param.format);
@@ -214,7 +213,7 @@ int mtar_function_create(const struct mtar_option * option) {
 }
 
 int mtar_function_create2(struct mtar_function_create_param * param) {
-	if (mtar_exclude_filter(param->exclude, param->filename, param->option))
+	if (!mtar_pattern_match(param->option, param->filename))
 		return 0;
 
 	struct stat st;
