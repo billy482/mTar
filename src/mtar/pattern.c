@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 16 Oct 2011 11:28:42 +0200                           *
+*  Last modified: Tue, 18 Oct 2011 18:37:30 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -39,7 +39,7 @@
 #include <fnmatch.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp, strlen, strrchr
+// strcmp, strdup, strlen, strrchr
 #include <string.h>
 // stat
 #include <sys/types.h>
@@ -57,7 +57,7 @@
 #include "pattern.h"
 
 struct mtar_pattern_include_private {
-	const char * path;
+	char * path;
 	enum mtar_pattern_option option;
 
 	struct mtar_pattern_include_node {
@@ -217,6 +217,10 @@ int mtar_pattern_include_filter(const struct dirent * file) {
 void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern) {
 	struct mtar_pattern_include_private * self = pattern->data;
 
+	if (self->path)
+		free(self->path);
+	self->path = 0;
+
 	struct mtar_pattern_include_node * ptr;
 	for (ptr = self->nodes; ptr; ptr = ptr->next) {
 		if (ptr->previous)
@@ -326,7 +330,7 @@ void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, ch
 
 struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option) {
 	struct mtar_pattern_include_private * self = malloc(sizeof(struct mtar_pattern_include_private));
-	self->path = pattern;
+	self->path = strdup(pattern);
 	self->option = option;
 	self->nodes = self->last = 0;
 	self->status = MTAR_PATTERN_INCLUDE_PRIVATE_INIT;
