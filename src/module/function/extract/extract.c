@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:23:55 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 23:44:36 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -39,10 +39,10 @@
 // chdir, close, link, mknod, symlink, write
 #include <unistd.h>
 
-#include <mtar/exclude.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
+#include <mtar/pattern.h>
 #include <mtar/verbose.h>
 
 #include "common.h"
@@ -67,7 +67,6 @@ int mtar_function_extract(const struct mtar_option * option) {
 		return 1;
 
 	mtar_function_extract_configure(option);
-	struct mtar_exclude * exclude = mtar_exclude_get(option);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -82,7 +81,7 @@ int mtar_function_extract(const struct mtar_option * option) {
 
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
-				if (mtar_exclude_filter(exclude, header.path, option)) {
+				if (mtar_pattern_match(option, header.path)) {
 					format->ops->skip_file(format);
 					continue;
 				}
@@ -140,8 +139,6 @@ int mtar_function_extract(const struct mtar_option * option) {
 	}
 
 	format->ops->free(format);
-	if (exclude)
-		exclude->ops->free(exclude);
 
 	return 0;
 }

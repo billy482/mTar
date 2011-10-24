@@ -27,12 +27,9 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 23:15:04 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 23:39:28 +0200                           *
 \***************************************************************************/
 
-#define _GNU_SOURCE
-// scandir
-#include <dirent.h>
 // open
 #include <fcntl.h>
 // free, malloc
@@ -70,8 +67,6 @@ struct mtar_function_create_param {
 };
 
 static int mtar_function_create(const struct mtar_option * option);
-static int mtar_function_create2(struct mtar_function_create_param * param);
-static int mtar_function_create_filter(const struct dirent * d);
 static void mtar_function_create_init(void) __attribute__((constructor));
 static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
@@ -260,99 +255,6 @@ int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	return failed;
-}
-
-int mtar_function_create2(struct mtar_function_create_param * param) {
-	if (!mtar_pattern_match(param->option, param->filename))
-		return 0;
-
-	struct stat st;
-	if (lstat(param->filename, &st))
-		return 1;
-
-	if (S_ISSOCK(st.st_mode))
-		return 0;
-
-	struct mtar_format_header header;
-
-	char key[16];
-	snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
-	if (mtar_hashtable_hasKey(param->inode, key)) {
-		const char * target = mtar_hashtable_value(param->inode, key);
-		int failed = param->format->ops->add_link(param->format, param->filename, target, &header);
-		mtar_function_create_display(&header, target);
-		return failed;
-	}
-
-	mtar_hashtable_put(param->inode, strdup(key), strdup(param->filename));
-
-	int failed = param->format->ops->add_file(param->format, param->filename, &header);
-	mtar_function_create_display(&header, 0);
-
-	if (failed)
-		return failed;
-
-	// mtar_plugin_add_file(param->filename);
-
-	if (S_ISREG(st.st_mode)) {
-		int fd = open(param->filename, O_RDONLY);
-
-		ssize_t nbRead;
-		ssize_t totalNbRead = 0;
-		while ((nbRead = read(fd, param->buffer, param->block_size)) > 0) {
-			param->format->ops->write(param->format, param->buffer, nbRead);
-
-			totalNbRead += nbRead;
-
-			mtar_function_create_progress(param->filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
-
-			// mtar_plugin_write(buffer, nbRead);
-		}
-
-		param->format->ops->end_of_file(param->format);
-		mtar_verbose_clean();
-		close(fd);
-
-		// mtar_plugin_end_of_file();
-
-	} else if (S_ISDIR(st.st_mode)) {
-		const char * dirname = param->filename;
-
-		struct dirent ** namelist = 0;
-		int i, nbFiles = scandir(dirname, &namelist, mtar_function_create_filter, versionsort);
-		for (i = 0; i < nbFiles; i++) {
-			size_t dirlength = strlen(dirname);
-			char * subfile = malloc(dirlength + strlen(namelist[i]->d_name) + 2);
-
-			strcpy(subfile, dirname);
-			for (dirlength--; dirlength > 0 && subfile[dirlength] == '/'; dirlength--)
-				subfile[dirlength] = '\0';
-			sprintf(subfile + dirlength + 1, "/%s", namelist[i]->d_name);
-			free(namelist[i]);
-
-			//param->filename = subfile;
-			failed = mtar_function_create2(param);
-
-			free(subfile);
-		}
-		free(namelist);
-
-		//param->filename = dirname;
-	}
-
-	if (param->option->atime_preserve == MTAR_OPTION_ATIME_REPLACE) {
-		struct utimbuf buf = {
-			.actime  = st.st_atime,
-			.modtime = st.st_mtime,
-		};
-		utime(param->filename, &buf);
-	}
-
-	return 0;
-}
-
-int mtar_function_create_filter(const struct dirent * d) {
-	return !strcmp(".", d->d_name) || !strcmp("..", d->d_name) ? 0 : 1;
 }
 
 void mtar_function_create_init() {

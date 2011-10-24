@@ -27,13 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:24:05 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 23:43:24 +0200                           *
 \***************************************************************************/
 
-#include <mtar/exclude.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
+#include <mtar/pattern.h>
 #include <mtar/verbose.h>
 
 #include "common.h"
@@ -58,8 +58,6 @@ int mtar_function_list(const struct mtar_option * option) {
 		return 1;
 
 	mtar_function_list_configure(option);
-	struct mtar_exclude * exclude = mtar_exclude_get(option);
-
 	struct mtar_format_header header;
 
 	int ok = -1;
@@ -68,7 +66,7 @@ int mtar_function_list(const struct mtar_option * option) {
 
 		switch (status) {
 			case MTAR_FORMAT_HEADER_OK:
-				if (mtar_exclude_filter(exclude, header.path, option)) {
+				if (mtar_pattern_match(option, header.path)) {
 					format->ops->skip_file(format);
 					continue;
 				}
