@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:37:28 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 18:01:44 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -158,9 +158,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->delimiter = '\n';
 
 	char * include_pattern_engine = "simple";
-	enum mtar_pattern_option include_pattern_option = MTAR_PATTERN_OPTION_DEFAULT;
+	enum mtar_pattern_option include_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_INCLUDE;
 	char * exclude_pattern_engine = "fnmatch";
-	enum mtar_pattern_option exclude_pattern_option = MTAR_PATTERN_OPTION_DEFAULT;
+	enum mtar_pattern_option exclude_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE;
 
 	// informative output
 	option->verbose = 0;
@@ -299,9 +299,11 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_LIST_IOS,
 		OPT_MODE,
 		OPT_NO_NULL,
+		OPT_NO_RECURSION,
 		OPT_NULL,
 		OPT_OWNER,
 		OPT_PLUGIN,
+		OPT_RECURSION,
 		OPT_VERSION,
 	};
 
@@ -342,9 +344,11 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"list-ios",             0, 0, OPT_LIST_IOS},
 		{"mode",                 1, 0, OPT_MODE},
 		{"no-null",              0, 0, OPT_NO_NULL},
+		{"no-recursion",         0, 0, OPT_NO_RECURSION},
 		{"null",                 0, 0, OPT_NULL},
 		{"owner",                1, 0, OPT_OWNER},
 		{"plugin",               1, 0, OPT_PLUGIN},
+		{"recursion",            0, 0, OPT_RECURSION},
 		{"ungzip",               0, 0, OPT_GZIP},
 		{"verbose",              0, 0, OPT_VERBOSE},
 		{"verify",               0, 0, OPT_VERIFY},
@@ -517,6 +521,11 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->delimiter = '\n';
 				break;
 
+			case OPT_NO_RECURSION:
+				exclude_pattern_option &= ~MTAR_PATTERN_OPTION_RECURSION;
+				include_pattern_option &= ~MTAR_PATTERN_OPTION_RECURSION;
+				break;
+
 			case OPT_NULL:
 				option->delimiter = '\0';
 				break;
@@ -529,6 +538,11 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->plugins = realloc(option->plugins, (option->nb_plugins + 1) * sizeof(char *));
 				option->plugins[option->nb_plugins] = optarg;
 				option->nb_plugins++;
+				break;
+
+			case OPT_RECURSION:
+				exclude_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
+				include_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
 				break;
 
 			case OPT_VERBOSE:
@@ -623,7 +637,10 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf("    -T, --files-from=FILE         : get names to extract or create from FILE\n");
 	mtar_verbose_printf("        --no-null                 : disable the effect of the previous --null\n");
 	mtar_verbose_printf("                                    option\n");
-	mtar_verbose_printf("        --null                    : -T or -X reads null-terminated names\n\n");
+	mtar_verbose_printf("        --no-recursion            : avoid descending automatically in\n");
+	mtar_verbose_printf("                                    directories\n");
+	mtar_verbose_printf("        --null                    : -T or -X reads null-terminated names\n");
+	mtar_verbose_printf("        --recursion               : recurse into directories (default)\n\n");
 
 	mtar_verbose_printf("  where ENGINE is one of the following:\n");
 	mtar_pattern_show_description();

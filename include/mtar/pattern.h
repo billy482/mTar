@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:53:59 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 18:50:14 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_H__
@@ -58,9 +58,12 @@ struct mtar_pattern_include {
 };
 
 enum mtar_pattern_option {
-	MTAR_PATTERN_OPTION_DEFAULT     = 0x0,
 	MTAR_PATTERN_OPTION_ANCHORED    = 0x1,
 	MTAR_PATTERN_OPTION_IGNORE_CASE = 0x2,
+	MTAR_PATTERN_OPTION_RECURSION   = 0x4,
+
+	MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE = 0x0,
+	MTAR_PATTERN_OPTION_DEFAULT_INCLUDE = MTAR_PATTERN_OPTION_RECURSION,
 };
 
 struct mtar_pattern_driver {

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 18 Oct 2011 18:37:30 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 23:36:15 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -317,6 +317,11 @@ void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, ch
 		}
 
 		if (S_ISDIR(st.st_mode)) {
+			if (!(self->option & MTAR_PATTERN_OPTION_RECURSION)) {
+				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+				return;
+			}
+
 			self->nodes = self->last = cnode = malloc(sizeof(struct mtar_pattern_include_private));
 			cnode->nl = 0;
 			cnode->next = cnode->previous = 0;

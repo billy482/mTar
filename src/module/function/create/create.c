@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 27 Sep 2011 18:09:36 +0200                           *
+*  Last modified: Mon, 24 Oct 2011 23:15:04 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -61,7 +61,7 @@
 #include "common.h"
 
 struct mtar_function_create_param {
-	const char * filename;
+	char filename[256];
 	struct mtar_format_out * format;
 	char * buffer;
 	ssize_t block_size;
@@ -88,18 +88,11 @@ static struct mtar_function mtar_function_create_functions = {
 int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
-	struct mtar_function_create_param param = {
-		.filename   = 0,
-		.format     = 0,
-		.buffer     = 0,
-		.block_size = 1024,
-		.inode      = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free),
-		.option     = option,
-	};
-
-	param.format = mtar_format_get_out(option);
-	param.block_size = param.format->ops->block_size(param.format);
-	param.buffer = malloc(param.block_size);
+	char filename[256];
+	struct mtar_format_out * format = mtar_format_get_out(option);
+	ssize_t block_size = format->ops->block_size(format);
+	char * buffer = malloc(block_size);
+	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -108,31 +101,88 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	if (option->label) {
 		mtar_function_create_display_label(option->label);
-		param.format->ops->add_label(param.format, option->label);
+		format->ops->add_label(format, option->label);
 	}
 
-	struct dirent ** namelist = 0;
-	int i, nb_files = scandir(".", &namelist, mtar_function_create_filter, versionsort);
+	unsigned int i;
 	int failed = 0;
-	for (i = 0; i < nb_files; i++) {
-		if (!failed) {
-			param.filename = namelist[i]->d_name;
-			failed = mtar_function_create2(&param);
-		}
-		free(namelist[i]);
-	}
-	free(namelist);
+	for (i = 0; i < option->nb_files && !failed; i++) {
+		while (option->files[i]->ops->has_next(option->files[i])) {
+			option->files[i]->ops->next(option->files[i], filename, 256);
 
-	free(param.buffer);
-	mtar_hashtable_free(param.inode);
+			if (mtar_pattern_match(option, filename))
+				continue;
+
+			struct stat st;
+			if (lstat(filename, &st)) {
+				failed = 1;
+				break;
+			}
+
+			if (S_ISSOCK(st.st_mode))
+				continue;
+
+			struct mtar_format_header header;
+
+			char key[16];
+			snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
+			if (mtar_hashtable_hasKey(inode, key)) {
+				const char * target = mtar_hashtable_value(inode, key);
+				failed = format->ops->add_link(format, filename, target, &header);
+				mtar_function_create_display(&header, target);
+				if (failed)
+					break;
+				continue;
+			}
+
+			mtar_hashtable_put(inode, strdup(key), strdup(filename));
+
+			failed = format->ops->add_file(format, filename, &header);
+			mtar_function_create_display(&header, 0);
+
+			if (failed)
+				break;
+
+			if (S_ISREG(st.st_mode)) {
+				int fd = open(filename, O_RDONLY);
+
+				ssize_t nbRead;
+				ssize_t totalNbRead = 0;
+				while ((nbRead = read(fd, buffer, block_size)) > 0) {
+					format->ops->write(format, buffer, nbRead);
+
+					totalNbRead += nbRead;
+
+					mtar_function_create_progress(filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
+
+					// mtar_plugin_write(buffer, nbRead);
+				}
+
+				format->ops->end_of_file(format);
+				mtar_verbose_clean();
+				close(fd);
+			}
+
+			if (option->atime_preserve == MTAR_OPTION_ATIME_REPLACE) {
+				struct utimbuf buf = {
+					.actime  = st.st_atime,
+					.modtime = st.st_mtime,
+				};
+				utime(filename, &buf);
+			}
+		}
+	}
+
+	free(buffer);
+	mtar_hashtable_free(inode);
 
 	if (failed || !option->verify) {
-		param.format->ops->free(param.format);
+		format->ops->free(format);
 		return failed;
 	}
 
-	struct mtar_format_in * tar_in = param.format->ops->reopenForReading(param.format, option);
-	param.format->ops->free(param.format);
+	struct mtar_format_in * tar_in = format->ops->reopenForReading(format, option);
+	format->ops->free(format);
 	if (!tar_in) {
 		mtar_verbose_printf("Error: Cannot reopen file for verify\n");
 		return 1;
@@ -280,14 +330,14 @@ int mtar_function_create2(struct mtar_function_create_param * param) {
 			sprintf(subfile + dirlength + 1, "/%s", namelist[i]->d_name);
 			free(namelist[i]);
 
-			param->filename = subfile;
+			//param->filename = subfile;
 			failed = mtar_function_create2(param);
 
 			free(subfile);
 		}
 		free(namelist);
 
-		param->filename = dirname;
+		//param->filename = dirname;
 	}
 
 	if (param->option->atime_preserve == MTAR_OPTION_ATIME_REPLACE) {
