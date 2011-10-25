@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 07:46:25 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILE_H__
@@ -37,8 +37,6 @@ struct mtar_option;
 
 // gid_t, mode_t, ssize_t, uid_t
 #include <sys/types.h>
-
-const char ** mtar_file_add_from_file(const char * filename, const char ** files, unsigned int * nbFiles, struct mtar_option * option);
 
 /**
  * \brief Convert a file mode to \b buffer with `ls -l` style

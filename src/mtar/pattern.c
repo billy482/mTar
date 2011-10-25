@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 23:36:15 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:23:19 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -462,7 +462,7 @@ void mtar_pattern_register(struct mtar_pattern_driver * driver) {
 }
 
 void mtar_pattern_show_description() {
-	mtar_loader_loadAll("pattern");
+	mtar_loader_load_all("pattern");
 
 	unsigned int i, length = 0;
 	for (i = 0; i < mtar_pattern_nb_drivers; i++) {

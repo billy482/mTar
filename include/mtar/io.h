@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 09:36:46 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:47:46 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -131,7 +131,7 @@ struct mtar_io_out {
 		void (*free)(struct mtar_io_out * io);
 		int (*last_errno)(struct mtar_io_out * io);
 		off_t (*pos)(struct mtar_io_out * io);
-		struct mtar_io_in * (*reopenForReading)(struct mtar_io_out * io, const struct mtar_option * option);
+		struct mtar_io_in * (*reopen_for_reading)(struct mtar_io_out * io, const struct mtar_option * option);
 		ssize_t (*write)(struct mtar_io_out * io, const void * data, ssize_t length);
 	} * ops;
 	/**

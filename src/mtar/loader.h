@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:21:20 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_LOADER_H__
 #define __MTAR_LOADER_H__
 
 int mtar_loader_load(const char * module, const char * name);
-void mtar_loader_loadAll(const char * module);
+void mtar_loader_load_all(const char * module);
 void mtar_loader_register_ok(void);
 
 #endif

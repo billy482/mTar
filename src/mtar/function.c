@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 24 Sep 2011 13:07:57 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:22:49 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -84,7 +84,7 @@ void mtar_function_register(struct mtar_function * f) {
 }
 
 void mtar_function_show_description() {
-	mtar_loader_loadAll("function");
+	mtar_loader_load_all("function");
 
 	unsigned int i, length = 0;
 	for (i = 0; i < mtar_function_nb_functions; i++) {
@@ -99,7 +99,7 @@ void mtar_function_show_description() {
 	}
 }
 
-void mtar_function_showHelp(const char * function) {
+void mtar_function_show_help(const char * function) {
 	unsigned int i;
 	struct mtar_function * f = 0;
 	for (i = 0; !f && i < mtar_function_nb_functions; i++)

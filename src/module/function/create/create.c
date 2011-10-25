@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 23:39:28 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:53:38 +0200                           *
 \***************************************************************************/
 
 // open
@@ -176,7 +176,7 @@ int mtar_function_create(const struct mtar_option * option) {
 		return failed;
 	}
 
-	struct mtar_format_in * tar_in = format->ops->reopenForReading(format, option);
+	struct mtar_format_in * tar_in = format->ops->reopen_for_reading(format, option);
 	format->ops->free(format);
 	if (!tar_in) {
 		mtar_verbose_printf("Error: Cannot reopen file for verify\n");

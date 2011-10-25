@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:21:42 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:22:35 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -35,13 +35,13 @@
 // bzero, strcmp, strlen
 #include <string.h>
 
+#include <mtar/filter.h>
+#include <mtar/io.h>
+#include <mtar/option.h>
 #include <mtar/verbose.h>
 
-#include "filter.h"
 #include "format.h"
-#include "io.h"
 #include "loader.h"
-#include "option.h"
 
 static void mtar_format_exit(void) __attribute__((destructor));
 static struct mtar_format * mtar_format_get(const char * name);
@@ -148,7 +148,7 @@ void mtar_format_register(struct mtar_format * f) {
 }
 
 void mtar_format_show_description() {
-	mtar_loader_loadAll("format");
+	mtar_loader_load_all("format");
 
 	unsigned int i, length = 0;
 	for (i = 0; i < mtar_format_nb_formats; i++) {

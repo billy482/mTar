@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 18:01:44 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 08:09:35 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -466,7 +466,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case OPT_FUNCTION:
 				if (!strncmp(optarg, "help=", 5)) {
 					mtar_option_show_version(*argv);
-					mtar_function_showHelp(optarg + 5);
+					mtar_function_show_help(optarg + 5);
 					return 1;
 				} else {
 					option->doWork = mtar_function_get(optarg);

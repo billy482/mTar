@@ -27,15 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 07:50:14 +0200                           *
 \***************************************************************************/
 
 // open
 #include <fcntl.h>
 // sscanf, snprintf
 #include <stdio.h>
-// free, realloc
-#include <stdlib.h>
 // strchr, strcpy, strlen, strncpy, strstr
 #include <string.h>
 // mmap, munmap
@@ -48,10 +46,8 @@
 #include <unistd.h>
 
 #include <mtar/file.h>
-#include <mtar/filter.h>
 #include <mtar/hashtable.h>
 #include <mtar/option.h>
-#include <mtar/readline.h>
 #include <mtar/util.h>
 
 static void mtar_file_exit(void) __attribute__((destructor));
@@ -64,31 +60,6 @@ static struct mtar_hashtable * mtar_file_groupCached = 0;
 static struct mtar_hashtable * mtar_file_uidCached = 0;
 static struct mtar_hashtable * mtar_file_userCached = 0;
 
-
-const char ** mtar_file_add_from_file(const char * filename, const char ** files, unsigned int * nbFiles, struct mtar_option * option) {
-	if (!filename || !nbFiles || !option)
-		return 0;
-
-	struct mtar_io_in * file = mtar_filter_get_in3(filename, option);
-	if (!file)
-		return 0;
-
-	struct mtar_readline * rl = mtar_readline_new(file, option->delimiter);
-	char * line;
-	while ((line = mtar_readline_getline(rl))) {
-		if (strlen(line) == 0) {
-			free(line);
-			continue;
-		}
-
-		files = realloc(files, (*nbFiles + 1) * sizeof(char *));
-		files[*nbFiles] = line;
-		(*nbFiles)++;
-	}
-	mtar_readline_free(rl);
-
-	return files;
-}
 
 void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	strcpy(buffer, "----------");

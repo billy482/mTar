@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 09:39:28 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:22:19 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -37,11 +37,11 @@
 // strcmp, strlen, strrchr
 #include <string.h>
 
+#include <mtar/option.h>
 #include <mtar/verbose.h>
 
 #include "filter.h"
 #include "loader.h"
-#include "option.h"
 
 static struct mtar_filter ** mtar_filter_filters = 0;
 static unsigned int mtar_filter_nb_filters = 0;
@@ -205,7 +205,7 @@ void mtar_filter_register(struct mtar_filter * filter) {
 }
 
 void mtar_filter_show_description() {
-	mtar_loader_loadAll("filter");
+	mtar_loader_load_all("filter");
 	mtar_verbose_printf("\nList of available backend filters :\n");
 
 	unsigned int i, length = 0;

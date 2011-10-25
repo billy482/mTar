@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:20:15 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:23:02 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -173,7 +173,7 @@ void mtar_io_register(struct mtar_io * io) {
 }
 
 void mtar_io_show_description() {
-	mtar_loader_loadAll("io");
+	mtar_loader_load_all("io");
 	mtar_verbose_printf("\nList of available backend ios :\n");
 
 	unsigned int i, length = 0;

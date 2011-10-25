@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 22:30:16 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 09:21:32 +0200                           *
 \***************************************************************************/
 
 // dlclose, dlopen
@@ -59,7 +59,7 @@ int mtar_loader_load(const char * module, const char * name) {
 	return mtar_loader_load_file(path);
 }
 
-void mtar_loader_loadAll(const char * module) {
+void mtar_loader_load_all(const char * module) {
 	char pattern[256];
 	snprintf(pattern, 256, "%s/lib%s-*.so", PLUGINS_PATH, module);
 
