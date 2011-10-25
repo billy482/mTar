@@ -27,74 +27,16 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 27 Sep 2011 19:13:36 +0200                           *
+*  Last modified: Tue, 25 Oct 2011 11:37:50 +0200                           *
 \***************************************************************************/
 
-// free, malloc
-#include <stdlib.h>
-// strlen, strncmp
-#include <string.h>
+#ifndef __MTAR_PATTERN_PCRE_H__
+#define __MTAR_PATTERN_PCRE_H__
 
-#include <mtar/option.h>
 #include <mtar/pattern.h>
-#include <mtar/verbose.h>
 
-struct mtar_pattern_simple {
-	const char * pattern;
-	size_t length;
-	enum mtar_pattern_option option;
-};
+struct mtar_pattern_exclude * mtar_pattern_pcre_new_exclude(const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern, enum mtar_pattern_option option);
 
-static void mtar_pattern_simple_free(struct mtar_pattern * ex);
-static void mtar_pattern_simple_init(void) __attribute__((constructor));
-static int mtar_pattern_simple_match(struct mtar_pattern * ex, const char * filename);
-static struct mtar_pattern * mtar_pattern_simple_new(const char * pattern, enum mtar_pattern_option option);
-static void mtar_pattern_simple_show_description(void);
-
-static struct mtar_pattern_ops mtar_pattern_simple_ops = {
-	.free  = mtar_pattern_simple_free,
-	.match = mtar_pattern_simple_match,
-};
-
-static struct mtar_pattern_driver mtar_pattern_simple_driver = {
-	.name             = "simple",
-	.new              = mtar_pattern_simple_new,
-	.show_description = mtar_pattern_simple_show_description,
-	.api_version      = MTAR_PATTERN_API_VERSION,
-};
-
-
-void mtar_pattern_simple_free(struct mtar_pattern * ex) {
-	if (!ex)
-		return;
-
-	free(ex->data);
-	free(ex);
-}
-
-void mtar_pattern_simple_init() {
-	mtar_pattern_register(&mtar_pattern_simple_driver);
-}
-
-int mtar_pattern_simple_match(struct mtar_pattern * ex, const char * filename) {
-	struct mtar_pattern_simple * self = ex->data;
-	return !strncmp(filename, self->pattern, self->length) ? 1 : 0;
-}
-
-struct mtar_pattern * mtar_pattern_simple_new(const char * pattern, enum mtar_pattern_option option) {
-	struct mtar_pattern_simple * self = malloc(sizeof(struct mtar_pattern_simple));
-	self->pattern = pattern;
-	self->length = strlen(pattern);
-	self->option = option;
-
-	struct mtar_pattern * ex = malloc(sizeof(struct mtar_pattern));
-	ex->ops = &mtar_pattern_simple_ops;
-	ex->data = self;
-
-	return ex;
-}
-
-void mtar_pattern_simple_show_description() {
-	mtar_verbose_printf("strcmp based pattern matching\n");
-}
+#endif
 
