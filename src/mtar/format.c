@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:22:35 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 23:28:39 +0100                           *
 \***************************************************************************/
 
 // free, realloc
@@ -150,16 +150,8 @@ void mtar_format_register(struct mtar_format * f) {
 void mtar_format_show_description() {
 	mtar_loader_load_all("format");
 
-	unsigned int i, length = 0;
-	for (i = 0; i < mtar_format_nb_formats; i++) {
-		unsigned int ll = strlen(mtar_format_formats[i]->name);
-		if (ll > length)
-			length = ll;
-	}
-
-	for (i = 0; i < mtar_format_nb_formats; i++) {
-		mtar_verbose_printf("    %-*s : ", length, mtar_format_formats[i]->name);
+	unsigned int i;
+	for (i = 0; i < mtar_format_nb_formats; i++)
 		mtar_format_formats[i]->show_description();
-	}
 }
 

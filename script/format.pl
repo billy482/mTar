@@ -27,7 +27,7 @@ while ( $line = shift @lines ) {
     my @tabs;
     my $hasShortParam = 0;
     while ( length $line > 0 ) {
-        my ( $left, $right ) = split /\s*:\s*/, $line;
+        my ( $left, $right ) = split /\s*:\s*/, $line, 2;
 
         $left =~ s/^\s*(.+?)\s*$/$1/;
         unless ( defined $right ) {
@@ -41,6 +41,7 @@ while ( $line = shift @lines ) {
         $hasShortParam += $shortParam;
 
         $right =~ s/^\s*(.+?)\s*$/$1/;
+        $right =~ s/\s{2,}/ /g;
 
         $last = {
             left        => $left,

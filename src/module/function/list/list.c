@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 23:43:24 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 22:58:55 +0100                           *
 \***************************************************************************/
 
 #include <mtar/function.h>
@@ -105,7 +105,7 @@ void mtar_function_list_init() {
 }
 
 void mtar_function_list_show_description() {
-	mtar_verbose_printf("List files from tar archive\n");
+	mtar_verbose_print_help(2, "list : List files from tar archive");
 }
 
 void mtar_function_list_show_help() {

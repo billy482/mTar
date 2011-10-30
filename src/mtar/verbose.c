@@ -27,16 +27,19 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 23:23:42 +0100                           *
 \***************************************************************************/
 
-// va_end, va_start
-#include <stdarg.h>
-// dprintf, vdprintf
-#include <stdio.h>
+#define _GNU_SOURCE
 // signal
 #include <signal.h>
-// memcpy, memmove, memset, strcpy, strlen, strstr
+// va_end, va_start
+#include <stdarg.h>
+// dprintf, vasprintf, vdprintf
+#include <stdio.h>
+// calloc, free, realloc
+#include <stdlib.h>
+// memcpy, memmove, memset, strchr, strcpy, strlen, strstr
 #include <string.h>
 // ioctl
 #include <sys/ioctl.h>
@@ -48,23 +51,35 @@
 #include <time.h>
 
 #include <mtar/option.h>
+#include <mtar/util.h>
 #include <mtar/verbose.h>
+
+static struct mtar_verbose_print_help {
+	char * left;
+	size_t left_length;
+	short has_short_param;
+
+	char * right;
+	size_t right_length;
+} * lines = 0;
+static unsigned int nb_lines = 0;
+static unsigned int max_left_width = 0;
 
 static void mtar_verbose_init(void) __attribute__((constructor));
 static size_t mtar_verbose_strlen(const char * str);
-static void mtar_verbose_updateSize(int signal);
+static void mtar_verbose_update_size(int signal);
 
-static int mtar_verbose_terminalWidth = 72;
+static int mtar_verbose_terminal_width = 72;
 
 static struct timeval mtar_verbose_progress_begin;
 static struct timeval mtar_verbose_progress_end;
 
 
 void mtar_verbose_clean() {
-	char buffer[mtar_verbose_terminalWidth + 1];
-	memset(buffer, ' ', mtar_verbose_terminalWidth);
-	*buffer = buffer[mtar_verbose_terminalWidth - 1] = '\r';
-	buffer[mtar_verbose_terminalWidth] = '\0';
+	char buffer[mtar_verbose_terminal_width + 1];
+	memset(buffer, ' ', mtar_verbose_terminal_width);
+	*buffer = buffer[mtar_verbose_terminal_width - 1] = '\r';
+	buffer[mtar_verbose_terminal_width] = '\0';
 
 	dprintf(2, buffer);
 
@@ -72,8 +87,93 @@ void mtar_verbose_clean() {
 }
 
 void mtar_verbose_init() {
-	mtar_verbose_updateSize(0);
-	signal(SIGWINCH, mtar_verbose_updateSize);
+	mtar_verbose_update_size(0);
+	signal(SIGWINCH, mtar_verbose_update_size);
+}
+
+void mtar_verbose_print_flush(int new_line) {
+	unsigned int i;
+	unsigned int width = mtar_verbose_terminal_width - max_left_width - 7;
+	for (i = 0; i < nb_lines; i++) {
+		unsigned int nb_sub_lines = 0;
+		char ** sub_lines = mtar_util_string_justified(lines[i].right, width, &nb_sub_lines);
+
+		unsigned int display_width = max_left_width;
+		if (!lines[i].has_short_param) {
+			dprintf(2, "    ");
+			display_width -= 4;
+		}
+
+		dprintf(2, "    %-*s : %s\n", display_width, lines[i].left, *sub_lines);
+		free(*sub_lines);
+
+		unsigned int j;
+		for (j = 1; j < nb_sub_lines; j++) {
+			dprintf(2, "      %*s %s\n", max_left_width, " ", sub_lines[j]);
+			free(sub_lines[j]);
+		}
+
+		free(sub_lines);
+		free(lines[i].left);
+	}
+
+	free(lines);
+	lines = 0;
+	nb_lines = 0;
+	max_left_width = 0;
+
+	if (new_line)
+		dprintf(2, "\n");
+}
+
+void mtar_verbose_print_help(int tab_level, const char * format, ...) {
+	static int previous_tab_level = 0;
+
+	va_list args;
+	char * buffer = 0;
+	va_start(args, format);
+	vasprintf(&buffer, format, args);
+	va_end(args);
+
+	mtar_util_string_trim(buffer, ' ');
+	mtar_util_string_delete_double_char(buffer, ' ');
+
+	if (tab_level < 2) {
+		if (previous_tab_level > 1)
+			mtar_verbose_print_flush(0);
+
+		previous_tab_level = tab_level;
+		if (tab_level == 1)
+			dprintf(2, "  ");
+		dprintf(2, "%s\n", buffer);
+		free(buffer);
+	} else {
+		lines = realloc(lines, (nb_lines + 1) * sizeof(struct mtar_verbose_print_help));
+		lines[nb_lines].left = buffer;
+
+		char * ptr = strchr(buffer, ':');
+		*ptr = '\0';
+		lines[nb_lines].right = ptr + 1;
+
+		mtar_util_string_trim(buffer, ' ');
+		mtar_util_string_trim(ptr + 1, ' ');
+		mtar_util_string_delete_double_char(buffer, ' ');
+		mtar_util_string_delete_double_char(ptr + 1, ' ');
+
+		lines[nb_lines].left_length = strlen(buffer);
+		lines[nb_lines].has_short_param = (buffer[0] == '-' && buffer[1] != '-');
+		lines[nb_lines].right_length = strlen(ptr + 1);
+
+		if (!lines[nb_lines].has_short_param)
+			lines[nb_lines].left_length += 4;
+
+		if (max_left_width < lines[nb_lines].left_length)
+			max_left_width = lines[nb_lines].left_length;
+
+		nb_lines++;
+
+		previous_tab_level = 2;
+	}
 }
 
 void mtar_verbose_printf(const char * format, ...) {
@@ -91,7 +191,7 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 	double total = inter / pct - inter;
 	pct *= 100;
 
-	char buffer[mtar_verbose_terminalWidth];
+	char buffer[mtar_verbose_terminal_width];
 	strcpy(buffer, format);
 
 	char * ptr = 0;
@@ -146,7 +246,7 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 
 	ptr = buffer;
 	if ((ptr = strstr(buffer, "%b"))) {
-		size_t length = mtar_verbose_terminalWidth - strlen(buffer) + 1;
+		size_t length = mtar_verbose_terminal_width - strlen(buffer) + 1;
 		unsigned int p = length * current / upperLimit;
 
 		memmove(ptr + length, ptr + 2, mtar_verbose_strlen(ptr + 2) + 1);
@@ -181,12 +281,17 @@ void mtar_verbose_stop_timer() {
 	gettimeofday(&mtar_verbose_progress_end, 0);
 }
 
-void mtar_verbose_updateSize(int signal __attribute__((unused))) {
+void mtar_verbose_update_size(int signal __attribute__((unused))) {
+	mtar_verbose_terminal_width = 72;
+
 	static struct winsize size;
 	int status = ioctl(2, TIOCGWINSZ, &size);
 	if (!status)
-		mtar_verbose_terminalWidth = size.ws_col;
-	else
-		mtar_verbose_terminalWidth = 72;
+		mtar_verbose_terminal_width = size.ws_col;
+	else {
+		status = ioctl(0, TIOCGWINSZ, &size);
+		if (!status)
+			mtar_verbose_terminal_width = size.ws_col;
+	}
 }
 

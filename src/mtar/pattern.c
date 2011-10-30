@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:23:19 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 23:30:14 +0100                           *
 \***************************************************************************/
 
 // versionsort
@@ -464,16 +464,8 @@ void mtar_pattern_register(struct mtar_pattern_driver * driver) {
 void mtar_pattern_show_description() {
 	mtar_loader_load_all("pattern");
 
-	unsigned int i, length = 0;
-	for (i = 0; i < mtar_pattern_nb_drivers; i++) {
-		unsigned int ll = strlen(mtar_pattern_drivers[i]->name);
-		if (ll > length)
-			length = ll;
-	}
-
-	for (i = 0; i < mtar_pattern_nb_drivers; i++) {
-		mtar_verbose_printf("    %-*s : ", length, mtar_pattern_drivers[i]->name);
+	unsigned int i;
+	for (i = 0; i < mtar_pattern_nb_drivers; i++)
 		mtar_pattern_drivers[i]->show_description();
-	}
 }
 

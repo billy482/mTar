@@ -27,12 +27,12 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:22:49 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 23:02:14 +0100                           *
 \***************************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// strcmp, strlen
+// strcmp
 #include <string.h>
 
 #include <mtar/verbose.h>
@@ -86,17 +86,9 @@ void mtar_function_register(struct mtar_function * f) {
 void mtar_function_show_description() {
 	mtar_loader_load_all("function");
 
-	unsigned int i, length = 0;
-	for (i = 0; i < mtar_function_nb_functions; i++) {
-		unsigned int ll = strlen(mtar_function_functions[i]->name);
-		if (ll > length)
-			length = ll;
-	}
-
-	for (i = 0; i < mtar_function_nb_functions; i++) {
-		mtar_verbose_printf("    %-*s : ", length, mtar_function_functions[i]->name);
+	unsigned int i;
+	for (i = 0; i < mtar_function_nb_functions; i++)
 		mtar_function_functions[i]->show_description();
-	}
 }
 
 void mtar_function_show_help(const char * function) {

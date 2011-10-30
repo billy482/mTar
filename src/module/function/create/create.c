@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:53:38 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 22:58:14 +0100                           *
 \***************************************************************************/
 
 // open
@@ -262,7 +262,7 @@ void mtar_function_create_init() {
 }
 
 void mtar_function_create_show_description() {
-	mtar_verbose_printf("Create new archive\n");
+	mtar_verbose_print_help(2, "create : Create new archive");
 }
 
 void mtar_function_create_show_help() {

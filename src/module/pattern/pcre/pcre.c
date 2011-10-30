@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 12:26:19 +0200                           *
+*  Last modified: Sun, 30 Oct 2011 23:31:22 +0100                           *
 \***************************************************************************/
 
 // pcre_version
@@ -54,6 +54,6 @@ void mtar_pattern_pcre_init() {
 }
 
 void mtar_pattern_pcre_show_description() {
-	mtar_verbose_printf("pcre powered based pattern matching (using libpcre: v%s)\n", pcre_version());
+	mtar_verbose_print_help(2, "pcre : pcre powered based pattern matching (using libpcre: v%s)\n", pcre_version());
 }
 
