@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:24:58 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 18:19:07 +0100                           *
 \***************************************************************************/
 
 // open
@@ -123,6 +123,8 @@ int mtar_function_create(const struct mtar_option * option) {
 			snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
 			if (mtar_hashtable_hasKey(inode, key)) {
 				const char * target = mtar_hashtable_value(inode, key);
+				if (!strcmp(target, filename))
+					continue;
 				failed = format->ops->add_link(format, filename, target, &header);
 				mtar_function_create_display(&header, target);
 				if (failed)
@@ -267,17 +269,18 @@ void mtar_function_create_show_description() {
 
 void mtar_function_create_show_help() {
 	mtar_verbose_printf("  Create new archive\n");
-	mtar_verbose_printf("    -W, --verify         : attempt to verify the archive after writing it\n");
-	mtar_verbose_printf("        --atime-preserve : preserve access times on dumped files\n");
-	mtar_verbose_printf("        --group=NAME     : force NAME as group for added files\n");
-	mtar_verbose_printf("        --mode=CHANGES   : force (symbolic) mode CHANGES for added files\n");
-	mtar_verbose_printf("        --owner=NAME     : force NAME as owner for added files\n");
-	mtar_verbose_printf("    -f, --file=ARCHIVE   : use ARCHIVE file or device ARCHIVE\n");
-	mtar_verbose_printf("    -H, --format FORMAT  : use FORMAT as tar format\n");
-	mtar_verbose_printf("    -V, --label=TEXT     : create archive with volume name TEXT\n");
-	mtar_verbose_printf("    -j, --bzip2          : filter the archive through bzip2\n");
-	mtar_verbose_printf("    -z, --gzip           : filter the archive through gzip\n");
-	mtar_verbose_printf("    -C, --directory=DIR  : change to directory DIR before creating archive\n");
-	mtar_verbose_printf("    -v, --verbose        : verbosely list files processed\n");
+	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
+	mtar_verbose_print_help("--atime-preserve : preserve access times on dumped files");
+	mtar_verbose_print_help("--group=NAME : force NAME as group for added files");
+	mtar_verbose_print_help("--mode=CHANGES : force (symbolic) mode CHANGES for added files");
+	mtar_verbose_print_help("--owner=NAME : force NAME as owner for added files");
+	mtar_verbose_print_help("-f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE");
+	mtar_verbose_print_help("-H, --format FORMAT : use FORMAT as tar format");
+	mtar_verbose_print_help("-V, --label=TEXT : create archive with volume name TEXT");
+	mtar_verbose_print_help("-j, --bzip2 : filter the archive through bzip2");
+	mtar_verbose_print_help("-z, --gzip : filter the archive through gzip");
+	mtar_verbose_print_help("-C, --directory=DIR : change to directory DIR before creating archive");
+	mtar_verbose_print_help("-v, --verbose : verbosely list files processed");
+	mtar_verbose_print_flush(4, 0);
 }
 
