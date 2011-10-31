@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:32:56 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 16:20:07 +0100                           *
 \k***************************************************************************/
 
 #define _GNU_SOURCE
@@ -64,15 +64,13 @@ static struct mtar_verbose_print_help {
 } * lines = 0;
 static unsigned int nb_lines = 0;
 static unsigned int max_left_width = 0;
+static struct timeval mtar_verbose_progress_begin;
+static struct timeval mtar_verbose_progress_end;
+static int mtar_verbose_terminal_width = 72;
 
 static void mtar_verbose_init(void) __attribute__((constructor));
 static size_t mtar_verbose_strlen(const char * str);
 static void mtar_verbose_update_size(int signal);
-
-static int mtar_verbose_terminal_width = 72;
-
-static struct timeval mtar_verbose_progress_begin;
-static struct timeval mtar_verbose_progress_end;
 
 
 void mtar_verbose_clean() {
@@ -271,12 +269,13 @@ void mtar_verbose_update_size(int signal __attribute__((unused))) {
 
 	static struct winsize size;
 	int status = ioctl(2, TIOCGWINSZ, &size);
+	if (!status) {
+		mtar_verbose_terminal_width = size.ws_col;
+		return;
+	}
+
+	status = ioctl(0, TIOCGWINSZ, &size);
 	if (!status)
 		mtar_verbose_terminal_width = size.ws_col;
-	else {
-		status = ioctl(0, TIOCGWINSZ, &size);
-		if (!status)
-			mtar_verbose_terminal_width = size.ws_col;
-	}
 }
 
