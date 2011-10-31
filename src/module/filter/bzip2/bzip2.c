@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 09:37:26 +0200                           *
+*  Last modified: Mon, 31 Oct 2011 15:24:02 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
@@ -54,6 +54,6 @@ void mtar_filter_bzip2_init() {
 }
 
 void mtar_filter_bzip2_show_description() {
-	mtar_verbose_printf("filter from/to compressed data (using libbz2: v%s)\n", BZ2_bzlibVersion());
+	mtar_verbose_print_help("bzip2 : filter from/to compressed data (using libbz2: v%s)", BZ2_bzlibVersion());
 }
 

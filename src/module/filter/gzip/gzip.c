@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 09:37:38 +0200                           *
+*  Last modified: Mon, 31 Oct 2011 15:24:22 +0100                           *
 \***************************************************************************/
 
 // zlibVersion
@@ -54,6 +54,6 @@ void mtar_filter_gzip_init() {
 }
 
 void mtar_filter_gzip_show_description() {
-	mtar_verbose_printf("filter from/to compressed data (using zlib: v%s)\n", zlibVersion());
+	mtar_verbose_print_help("gzip : filter from/to compressed data (using zlib: v%s)", zlibVersion());
 }
 

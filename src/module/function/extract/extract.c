@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 22:58:16 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 15:25:11 +0100                           *
 \***************************************************************************/
 
 // mknod, open
@@ -148,7 +148,7 @@ void mtar_function_extract_init() {
 }
 
 void mtar_function_extract_show_description() {
-	mtar_verbose_print_help(2, "extract : Extract files from tar archive");
+	mtar_verbose_print_help("extract : Extract files from tar archive");
 }
 
 void mtar_function_extract_show_help() {

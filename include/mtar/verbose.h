@@ -27,15 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 20:05:26 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 15:15:38 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_VERBOSE_H__
 #define __MTAR_VERBOSE_H__
 
 void mtar_verbose_clean(void);
-void mtar_verbose_print_flush(int new_line);
-void mtar_verbose_print_help(int tab_level, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
+void mtar_verbose_print_flush(int tab_level, int new_line);
+void mtar_verbose_print_help(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
 void mtar_verbose_printf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
 void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
 void mtar_verbose_restart_timer(void);

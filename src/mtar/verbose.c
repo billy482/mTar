@@ -27,8 +27,8 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 23:23:42 +0100                           *
-\***************************************************************************/
+*  Last modified: Mon, 31 Oct 2011 15:32:56 +0100                           *
+\k***************************************************************************/
 
 #define _GNU_SOURCE
 // signal
@@ -91,7 +91,7 @@ void mtar_verbose_init() {
 	signal(SIGWINCH, mtar_verbose_update_size);
 }
 
-void mtar_verbose_print_flush(int new_line) {
+void mtar_verbose_print_flush(int tab_level, int new_line) {
 	unsigned int i;
 	unsigned int width = mtar_verbose_terminal_width - max_left_width - 7;
 	for (i = 0; i < nb_lines; i++) {
@@ -104,12 +104,12 @@ void mtar_verbose_print_flush(int new_line) {
 			display_width -= 4;
 		}
 
-		dprintf(2, "    %-*s : %s\n", display_width, lines[i].left, *sub_lines);
+		dprintf(2, "%*s%-*s : %s\n", tab_level, " ", display_width, lines[i].left, *sub_lines);
 		free(*sub_lines);
 
 		unsigned int j;
 		for (j = 1; j < nb_sub_lines; j++) {
-			dprintf(2, "      %*s %s\n", max_left_width, " ", sub_lines[j]);
+			dprintf(2, "%*s  %*s %s\n", tab_level, " ", max_left_width, " ", sub_lines[j]);
 			free(sub_lines[j]);
 		}
 
@@ -126,9 +126,7 @@ void mtar_verbose_print_flush(int new_line) {
 		dprintf(2, "\n");
 }
 
-void mtar_verbose_print_help(int tab_level, const char * format, ...) {
-	static int previous_tab_level = 0;
-
+void mtar_verbose_print_help(const char * format, ...) {
 	va_list args;
 	char * buffer = 0;
 	va_start(args, format);
@@ -138,42 +136,29 @@ void mtar_verbose_print_help(int tab_level, const char * format, ...) {
 	mtar_util_string_trim(buffer, ' ');
 	mtar_util_string_delete_double_char(buffer, ' ');
 
-	if (tab_level < 2) {
-		if (previous_tab_level > 1)
-			mtar_verbose_print_flush(0);
+	lines = realloc(lines, (nb_lines + 1) * sizeof(struct mtar_verbose_print_help));
+	lines[nb_lines].left = buffer;
 
-		previous_tab_level = tab_level;
-		if (tab_level == 1)
-			dprintf(2, "  ");
-		dprintf(2, "%s\n", buffer);
-		free(buffer);
-	} else {
-		lines = realloc(lines, (nb_lines + 1) * sizeof(struct mtar_verbose_print_help));
-		lines[nb_lines].left = buffer;
+	char * ptr = strchr(buffer, ':');
+	*ptr = '\0';
+	lines[nb_lines].right = ptr + 1;
 
-		char * ptr = strchr(buffer, ':');
-		*ptr = '\0';
-		lines[nb_lines].right = ptr + 1;
+	mtar_util_string_trim(buffer, ' ');
+	mtar_util_string_trim(ptr + 1, ' ');
+	mtar_util_string_delete_double_char(buffer, ' ');
+	mtar_util_string_delete_double_char(ptr + 1, ' ');
 
-		mtar_util_string_trim(buffer, ' ');
-		mtar_util_string_trim(ptr + 1, ' ');
-		mtar_util_string_delete_double_char(buffer, ' ');
-		mtar_util_string_delete_double_char(ptr + 1, ' ');
+	lines[nb_lines].left_length = strlen(buffer);
+	lines[nb_lines].has_short_param = ((buffer[0] == '-' && buffer[1] != '-') || buffer[0] != '-');
+	lines[nb_lines].right_length = strlen(ptr + 1);
 
-		lines[nb_lines].left_length = strlen(buffer);
-		lines[nb_lines].has_short_param = (buffer[0] == '-' && buffer[1] != '-');
-		lines[nb_lines].right_length = strlen(ptr + 1);
+	if (!lines[nb_lines].has_short_param)
+		lines[nb_lines].left_length += 4;
 
-		if (!lines[nb_lines].has_short_param)
-			lines[nb_lines].left_length += 4;
+	if (max_left_width < lines[nb_lines].left_length)
+		max_left_width = lines[nb_lines].left_length;
 
-		if (max_left_width < lines[nb_lines].left_length)
-			max_left_width = lines[nb_lines].left_length;
-
-		nb_lines++;
-
-		previous_tab_level = 2;
-	}
+	nb_lines++;
 }
 
 void mtar_verbose_printf(const char * format, ...) {

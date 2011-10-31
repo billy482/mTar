@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:22:19 +0200                           *
+*  Last modified: Mon, 31 Oct 2011 15:02:47 +0100                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -208,16 +208,8 @@ void mtar_filter_show_description() {
 	mtar_loader_load_all("filter");
 	mtar_verbose_printf("\nList of available backend filters :\n");
 
-	unsigned int i, length = 0;
-	for (i = 0; i < mtar_filter_nb_filters; i++) {
-		unsigned int ll = strlen(mtar_filter_filters[i]->name);
-		if (ll > length)
-			length = ll;
-	}
-
-	for (i = 0; i < mtar_filter_nb_filters; i++) {
-		mtar_verbose_printf("    %-*s : ", length, mtar_filter_filters[i]->name);
+	unsigned int i;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
 		mtar_filter_filters[i]->show_description();
-	}
 }
 

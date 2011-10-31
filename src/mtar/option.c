@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 11:29:20 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 15:37:35 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -573,95 +573,95 @@ void mtar_option_show_help(const char * path) {
 	else
 		ptr = path;
 
-	mtar_verbose_print_help(0, "%s: modular tar (version: %s)", ptr, MTAR_VERSION);
-	mtar_verbose_print_help(1, "Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n");
+	mtar_verbose_printf("%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
+	mtar_verbose_printf("Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
 
-	mtar_verbose_print_help(1, "Main operation mode:");
-	mtar_verbose_print_help(2, "-c, --create : create new archive");
-	mtar_verbose_print_help(2, "-t, --list : list files from tar archive");
-	mtar_verbose_print_help(2, "-x, --extract, --get : extract new archive");
-	mtar_verbose_print_help(2, "--function FUNCTION * : use FUNCTION as action");
-	mtar_verbose_print_help(2, "--function help=FUNCTION * : show specific help from function FUNCTION");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Main operation mode:\n");
+	mtar_verbose_print_help("-c, --create : create new archive");
+	mtar_verbose_print_help("-t, --list : list files from tar archive");
+	mtar_verbose_print_help("-x, --extract, --get : extract new archive");
+	mtar_verbose_print_help("--function FUNCTION * : use FUNCTION as action");
+	mtar_verbose_print_help("--function help=FUNCTION * : show specific help from function FUNCTION");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Where FUNCTION is one of:");
+	mtar_verbose_printf("  Where FUNCTION is one of:\n");
 	mtar_function_show_description();
-	mtar_verbose_print_flush(1);
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Overwrite control:");
-	mtar_verbose_print_help(2, "-W, --verify : attempt to verify the archive after writing it");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Overwrite control:\n");
+	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Handling of file attributes:");
-	mtar_verbose_print_help(2, "--atime-preserve : preserve access times on dumped files");
-	mtar_verbose_print_help(2, "--group=NAME : force NAME as group for added files");
-	mtar_verbose_print_help(2, "--mode=CHANGES : force (symbolic) mode CHANGES for added files");
-	mtar_verbose_print_help(2, "--owner=NAME : force NAME as owner for added files");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Handling of file attributes:\n");
+	mtar_verbose_print_help("--atime-preserve : preserve access times on dumped files");
+	mtar_verbose_print_help("--group=NAME : force NAME as group for added files");
+	mtar_verbose_print_help("--mode=CHANGES : force (symbolic) mode CHANGES for added files");
+	mtar_verbose_print_help("--owner=NAME : force NAME as owner for added files");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Device selection and switching:");
-	mtar_verbose_print_help(2, "-f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Device selection and switching:\n");
+	mtar_verbose_print_help("-f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Device blocking:");
-	mtar_verbose_print_help(2, "-b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Device blocking:\n");
+	mtar_verbose_print_help("-b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Archive format selection:");
-	mtar_verbose_print_help(2, "-H, --format=FORMAT : use FORMAT as tar format");
-	mtar_verbose_print_help(2, "-V, --label=TEXT : create archive with volume name TEXT");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Archive format selection:\n");
+	mtar_verbose_print_help("-H, --format=FORMAT : use FORMAT as tar format");
+	mtar_verbose_print_help("-V, --label=TEXT : create archive with volume name TEXT");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "where FORMAT is one of the following:");
+	mtar_verbose_printf("  Where FORMAT is one of the following:\n");
 	mtar_format_show_description();
-	mtar_verbose_print_flush(1);
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Compression options:");
-	mtar_verbose_print_help(2, "-j, --bzip2 : filter the archive through bzip2");
-	mtar_verbose_print_help(2, "-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
-	mtar_verbose_print_help(2, "--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Compression options:\n");
+	mtar_verbose_print_help("-j, --bzip2 : filter the archive through bzip2");
+	mtar_verbose_print_help("-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
+	mtar_verbose_print_help("--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Local file selection:");
-	mtar_verbose_print_help(2, "--add-file=FILE : add given FILE to the archive (useful if its name starts with a dash)");
-	mtar_verbose_print_help(2, "-C, --directory=DIR : change to directory DIR");
-	mtar_verbose_print_help(2, "--exclude=PATTERN : exclude files, given as a PATTERN");
-	mtar_verbose_print_help(2, "--exclude-backups : exclude backup and lock files");
-	mtar_verbose_print_help(2, "--exclude-caches : exclude contents of directories containing CACHEDIR.TAG, except for the tag file itself");
-	mtar_verbose_print_help(2, "--exclude-caches-all : exclude directories containing CACHEDIR.TAG");
-	mtar_verbose_print_help(2, "--exclude-caches-under : exclude everything under directories containing CACHEDIR.TAG");
-	mtar_verbose_print_help(2, "--exclude-engine=ENGINE * : use ENGINE to exclude filename");
-	mtar_verbose_print_help(2, "-X, --exclude-from=FILE : exclude patterns listed in FILE");
-	mtar_verbose_print_help(2, "--exclude-tag=FILE : exclude contents of directories containing FILE, except for FILE itself");
-	mtar_verbose_print_help(2, "--exclude-tag-all=FILE : exclude directories containing FILE");
-	mtar_verbose_print_help(2, "--exclude-tag-under=FILE : exclude everything under directories containing FILE");
-	mtar_verbose_print_help(2, "--exclude-vcs : exclude version control system directories");
-	mtar_verbose_print_help(2, "-T, --files-from=FILE : get names to extract or create from FILE");
-	mtar_verbose_print_help(2, "--no-null : disable the effect of the previous --null option");
-	mtar_verbose_print_help(2, "--no-recursion : avoid descending automatically in directories");
-	mtar_verbose_print_help(2, "--null : -T or -X reads null-terminated names");
-	mtar_verbose_print_help(2, "--recursion : recurse into directories (default)");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Local file selection:\n");
+	mtar_verbose_print_help("--add-file=FILE : add given FILE to the archive (useful if its name starts with a dash)");
+	mtar_verbose_print_help("-C, --directory=DIR : change to directory DIR");
+	mtar_verbose_print_help("--exclude=PATTERN : exclude files, given as a PATTERN");
+	mtar_verbose_print_help("--exclude-backups : exclude backup and lock files");
+	mtar_verbose_print_help("--exclude-caches : exclude contents of directories containing CACHEDIR.TAG, except for the tag file itself");
+	mtar_verbose_print_help("--exclude-caches-all : exclude directories containing CACHEDIR.TAG");
+	mtar_verbose_print_help("--exclude-caches-under : exclude everything under directories containing CACHEDIR.TAG");
+	mtar_verbose_print_help("--exclude-engine=ENGINE * : use ENGINE to exclude filename");
+	mtar_verbose_print_help("-X, --exclude-from=FILE : exclude patterns listed in FILE");
+	mtar_verbose_print_help("--exclude-tag=FILE : exclude contents of directories containing FILE, except for FILE itself");
+	mtar_verbose_print_help("--exclude-tag-all=FILE : exclude directories containing FILE");
+	mtar_verbose_print_help("--exclude-tag-under=FILE : exclude everything under directories containing FILE");
+	mtar_verbose_print_help("--exclude-vcs : exclude version control system directories");
+	mtar_verbose_print_help("-T, --files-from=FILE : get names to extract or create from FILE");
+	mtar_verbose_print_help("--no-null : disable the effect of the previous --null option");
+	mtar_verbose_print_help("--no-recursion : avoid descending automatically in directories");
+	mtar_verbose_print_help("--null : -T or -X reads null-terminated names");
+	mtar_verbose_print_help("--recursion : recurse into directories (default)");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "where ENGINE is one of the following:");
+	mtar_verbose_printf("  Where ENGINE is one of the following:\n");
 	mtar_pattern_show_description();
-	mtar_verbose_print_flush(1);
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Informative output:");
-	mtar_verbose_print_help(2, "-v, --verbose : verbosely list files processed");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_printf("  Informative output:\n");
+	mtar_verbose_print_help("-v, --verbose : verbosely list files processed");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Other options:");
-	mtar_verbose_print_help(2, "-?, --help : give this help list");
+	mtar_verbose_printf("  Other options:\n");
+	mtar_verbose_print_help("-?, --help : give this help list");
 
-	mtar_verbose_print_help(2, "--list-filters * : list available io filters");
-	mtar_verbose_print_help(2, "--list-formats * : list available format");
-	mtar_verbose_print_help(2, "--list-functions * : list available function");
-	mtar_verbose_print_help(2, "--list-ios * : list available io backend");
-	mtar_verbose_print_help(2, "--plugin PLUGIN * : load a plugin which will interact with a function");
-	mtar_verbose_print_flush(1);
+	mtar_verbose_print_help("--list-filters * : list available io filters");
+	mtar_verbose_print_help("--list-formats * : list available format");
+	mtar_verbose_print_help("--list-functions * : list available function");
+	mtar_verbose_print_help("--list-ios * : list available io backend");
+	mtar_verbose_print_help("--plugin PLUGIN * : load a plugin which will interact with a function");
+	mtar_verbose_print_flush(4, 1);
 
-	mtar_verbose_print_help(1, "Parameters marked with * do not exist into gnu tar");
+	mtar_verbose_printf("Parameters marked with * do not exist into gnu tar\n");
 }
 
 void mtar_option_show_version(const char * path) {

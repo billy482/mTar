@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 09:37:59 +0200                           *
+*  Last modified: Mon, 31 Oct 2011 15:25:34 +0100                           *
 \***************************************************************************/
 
 #include <mtar/verbose.h>
@@ -51,6 +51,6 @@ void mtar_io_file_init() {
 }
 
 void mtar_io_file_show_description() {
-	mtar_verbose_printf("used for regular file\n");
+	mtar_verbose_print_help("file : used for regular file");
 }
 

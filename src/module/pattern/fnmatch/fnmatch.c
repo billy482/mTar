@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 23:31:00 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 15:26:17 +0100                           *
 \***************************************************************************/
 
 #include <mtar/verbose.h>
@@ -51,6 +51,6 @@ void mtar_pattern_fnmatch_init() {
 }
 
 void mtar_pattern_fnmatch_show_description() {
-	mtar_verbose_print_help(2, "fnmatch : fnmatch based pattern matching");
+	mtar_verbose_print_help("fnmatch : fnmatch based pattern matching");
 }
 
