@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 19:54:04 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 07:56:24 +0100                           *
 \***************************************************************************/
 
 // free
@@ -108,7 +108,7 @@ char ** mtar_util_string_justified(const char * str, unsigned int width, unsigne
 		}
 
 		double small_space = 1;
-		if (current_length_line + nb_space > width * 0.82) {
+		if (current_length_line + nb_space > width * 0.82 || index_words < nb_words) {
 			small_space = width - current_length_line;
 			if (index_words - index_words2 > 2)
 				small_space /= index_words - index_words2 - 1;
