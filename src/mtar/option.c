@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 23:27:00 +0100                           *
+*  Last modified: Mon, 31 Oct 2011 11:29:20 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -157,7 +157,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->nb_exclude_tags = 0;
 	option->delimiter = '\n';
 
-	char * include_pattern_engine = "simple";
+	char * include_pattern_engine = "fnmatch";
 	enum mtar_pattern_option include_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_INCLUDE;
 	char * exclude_pattern_engine = "fnmatch";
 	enum mtar_pattern_option exclude_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE;
