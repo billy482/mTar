@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 16:20:07 +0100                           *
+*  Last modified: Sun, 06 Nov 2011 15:35:40 +0100                           *
 \k***************************************************************************/
 
 #define _GNU_SOURCE
@@ -35,9 +35,9 @@
 #include <signal.h>
 // va_end, va_start
 #include <stdarg.h>
-// dprintf, vasprintf, vdprintf
+// dprintf, sscanf, vasprintf, vdprintf
 #include <stdio.h>
-// calloc, free, realloc
+// calloc, free, getenv, realloc
 #include <stdlib.h>
 // memcpy, memmove, memset, strchr, strcpy, strlen, strstr
 #include <string.h>
@@ -275,7 +275,13 @@ void mtar_verbose_update_size(int signal __attribute__((unused))) {
 	}
 
 	status = ioctl(0, TIOCGWINSZ, &size);
-	if (!status)
+	if (!status) {
 		mtar_verbose_terminal_width = size.ws_col;
+		return;
+	}
+
+	char * columns = getenv("COLUMNS");
+	if (columns)
+		sscanf(columns, "%d", &mtar_verbose_terminal_width);
 }
 
