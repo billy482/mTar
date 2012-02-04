@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 01 Nov 2011 08:49:43 +0100                           *
+*  Last modified: Wed, 09 Nov 2011 17:24:33 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -278,6 +278,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_VERIFY          = 'W',
 
 		OPT_ADD_FILE = 256,
+		OPT_ANCHORED,
 		OPT_ATIME_PRESERVE,
 		OPT_COMPRESSION_LEVEL,
 		OPT_EXCLUDE,
@@ -296,6 +297,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_LIST_FUNCTINOS,
 		OPT_LIST_IOS,
 		OPT_MODE,
+		OPT_NO_ANCHORED,
 		OPT_NO_NULL,
 		OPT_NO_RECURSION,
 		OPT_NULL,
@@ -308,6 +310,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	static struct option long_options[] = {
 		{"add-file",             1, 0, OPT_ADD_FILE},
+		{"anchored",             0, 0, OPT_ANCHORED},
 		{"atime-preserve",       2, 0, OPT_ATIME_PRESERVE},
 		{"blocking-factor",      1, 0, OPT_BLOCKING_FACTOR},
 		{"bzip2",                0, 0, OPT_BZIP2},
@@ -341,6 +344,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{"list-functions",       0, 0, OPT_LIST_FUNCTINOS},
 		{"list-ios",             0, 0, OPT_LIST_IOS},
 		{"mode",                 1, 0, OPT_MODE},
+		{"no-anchored",          0, 0, OPT_NO_ANCHORED},
 		{"no-null",              0, 0, OPT_NO_NULL},
 		{"no-recursion",         0, 0, OPT_NO_RECURSION},
 		{"null",                 0, 0, OPT_NULL},
@@ -371,6 +375,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		switch (c) {
 			case OPT_ADD_FILE:
 				option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, optarg, include_pattern_option);
+				break;
+
+			case OPT_ANCHORED:
+				exclude_pattern_option |= MTAR_PATTERN_OPTION_ANCHORED;
 				break;
 
 			case OPT_ATIME_PRESERVE:
@@ -514,6 +522,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_NO_NULL:
 				option->delimiter = '\n';
+				break;
+
+			case OPT_NO_ANCHORED:
+				exclude_pattern_option &= ~MTAR_PATTERN_OPTION_ANCHORED;
 				break;
 
 			case OPT_NO_RECURSION:

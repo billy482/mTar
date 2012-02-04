@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:56:31 +0200                           *
+*  Last modified: Sun, 06 Nov 2011 15:44:59 +0100                           *
 \***************************************************************************/
 
 // fnmatch
@@ -61,7 +61,7 @@ void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex) {
 
 int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
 	struct mtar_pattern_fnmatch_exclude * self = ex->data;
-	return !fnmatch(filename, self->pattern, 0) ? 1 : 0;
+	return fnmatch(filename, self->pattern, 0);
 }
 
 struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * pattern, enum mtar_pattern_option option) {

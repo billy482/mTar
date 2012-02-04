@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 18:19:07 +0100                           *
+*  Last modified: Sat, 19 Nov 2011 11:06:12 +0100                           *
 \***************************************************************************/
 
 // open
@@ -104,9 +104,6 @@ int mtar_function_create(const struct mtar_option * option) {
 	for (i = 0; i < option->nb_files && !failed; i++) {
 		while (option->files[i]->ops->has_next(option->files[i])) {
 			option->files[i]->ops->next(option->files[i], filename, 256);
-
-			if (mtar_pattern_match(option, filename))
-				continue;
 
 			struct stat st;
 			if (lstat(filename, &st)) {

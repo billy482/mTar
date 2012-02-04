@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 23:30:14 +0100                           *
+*  Last modified: Sat, 19 Nov 2011 11:19:27 +0100                           *
 \***************************************************************************/
 
 // versionsort
@@ -60,6 +60,8 @@ struct mtar_pattern_include_private {
 	char * path;
 	enum mtar_pattern_option option;
 
+	char current_path[256];
+
 	struct mtar_pattern_include_node {
 		struct dirent ** nl;
 		struct dirent * nl_next;
@@ -84,6 +86,7 @@ static void mtar_pattern_exit(void) __attribute__((destructor));
 static int mtar_pattern_include_filter(const struct dirent * file);
 static void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern);
 static int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern);
+static int mtar_pattern_include_private_has_next2(struct mtar_pattern_include_private * pattern);
 static void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, char * filename, size_t length);
 static struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option);
 
@@ -333,6 +336,74 @@ void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, ch
 	}
 }
 
+int mtar_pattern_include_private_has_next2(struct mtar_pattern_include_private * self) {
+	/*struct stat st;
+	struct mtar_pattern_include_node * cnode = self->last;
+	if (cnode) {
+		if (stat(filename, &st)) {
+			self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+			return 0;
+		}
+
+		if (S_ISDIR(st.st_mode)) {
+			self->last = cnode->next = malloc(sizeof(struct mtar_pattern_include_private));
+			cnode->next->previous = cnode;
+			cnode = cnode->next;
+			cnode->nl = 0;
+			cnode->next = 0;
+			cnode->index_nl = 0;
+
+			cnode->nb_nl = scandir(filename, &cnode->nl, mtar_pattern_include_filter, versionsort);
+			cnode->nl_next = *cnode->nl;
+		} else {
+			while (cnode) {
+				if (cnode->next) {
+					free(cnode->next);
+					cnode->next = 0;
+				}
+
+				free(cnode->nl_next);
+				cnode->nl_next = cnode->nl[++cnode->index_nl];
+
+				if (cnode->index_nl < cnode->nb_nl)
+					break;
+
+				free(cnode->nl);
+
+				self->last = cnode = cnode->previous;
+			}
+
+			if (!self->last) {
+				free(self->nodes);
+				self->nodes = 0;
+				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+			}
+		}
+	} else {
+		if (stat(self->path, &st)) {
+			self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+			return 0;
+		}
+
+		if (S_ISDIR(st.st_mode)) {
+			if (!(self->option & MTAR_PATTERN_OPTION_RECURSION)) {
+				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+				return 0;
+			}
+
+			self->nodes = self->last = cnode = malloc(sizeof(struct mtar_pattern_include_private));
+			cnode->nl = 0;
+			cnode->next = cnode->previous = 0;
+			cnode->index_nl = 0;
+
+			cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_pattern_include_filter, versionsort);
+			cnode->nl_next = *cnode->nl;
+		}
+	}*/
+
+	return 1;
+}
+
 struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option) {
 	struct mtar_pattern_include_private * self = malloc(sizeof(struct mtar_pattern_include_private));
 	self->path = strdup(pattern);
@@ -349,7 +420,7 @@ struct mtar_pattern_include * mtar_pattern_include_private_new(const char * patt
 
 int mtar_pattern_match(const struct mtar_option * option, const char * filename) {
 	if (!option || !filename)
-		return 0;
+		return 1;
 
 	const char * file = strrchr(filename, '/');
 	if (file)
@@ -357,19 +428,17 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 	else
 		file = filename;
 
-	unsigned int i, ok = 0;
-	for (i = 0; i < option->nb_excludes && ok; i++)
-		ok = option->excludes[i]->ops->match(option->excludes[i], filename);
-
-	if (!ok)
-		return 0;
+	unsigned int i;
+	for (i = 0; i < option->nb_excludes; i++)
+		if (option->excludes[i]->ops->match(option->excludes[i], filename))
+			return 1;
 
 	if (option->exclude_option & MTAR_EXCLUDE_OPTION_BACKUP) {
 		static const char * patterns[] = { ".#*", "*~", "#*#", 0 };
 
 		for (i = 0; patterns[i]; i++)
 			if (!fnmatch(patterns[i], file, 0))
-				return 0;
+				return 1;
 	}
 
 	if (option->exclude_option & MTAR_EXCLUDE_OPTION_VCS) {
@@ -382,7 +451,7 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 
 		for (i = 0; patterns[i]; i++)
 			if (!strcmp(patterns[i], file))
-				return 0;
+				return 1;
 	}
 
 	if (option->nb_exclude_tags) {
@@ -409,7 +478,7 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 							continue;
 
 						case MTAR_PATTERN_TAG_ALL:
-							return 0;
+							return 1;
 					}
 				}
 			}
@@ -425,7 +494,7 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 
 					case MTAR_PATTERN_TAG_ALL:
 					case MTAR_PATTERN_TAG_UNDER:
-						return 0;
+						return 1;
 				}
 			}
 		}
@@ -438,11 +507,11 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 			strcpy(path + length, option->exclude_tags[i].tag);
 
 			if (strcmp(path, filename) && !access(path, F_OK))
-				return 0;
+				return 1;
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 void mtar_pattern_register(struct mtar_pattern_driver * driver) {
