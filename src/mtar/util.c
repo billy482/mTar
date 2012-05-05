@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 07:56:24 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 18:25:22 +0200                           *
 \***************************************************************************/
 
 // free
@@ -37,23 +37,23 @@
 
 #include <mtar/util.h>
 
+void mtar_util_basic_free(void * key, void * value) {
+	if (key)
+		free(key);
+	if (value)
+		free(value);
+}
+
 /**
  * sdbm function
  **/
-unsigned long long mtar_util_compute_hashString(const void * key) {
+unsigned long long mtar_util_compute_hash_string(const void * key) {
 	const char * cstr = key;
 	unsigned long long int hash = 0;
 	int length = strlen(cstr), i;
 	for (i = 0; i < length; i++)
 		hash = cstr[i] + (hash << 6) + (hash << 16) - hash;
 	return hash;
-}
-
-void mtar_util_basic_free(void * key, void * value) {
-	if (key)
-		free(key);
-	if (value)
-		free(value);
 }
 
 void mtar_util_string_delete_double_char(char * str, char delete_char) {
