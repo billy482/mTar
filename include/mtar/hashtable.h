@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sat, 04 Feb 2012 20:00:46 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_HASHTABLE_H__
@@ -36,15 +36,13 @@
 typedef unsigned long long (*mtar_hashtable_computeHash_f)(const void * key);
 typedef void (*mtar_hashtable_free_f)(void * key, void * value);
 
-struct mtar_hashtable_node {
-	unsigned long long hash;
-	void * key;
-	void * value;
-	struct mtar_hashtable_node * next;
-};
-
 struct mtar_hashtable {
-	struct mtar_hashtable_node ** nodes;
+	struct mtar_hashtable_node {
+		unsigned long long hash;
+		void * key;
+		void * value;
+		struct mtar_hashtable_node * next;
+	} ** nodes;
 	unsigned int nbElements;
 	unsigned int sizeNode;
 
