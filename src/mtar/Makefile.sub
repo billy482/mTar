@@ -1,0 +1,8 @@
+MTAR_SRC_DIR		:= src/mtar
+
+MTAR_BIN			:= bin/mtar
+MTAR_LD				:= -ldl -rdynamic
+
+MTAR_CHCKSUM_FILE	:= mtar.chcksum
+
+BIN_SYMS			+= MTAR
