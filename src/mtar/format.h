@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,16 +26,16 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
 *  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_PLUGIN_P_H__
-#define __MTAR_PLUGIN_P_H__
+#ifndef __MTAR_FORMAT_P_H__
+#define __MTAR_FORMAT_P_H__
 
-#include <mtar/plugin.h>
+#include <mtar/format.h>
 
-void mtar_plugin_load(const struct mtar_option * option);
+void mtar_format_show_description(void);
 
 #endif
 

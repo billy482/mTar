@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,39 +26,18 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
 *  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_PLUGIN_H__
-#define __MTAR_PLUGIN_H__
+#ifndef __MTAR_OPTION_P_H__
+#define __MTAR_OPTION_P_H__
 
-// ssize_t
-#include <sys/types.h>
+#include <mtar/option.h>
 
-struct mtar_option;
-
-struct mtar_plugin {
-	const char * name;
-	struct mtar_plugin_ops {
-		int (*add_file)(struct mtar_plugin * p, const char * filename);
-		int (*add_label)(struct mtar_plugin * p, const char * label);
-		int (*add_link)(struct mtar_plugin * p, const char * src, const char * target);
-		int (*end_of_file)(struct mtar_plugin * p);
-		void (*free)(struct mtar_plugin * p);
-		ssize_t (*read)(struct mtar_plugin * p, const void * data, ssize_t length);
-		ssize_t (*write)(struct mtar_plugin * p, const void * data, ssize_t length);
-	} * ops;
-	void * data;
-};
-
-typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option);
-
-void mtar_plugin_register(const char * name, mtar_plugin_f format);
-
-void mtar_plugin_add_file(const char * filename);
-void mtar_plugin_end_of_file(void);
-void mtar_plugin_write(const void * data, ssize_t length);
+int mtar_option_check(struct mtar_option * option);
+void mtar_option_free(struct mtar_option * option);
+int mtar_option_parse(struct mtar_option * option, int argc, char ** argv);
 
 #endif
 

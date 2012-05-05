@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 09 Nov 2011 17:24:33 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 14:50:27 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -39,6 +39,8 @@
 // atoi, calloc, free, realloc
 #include <stdlib.h>
 
+#include <mtar.chcksum>
+
 #include <mtar/file.h>
 #include <mtar/verbose.h>
 
@@ -49,8 +51,9 @@
 #include "pattern.h"
 #include "option.h"
 
-static void mtar_option_show_help(const char * path);
-static void mtar_option_show_version(const char * path);
+static void mtar_option_show_full_version(void);
+static void mtar_option_show_help(void);
+static void mtar_option_show_version(void);
 
 
 int mtar_option_check(struct mtar_option * option) {
@@ -74,6 +77,11 @@ int mtar_option_check(struct mtar_option * option) {
 		}
 	}
 	return 0;
+}
+
+void mtar_option_show_full_version() {
+	mtar_option_show_version();
+	mtar_verbose_printf("Last git commit: %s\nSHA1 of mtar's source files: %s", MTAR_GIT_COMMIT, MTAR_SRCSUM);
 }
 
 void mtar_option_free(struct mtar_option * option) {
@@ -169,7 +177,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->nb_plugins = 0;
 
 	if (argc < 2) {
-		mtar_option_show_help(*argv);
+		mtar_option_show_help();
 		return 2;
 	}
 
@@ -177,7 +185,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	size_t goodArg = strspn(argv[1], "-bcCfHjtTvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
-		mtar_option_show_help(*argv);
+		mtar_option_show_help();
 		return 2;
 	}
 
@@ -201,12 +209,12 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				case 'f':
 					if (option->filename) {
 						mtar_verbose_printf("File is already defined (%s)\n", option->filename);
-						mtar_option_show_help(*argv);
+						mtar_option_show_help();
 						return 2;
 					}
 					if (optind >= argc) {
 						mtar_verbose_printf("Argument 'f' require a parameter\n");
-						mtar_option_show_help(*argv);
+						mtar_option_show_help();
 						return 2;
 					}
 					option->filename = argv[optind++];
@@ -254,7 +262,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case '?':
-					mtar_option_show_help(*argv);
+					mtar_option_show_help();
 					return 1;
 			}
 		}
@@ -290,6 +298,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_EXCLUDE_TAG_ALL,
 		OPT_EXCLUDE_TAG_UNDER,
 		OPT_EXCLUDE_VCS,
+		OPT_FULL_VERSION,
 		OPT_FUNCTION,
 		OPT_GROUP,
 		OPT_LIST_FILTERS,
@@ -309,55 +318,56 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	};
 
 	static struct option long_options[] = {
-		{"add-file",             1, 0, OPT_ADD_FILE},
-		{"anchored",             0, 0, OPT_ANCHORED},
-		{"atime-preserve",       2, 0, OPT_ATIME_PRESERVE},
-		{"blocking-factor",      1, 0, OPT_BLOCKING_FACTOR},
-		{"bzip2",                0, 0, OPT_BZIP2},
-		{"compression-level",    1, 0, OPT_COMPRESSION_LEVEL},
-		{"create",               0, 0, OPT_CREATE},
-		{"directory",            1, 0, OPT_DIRECTORY},
-		{"exclude",              1, 0, OPT_EXCLUDE},
-		{"exclude-backups",      0, 0, OPT_EXCLUDE_BACKUPS},
-		{"exclude-caches",       0, 0, OPT_EXCLUDE_CACHES},
-		{"exclude-caches-all",   0, 0, OPT_EXCLUDE_CACHES_ALL},
-		{"exclude-caches-under", 0, 0, OPT_EXCLUDE_CACHES_UNDER},
-		{"exclude-from",         1, 0, OPT_EXCLUDE_FROM},
-		{"exclude-tag",          1, 0, OPT_EXCLUDE_TAG},
-		{"exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL},
-		{"exclude-tag-under",    1, 0, OPT_EXCLUDE_TAG_UNDER},
-		{"exclude-vcs",          0, 0, OPT_EXCLUDE_VCS},
-		{"extract",              0, 0, OPT_EXTRACT},
-		{"file",                 1, 0, OPT_FILE},
-		{"files-from",           1, 0, OPT_FILES_FROM},
-		{"format",               1, 0, OPT_FORMAT},
-		{"function",             1, 0, OPT_FUNCTION},
-		{"get",                  0, 0, OPT_EXTRACT},
-		{"group",                1, 0, OPT_GROUP},
-		{"gunzip",               0, 0, OPT_GZIP},
-		{"gzip",                 0, 0, OPT_GZIP},
-		{"help",                 0, 0, OPT_HELP},
-		{"label",                1, 0, OPT_LABEL},
-		{"list",                 0, 0, OPT_LIST},
-		{"list-filters",         0, 0, OPT_LIST_FILTERS},
-		{"list-formats",         0, 0, OPT_LIST_FORMATS},
-		{"list-functions",       0, 0, OPT_LIST_FUNCTINOS},
-		{"list-ios",             0, 0, OPT_LIST_IOS},
-		{"mode",                 1, 0, OPT_MODE},
-		{"no-anchored",          0, 0, OPT_NO_ANCHORED},
-		{"no-null",              0, 0, OPT_NO_NULL},
-		{"no-recursion",         0, 0, OPT_NO_RECURSION},
-		{"null",                 0, 0, OPT_NULL},
-		{"owner",                1, 0, OPT_OWNER},
-		{"pattern-engine",       1, 0, OPT_PATTERN_ENGINE},
-		{"plugin",               1, 0, OPT_PLUGIN},
-		{"recursion",            0, 0, OPT_RECURSION},
-		{"ungzip",               0, 0, OPT_GZIP},
-		{"verbose",              0, 0, OPT_VERBOSE},
-		{"verify",               0, 0, OPT_VERIFY},
-		{"version",              0, 0, OPT_VERSION},
+		{ "add-file",             1, 0, OPT_ADD_FILE },
+		{ "anchored",             0, 0, OPT_ANCHORED },
+		{ "atime-preserve",       2, 0, OPT_ATIME_PRESERVE },
+		{ "blocking-factor",      1, 0, OPT_BLOCKING_FACTOR },
+		{ "bzip2",                0, 0, OPT_BZIP2 },
+		{ "compression-level",    1, 0, OPT_COMPRESSION_LEVEL },
+		{ "create",               0, 0, OPT_CREATE },
+		{ "directory",            1, 0, OPT_DIRECTORY },
+		{ "exclude",              1, 0, OPT_EXCLUDE },
+		{ "exclude-backups",      0, 0, OPT_EXCLUDE_BACKUPS },
+		{ "exclude-caches",       0, 0, OPT_EXCLUDE_CACHES },
+		{ "exclude-caches-all",   0, 0, OPT_EXCLUDE_CACHES_ALL },
+		{ "exclude-caches-under", 0, 0, OPT_EXCLUDE_CACHES_UNDER },
+		{ "exclude-from",         1, 0, OPT_EXCLUDE_FROM },
+		{ "exclude-tag",          1, 0, OPT_EXCLUDE_TAG },
+		{ "exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL },
+		{ "exclude-tag-under",    1, 0, OPT_EXCLUDE_TAG_UNDER },
+		{ "exclude-vcs",          0, 0, OPT_EXCLUDE_VCS },
+		{ "extract",              0, 0, OPT_EXTRACT },
+		{ "file",                 1, 0, OPT_FILE },
+		{ "files-from",           1, 0, OPT_FILES_FROM },
+		{ "format",               1, 0, OPT_FORMAT },
+		{ "full-version",         0, 0, OPT_FULL_VERSION },
+		{ "function",             1, 0, OPT_FUNCTION },
+		{ "get",                  0, 0, OPT_EXTRACT },
+		{ "group",                1, 0, OPT_GROUP },
+		{ "gunzip",               0, 0, OPT_GZIP },
+		{ "gzip",                 0, 0, OPT_GZIP },
+		{ "help",                 0, 0, OPT_HELP },
+		{ "label",                1, 0, OPT_LABEL },
+		{ "list",                 0, 0, OPT_LIST },
+		{ "list-filters",         0, 0, OPT_LIST_FILTERS },
+		{ "list-formats",         0, 0, OPT_LIST_FORMATS },
+		{ "list-functions",       0, 0, OPT_LIST_FUNCTINOS },
+		{ "list-ios",             0, 0, OPT_LIST_IOS },
+		{ "mode",                 1, 0, OPT_MODE },
+		{ "no-anchored",          0, 0, OPT_NO_ANCHORED },
+		{ "no-null",              0, 0, OPT_NO_NULL },
+		{ "no-recursion",         0, 0, OPT_NO_RECURSION },
+		{ "null",                 0, 0, OPT_NULL },
+		{ "owner",                1, 0, OPT_OWNER },
+		{ "pattern-engine",       1, 0, OPT_PATTERN_ENGINE },
+		{ "plugin",               1, 0, OPT_PLUGIN },
+		{ "recursion",            0, 0, OPT_RECURSION },
+		{ "ungzip",               0, 0, OPT_GZIP },
+		{ "verbose",              0, 0, OPT_VERBOSE },
+		{ "verify",               0, 0, OPT_VERIFY },
+		{ "version",              0, 0, OPT_VERSION },
 
-		{0, 0, 0, 0},
+		{ 0, 0, 0, 0 },
 	};
 
 	while (optind < argc) {
@@ -452,7 +462,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case OPT_FILE:
 				if (option->filename) {
 					mtar_verbose_printf("File is already defined (%s)\n", option->filename);
-					mtar_option_show_help(*argv);
+					mtar_option_show_help();
 					return 2;
 				}
 				option->filename = optarg;
@@ -466,9 +476,13 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->format = optarg;
 				break;
 
+			case OPT_FULL_VERSION:
+				mtar_option_show_full_version();
+				break;
+
 			case OPT_FUNCTION:
 				if (!strncmp(optarg, "help=", 5)) {
-					mtar_option_show_version(*argv);
+					mtar_option_show_version();
 					mtar_function_show_help(optarg + 5);
 					return 1;
 				} else {
@@ -485,7 +499,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_HELP:
-				mtar_option_show_help(*argv);
+				mtar_option_show_help();
 				return 1;
 
 			case OPT_LABEL:
@@ -497,22 +511,22 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_LIST_FILTERS:
-				mtar_option_show_version(*argv);
+				mtar_option_show_version();
 				mtar_filter_show_description();
 				return 1;
 
 			case OPT_LIST_FORMATS:
-				mtar_option_show_version(*argv);
+				mtar_option_show_version();
 				mtar_format_show_description();
 				return 1;
 
 			case OPT_LIST_FUNCTINOS:
-				mtar_option_show_version(*argv);
+				mtar_option_show_version();
 				mtar_function_show_description();
 				return 1;
 
 			case OPT_LIST_IOS:
-				mtar_option_show_version(*argv);
+				mtar_option_show_version();
 				mtar_io_show_description();
 				return 1;
 
@@ -566,7 +580,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_VERSION:
-				mtar_option_show_version(*argv);
+				mtar_option_show_version();
 				return 1;
 		}
 	}
@@ -577,14 +591,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	return 0;
 }
 
-void mtar_option_show_help(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf("%s: modular tar (version: %s)\n", ptr, MTAR_VERSION);
+void mtar_option_show_help() {
+	mtar_verbose_printf("mtar: modular tar (version: %s)\n", MTAR_VERSION);
 	mtar_verbose_printf("Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
 
 	mtar_verbose_printf("  Main operation mode:\n");
@@ -675,13 +683,7 @@ void mtar_option_show_help(const char * path) {
 	mtar_verbose_printf("Parameters marked with * do not exist into gnu tar\n");
 }
 
-void mtar_option_show_version(const char * path) {
-	const char * ptr = strrchr(path, '/');
-	if (ptr)
-		ptr++;
-	else
-		ptr = path;
-
-	mtar_verbose_printf("%s: modular tar (version: %s, build: %s %s)\n", ptr, MTAR_VERSION, __DATE__, __TIME__);
+void mtar_option_show_version() {
+	mtar_verbose_printf("mtar: modular tar (version: %s, build: %s %s)\n", MTAR_VERSION, __DATE__, __TIME__);
 }
 

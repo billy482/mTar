@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:54:18 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 14:38:02 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -170,9 +170,13 @@ struct mtar_format_out {
 
 struct mtar_format {
 	const char * name;
+
 	struct mtar_format_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
 	struct mtar_format_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
+
 	void (*show_description)(void);
+	void (*show_version)(void);
+
 	int api_version;
 };
 

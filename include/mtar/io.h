@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:47:46 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 14:35:38 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -148,6 +148,7 @@ struct mtar_io {
 	 * \brief name of driver
 	 */
 	const char * name;
+
 	/**
 	 * \brief get a new input handler
 	 * \param[in] fd : an opened file descriptor
@@ -164,12 +165,15 @@ struct mtar_io {
 	 * \return 0 if failed or a new instance of struct mtar_io_out
 	 */
 	struct mtar_io_out * (*new_out)(int fd, int flags, const struct mtar_option * option);
+
 	/**
 	 * \brief print a short description about driver
 	 *
 	 * This function is called by \b mtar when argument is --list-ios
 	 */
 	void (*show_description)(void);
+	void (*show_version)(void);
+
 	int api_version;
 };
 

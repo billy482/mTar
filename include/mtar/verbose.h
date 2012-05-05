@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,28 +26,20 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 23 Sep 2011 17:22:55 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Mon, 31 Oct 2011 15:15:38 +0100                           *
 \***************************************************************************/
 
-#ifndef __MTAR_FUNTION_H__
-#define __MTAR_FUNTION_H__
+#ifndef __MTAR_VERBOSE_H__
+#define __MTAR_VERBOSE_H__
 
-struct mtar_option;
-
-typedef int (*mtar_function_f)(const struct mtar_option * option);
-
-struct mtar_function {
-	const char * name;
-	mtar_function_f doWork;
-	void (*show_description)();
-	void (*show_help)();
-	int api_version;
-};
-
-#define MTAR_FUNCTION_API_VERSION 1
-
-void mtar_function_register(struct mtar_function * f);
+void mtar_verbose_clean(void);
+void mtar_verbose_print_flush(int tab_level, int new_line);
+void mtar_verbose_print_help(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+void mtar_verbose_printf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
+void mtar_verbose_restart_timer(void);
+void mtar_verbose_stop_timer(void);
 
 #endif
 

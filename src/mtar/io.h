@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,46 +26,16 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 07:46:25 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_FILE_H__
-#define __MTAR_FILE_H__
+#ifndef __MTAR_IO_P_H__
+#define __MTAR_IO_P_H__
 
-struct mtar_option;
+#include <mtar/io.h>
 
-// gid_t, mode_t, ssize_t, uid_t
-#include <sys/types.h>
-
-/**
- * \brief Convert a file mode to \b buffer with `ls -l` style
- * \param[out] buffer : a 10 bytes already allocated buffer
- * \param[in] mode : convert with this mode
- */
-void mtar_file_convert_mode(char * buffer, mode_t mode);
-
-/**
- * \brief Convert an gid to group's name
- * \param[out] name : write group's name into it
- * \param[in] namelength : length of \b name
- * \param[in] gid : a gid
- * \note For better performance, this function maintain a cache
- */
-void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
-
-gid_t mtar_file_group2gid(const char * group);
-
-/**
- * \brief Convert an uid to user's name
- * \param[out] name : write user's name into it
- * \param[in] namelength : length of \b name
- * \param[in] uid : a uid
- * \note For better performance, this function maintain a cache
- */
-void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
-
-uid_t mtar_file_user2uid(const char * user);
+void mtar_io_show_description(void);
 
 #endif
 

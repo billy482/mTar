@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,58 +26,75 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 24 Oct 2011 18:50:14 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 14:32:41 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_PATTERN_H__
-#define __MTAR_PATTERN_H__
+#ifndef __MTAR_FILTER_H__
+#define __MTAR_FILTER_H__
 
-// size_t
-#include <stddef.h>
+#include "io.h"
 
-#define MTAR_PATTERN_API_VERSION 1
-
-struct mtar_option;
-
-struct mtar_pattern_exclude {
-	struct mtar_pattern_exclude_ops {
-		void (*free)(struct mtar_pattern_exclude * pattern);
-		int (*match)(struct mtar_pattern_exclude * pattern, const char * filename);
-	} * ops;
-	void * data;
-};
-
-struct mtar_pattern_include {
-	struct mtar_pattern_include_ops {
-		void (*free)(struct mtar_pattern_include * pattern);
-		int (*has_next)(struct mtar_pattern_include * pattern);
-		void (*next)(struct mtar_pattern_include * pattern, char * filename, size_t length);
-	} * ops;
-	void * data;
-};
-
-enum mtar_pattern_option {
-	MTAR_PATTERN_OPTION_ANCHORED    = 0x1,
-	MTAR_PATTERN_OPTION_IGNORE_CASE = 0x2,
-	MTAR_PATTERN_OPTION_RECURSION   = 0x4,
-
-	MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE = 0x0,
-	MTAR_PATTERN_OPTION_DEFAULT_INCLUDE = MTAR_PATTERN_OPTION_RECURSION,
-};
-
-struct mtar_pattern_driver {
+/**
+ * \brief Used by the driver of filter
+ */
+struct mtar_filter {
+	/**
+	 * \brief name of driver
+	 *
+	 * Should be uniq
+	 */
 	const char * name;
-	struct mtar_pattern_exclude * (*new_exclude)(const char * pattern, enum mtar_pattern_option option);
-	struct mtar_pattern_include * (*new_include)(const char * pattern, enum mtar_pattern_option option);
+
+	/**
+	 * \brief get a new input handler
+	 * \param[in] option : a struct containing argument passed by \b mtar
+	 * \return 0 if failed or a new instance of struct mtar_io_in
+	 */
+	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
+	/**
+	 * \brief get a new output handler
+	 * \param[in] option : a struct containing argument passed by \b mtar
+	 * \return 0 if failed or a new instance of struct mtar_io_out
+	 */
+	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
+
+	/**
+	 * \brief print a short description about driver
+	 *
+	 * This function is called by \b mtar when argument is --list-filters
+	 */
 	void (*show_description)(void);
+	void (*show_version)(void);
+
 	int api_version;
 };
 
-struct mtar_pattern_exclude * mtar_pattern_get_exclude(const char * engine, const char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * pattern, enum mtar_pattern_option option);
-int mtar_pattern_match(const struct mtar_option * option, const char * filename);
-void mtar_pattern_register(struct mtar_pattern_driver * driver);
+#define MTAR_FILTER_API_VERSION MTAR_IO_API_VERSION
+
+/**
+ * \brief Get an instance of filter or io based on \a option parameter
+ * \param[in] option : 
+ * \return 0 if failed or a new instance of struct mtar_io_in
+ */
+struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option);
+/**
+ * \brief Get an instance of filter or io based on \a option parameter
+ * \param[in] io
+ * \param[in] option : 
+ * \return 0 if failed or a new instance of struct mtar_io_in
+ */
+struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mtar_option * option);
+
+/**
+ * \brief Register a filter io
+ * \param[in] io : a filtering module io statically allocated
+ */
+void mtar_filter_register(struct mtar_filter * filter);
 
 #endif
 

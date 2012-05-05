@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,20 +26,34 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:15:38 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Mon, 10 Oct 2011 21:36:09 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_VERBOSE_H__
-#define __MTAR_VERBOSE_H__
+#ifndef __MTAR_PATTERN_P_H__
+#define __MTAR_PATTERN_P_H__
 
-void mtar_verbose_clean(void);
-void mtar_verbose_print_flush(int tab_level, int new_line);
-void mtar_verbose_print_help(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
-void mtar_verbose_printf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
-void mtar_verbose_progress(const char * format, unsigned long long current, unsigned long long upperLimit);
-void mtar_verbose_restart_timer(void);
-void mtar_verbose_stop_timer(void);
+#include <mtar/pattern.h>
+
+struct mtar_option;
+
+enum mtar_pattern_tag_option {
+	MTAR_PATTERN_TAG,
+	MTAR_PATTERN_TAG_ALL,
+	MTAR_PATTERN_TAG_UNDER,
+};
+
+struct mtar_pattern_tag {
+	char * tag;
+	enum mtar_pattern_tag_option option;
+};
+
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include ** mtar_pattern_add_include(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
+struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
+struct mtar_pattern_tag * mtar_pattern_add_tag(struct mtar_pattern_tag * tags, unsigned int * nb_tags, char * tag, enum mtar_pattern_tag_option option);
+void mtar_pattern_show_description(void);
 
 #endif
 

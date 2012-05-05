@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,34 +26,39 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:36:09 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_PATTERN_P_H__
-#define __MTAR_PATTERN_P_H__
+#ifndef __MTAR_PLUGIN_H__
+#define __MTAR_PLUGIN_H__
 
-#include <mtar/pattern.h>
+// ssize_t
+#include <sys/types.h>
 
 struct mtar_option;
 
-enum mtar_pattern_tag_option {
-	MTAR_PATTERN_TAG,
-	MTAR_PATTERN_TAG_ALL,
-	MTAR_PATTERN_TAG_UNDER,
+struct mtar_plugin {
+	const char * name;
+	struct mtar_plugin_ops {
+		int (*add_file)(struct mtar_plugin * p, const char * filename);
+		int (*add_label)(struct mtar_plugin * p, const char * label);
+		int (*add_link)(struct mtar_plugin * p, const char * src, const char * target);
+		int (*end_of_file)(struct mtar_plugin * p);
+		void (*free)(struct mtar_plugin * p);
+		ssize_t (*read)(struct mtar_plugin * p, const void * data, ssize_t length);
+		ssize_t (*write)(struct mtar_plugin * p, const void * data, ssize_t length);
+	} * ops;
+	void * data;
 };
 
-struct mtar_pattern_tag {
-	char * tag;
-	enum mtar_pattern_tag_option option;
-};
+typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option);
 
-struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_include ** mtar_pattern_add_include(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
-struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
-struct mtar_pattern_tag * mtar_pattern_add_tag(struct mtar_pattern_tag * tags, unsigned int * nb_tags, char * tag, enum mtar_pattern_tag_option option);
-void mtar_pattern_show_description(void);
+void mtar_plugin_register(const char * name, mtar_plugin_f format);
+
+void mtar_plugin_add_file(const char * filename);
+void mtar_plugin_end_of_file(void);
+void mtar_plugin_write(const void * data, ssize_t length);
 
 #endif
 
