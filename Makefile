@@ -61,11 +61,11 @@ $(1)_HEAD_FILES	:= $$(sort $$(shell test -d $${$(1)_SRC_DIR} && find $${$(1)_SRC
 $(1)_OBJ_FILES	:= $$(sort $$(patsubst src/%.c,${BUILD_DIR}/%.o,$${$(1)_SRC_FILES}))
 $(1)_DEP_FILES	:= $$(sort $$(shell test -d $${$(1)_DEPEND_DIR} && find $${$(1)_DEPEND_DIR} -name '*.d'))
 
-prepare_$(1):
-ifneq ($${$(1)_CHCKSUM_FILE},)
+prepare_$(1): ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}
+
+${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}: $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES}
 	@echo " CHCKSUM  $(1)"
 	@./script/checksum.pl $(1) ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE} $$(sort $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES})
-endif
 
 $$($(1)_BIN): $$($(1)_LIB) $$($(1)_OBJ_FILES)
 	@echo " LD       $$@"

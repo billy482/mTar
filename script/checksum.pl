@@ -28,9 +28,10 @@ my $newCheckum = '';
 $newCheckum = $1 if ($line =~ /^(\w+)\s/);
 
 if ($oldChecksum ne $newCheckum) {
-	print "Update checksum file for $filename\n";
 	open my $fd, '>', $filename;
 	print $fd "#define ${symbol}_SRCSUM \"$newCheckum\"\n";
 	close $fd;
+} else {
+	utime undef, undef, $filename;
 }
 
