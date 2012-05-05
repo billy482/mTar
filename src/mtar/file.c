@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 07:50:14 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 15:22:53 +0200                           *
 \***************************************************************************/
 
 // open
@@ -150,10 +150,10 @@ gid_t mtar_file_group2gid(const char * group) {
 }
 
 void mtar_file_init(void) {
-	mtar_file_gidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
-	mtar_file_groupCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
-	mtar_file_uidCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
-	mtar_file_userCached = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
+	mtar_file_gidCached = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
+	mtar_file_groupCached = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
+	mtar_file_uidCached = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
+	mtar_file_userCached = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 }
 
 void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, const char * id) {
