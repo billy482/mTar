@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 14:50:27 +0200                           *
+*  Last modified: Sat, 05 May 2012 22:30:41 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -81,7 +81,7 @@ int mtar_option_check(struct mtar_option * option) {
 
 void mtar_option_show_full_version() {
 	mtar_option_show_version();
-	mtar_verbose_printf("Last git commit: %s\nSHA1 of mtar's source files: %s", MTAR_GIT_COMMIT, MTAR_SRCSUM);
+	mtar_verbose_printf("Last git commit: %s\nSHA1 of mtar's source files: %s\n", MTAR_GIT_COMMIT, MTAR_SRCSUM);
 }
 
 void mtar_option_free(struct mtar_option * option) {
@@ -478,7 +478,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case OPT_FULL_VERSION:
 				mtar_option_show_full_version();
-				break;
+				return 1;
 
 			case OPT_FUNCTION:
 				if (!strncmp(optarg, "help=", 5)) {

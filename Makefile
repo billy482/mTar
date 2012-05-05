@@ -119,12 +119,12 @@ debug: binaries
 	${GDB} bin/mtar
 
 distclean realclean: clean
-	@echo ' RM       -Rf cscope.out doc ${DEPEND_DIR} tags'
-	@rm -Rf cscope.out doc ${DEPEND_DIR} tags
+	@echo ' RM       -Rf cscope.out doc ${CHCKSUM_DIR} ${DEPEND_DIR} tags'
+	@rm -Rf cscope.out doc ${CHCKSUM_DIR} ${DEPEND_DIR} tags
 
 doc: Doxyfile ${LIBOBJECT_SRC_FILES} ${HEAD_FILES}
 	@echo ' DOXYGEN'
-	@{DOXYGEN}
+	@${DOXYGEN}
 
 prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS})
 

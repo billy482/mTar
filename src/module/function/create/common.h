@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,26 +26,20 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
 *  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_IO_FILE_H__
-#define __MTAR_IO_FILE_H__
+#ifndef __MTAR_FUNCTION_CREATE_VERBOSE_H__
+#define __MTAR_FUNCTION_CREATE_VERBOSE_H__
 
-#include <mtar/io.h>
+#include <mtar/format.h>
 
-struct mtar_io_file {
-	int fd;
-	off_t pos;
-	int last_errno;
-};
+extern void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink);
+extern void (*mtar_function_create_display_label)(const char * label);
+extern void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
-ssize_t mtar_io_file_common_block_size(struct mtar_io_file * file);
-int mtar_io_file_common_close(struct mtar_io_file * file);
-
-struct mtar_io_in * mtar_io_file_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_file_new_out(int fd, int flags, const struct mtar_option * option);
+void mtar_function_create_configure(const struct mtar_option * option);
 
 #endif
 

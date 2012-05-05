@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,42 +26,42 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 23:30:21 +0200                           *
 \***************************************************************************/
 
-// errno
-#include <errno.h>
-// fstat
-#include <sys/stat.h>
-// fstat
-#include <sys/types.h>
-// close, fstat
-#include <unistd.h>
+#include <mtar-format-ustar.chcksum>
+
+#include <mtar/verbose.h>
 
 #include "common.h"
 
-ssize_t mtar_io_file_common_block_size(struct mtar_io_file * self) {
-	if (self->fd < 0)
-		return 0;
+static void mtar_format_ustar_format_init(void) __attribute__((constructor));
+static void mtar_format_ustar_show_description(void);
+static void mtar_format_ustar_show_version(void);
 
-	struct stat st;
-	fstat(self->fd, &st);
+static struct mtar_format mtar_format_ustar = {
+	.name             = "ustar",
 
-	return st.st_blksize << 8;
+	.new_in           = mtar_format_ustar_new_in,
+	.new_out          = mtar_format_ustar_new_out,
+
+	.show_description = mtar_format_ustar_show_description,
+	.show_version     = mtar_format_ustar_show_version,
+
+	.api_version      = MTAR_FORMAT_API_VERSION,
+};
+
+
+void mtar_format_ustar_format_init() {
+	mtar_format_register(&mtar_format_ustar);
 }
 
-int mtar_io_file_common_close(struct mtar_io_file * self) {
-	if (self->fd < 0)
-		return 0;
+void mtar_format_ustar_show_description() {
+	mtar_verbose_print_help("ustar : default format in gnu tar");
+}
 
-	int failed = close(self->fd);
-
-	if (failed)
-		self->last_errno = errno;
-	else
-		self->fd = -1;
-
-	return failed;
+void mtar_format_ustar_show_version() {
+	mtar_verbose_printf("SHA1 of mtar format ustar's source files: %s\n", MTAR_FORMAT_USTAR_SRCSUM);
 }
 

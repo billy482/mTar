@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,20 +26,35 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
 *  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_FUNCTION_CREATE_VERBOSE_H__
-#define __MTAR_FUNCTION_CREATE_VERBOSE_H__
+#ifndef __MTAR_FORMAT_USTAR_H__
+#define __MTAR_FORMAT_USTAR_H__
 
 #include <mtar/format.h>
 
-extern void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink);
-extern void (*mtar_function_create_display_label)(const char * label);
-extern void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
+struct mtar_format_ustar {
+	char filename[100];
+	char filemode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char checksum[8];
+	char flag;
+	char linkname[100];
+	char magic[8];
+	char uname[32];
+	char gname[32];
+	char devmajor[8];
+	char devminor[8];
+	char prefix[167];
+};
 
-void mtar_function_create_configure(const struct mtar_option * option);
+struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option);
 
 #endif
 

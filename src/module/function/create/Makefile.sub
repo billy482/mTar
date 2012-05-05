@@ -1,0 +1,9 @@
+MTAR_FUNCTION_CREATE_SRC_DIR		:= src/module/function/create
+
+MTAR_FUNCTION_CREATE_BIN			:= lib/libfunction-create.so
+MTAR_FUNCTION_CREATE_CFLAG			:= -I. -fPIC -fvisibility=hidden
+MTAR_FUNCTION_CREATE_LD				:= -shared
+
+MTAR_FUNCTION_CREATE_CHCKSUM_FILE	:= mtar-function-create.chcksum
+
+BIN_SYMS							+= MTAR_FUNCTION_CREATE

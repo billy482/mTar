@@ -1,0 +1,9 @@
+MTAR_FORMAT_USTAR_SRC_DIR		:= src/module/format/ustar
+
+MTAR_FORMAT_USTAR_BIN			:= lib/libformat-ustar.so
+MTAR_FORMAT_USTAR_CFLAG			:= -I. -fPIC -fvisibility=hidden
+MTAR_FORMAT_USTAR_LD			:= -shared
+
+MTAR_FORMAT_USTAR_CHCKSUM_FILE	:= mtar-format-ustar.chcksum
+
+BIN_SYMS						+= MTAR_FORMAT_USTAR

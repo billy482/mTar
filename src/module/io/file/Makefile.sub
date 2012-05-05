@@ -1,0 +1,9 @@
+MTAR_IO_FILE_SRC_DIR		:= src/module/io/file
+
+MTAR_IO_FILE_BIN			:= lib/libio-file.so
+MTAR_IO_FILE_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_IO_FILE_LD				:= -shared
+
+MTAR_IO_FILE_CHCKSUM_FILE	:= mtar-io-file.chcksum
+
+BIN_SYMS					+= MTAR_IO_FILE

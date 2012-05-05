@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 Nov 2011 11:06:12 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Sat, 05 May 2012 23:37:54 +0200                           *
 \***************************************************************************/
 
 // open
@@ -46,6 +46,8 @@
 #include <unistd.h>
 // utime
 #include <utime.h>
+
+#include <mtar-function-create.chcksum>
 
 #include <mtar/format.h>
 #include <mtar/function.h>
@@ -70,12 +72,17 @@ static int mtar_function_create(const struct mtar_option * option);
 static void mtar_function_create_init(void) __attribute__((constructor));
 static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
+static void mtar_function_create_show_version(void);
 
 static struct mtar_function mtar_function_create_functions = {
 	.name             = "create",
-	.doWork           = mtar_function_create,
+
+	.do_work          = mtar_function_create,
+
 	.show_description = mtar_function_create_show_description,
 	.show_help        = mtar_function_create_show_help,
+	.show_version     = mtar_function_create_show_version,
+
 	.api_version      = MTAR_FUNCTION_API_VERSION,
 };
 
@@ -87,7 +94,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	struct mtar_format_out * format = mtar_format_get_out(option);
 	ssize_t block_size = format->ops->block_size(format);
 	char * buffer = malloc(block_size);
-	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hashString, mtar_util_basic_free);
+	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -279,5 +286,9 @@ void mtar_function_create_show_help() {
 	mtar_verbose_print_help("-C, --directory=DIR : change to directory DIR before creating archive");
 	mtar_verbose_print_help("-v, --verbose : verbosely list files processed");
 	mtar_verbose_print_flush(4, 0);
+}
+
+void mtar_function_create_show_version() {
+	mtar_verbose_printf("SHA1 of mtar function create's source files: %s\n", MTAR_FUNCTION_CREATE_SRCSUM);
 }
 
