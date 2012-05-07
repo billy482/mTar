@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:02:47 +0100                           *
+*  Last modified: Mon, 07 May 2012 21:26:41 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -211,5 +211,16 @@ void mtar_filter_show_description() {
 	unsigned int i;
 	for (i = 0; i < mtar_filter_nb_filters; i++)
 		mtar_filter_filters[i]->show_description();
+}
+
+void mtar_filter_show_version() {
+	mtar_loader_load_all("filter");
+	mtar_verbose_printf("List of available backend filters :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_filter_nb_filters; i++)
+		mtar_filter_filters[i]->show_version();
+
+	mtar_verbose_printf("\n");
 }
 

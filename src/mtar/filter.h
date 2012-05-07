@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:19:08 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_P_H__
@@ -36,6 +36,7 @@
 #include <mtar/filter.h>
 
 void mtar_filter_show_description(void);
+void mtar_filter_show_version(void);
 
 #endif
 

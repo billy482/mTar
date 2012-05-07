@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 06 May 2012 15:28:32 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:30:39 +0200                           *
 \***************************************************************************/
 
 // open
@@ -290,6 +290,7 @@ void mtar_function_create_show_help() {
 }
 
 void mtar_function_create_show_version() {
-	mtar_verbose_printf("SHA1 of mtar function create's source files: %s\n", MTAR_FUNCTION_CREATE_SRCSUM);
+	mtar_verbose_printf("  create: create new archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("          SHA1 of source files: %s\n", MTAR_FUNCTION_CREATE_SRCSUM);
 }
 

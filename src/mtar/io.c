@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:16:32 +0100                           *
+*  Last modified: Mon, 07 May 2012 21:54:32 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -180,5 +180,16 @@ void mtar_io_show_description() {
 	for (i = 0; i < mtar_io_nbIos; i++)
 		mtar_io_ios[i]->show_description();
 	mtar_verbose_print_flush(2, 0);
+}
+
+void mtar_io_show_version() {
+	mtar_loader_load_all("io");
+	mtar_verbose_printf("List of available backend ios :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_io_nbIos; i++)
+		mtar_io_ios[i]->show_version();
+
+	mtar_verbose_printf("\n");
 }
 

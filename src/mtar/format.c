@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 30 Oct 2011 23:28:39 +0100                           *
+*  Last modified: Mon, 07 May 2012 21:26:39 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -153,5 +153,16 @@ void mtar_format_show_description() {
 	unsigned int i;
 	for (i = 0; i < mtar_format_nb_formats; i++)
 		mtar_format_formats[i]->show_description();
+}
+
+void mtar_format_show_version() {
+	mtar_loader_load_all("format");
+	mtar_verbose_printf("List of available backend formats :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_format_nb_formats; i++)
+		mtar_format_formats[i]->show_version();
+
+	mtar_verbose_printf("\n");
 }
 

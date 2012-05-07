@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 18:29:41 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:29:03 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -112,5 +112,16 @@ void mtar_function_show_help(const char * function) {
 	} else {
 		mtar_verbose_printf("No help found for function: %s\n", function);
 	}
+}
+
+void mtar_function_show_version() {
+	mtar_loader_load_all("function");
+	mtar_verbose_printf("List of available backend functions :\n");
+
+	unsigned int i;
+	for (i = 0; i < mtar_function_nb_functions; i++)
+		mtar_function_functions[i]->show_version();
+
+	mtar_verbose_printf("\n");
 }
 
