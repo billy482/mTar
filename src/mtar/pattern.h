@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:36:09 +0200                           *
+*  Last modified: Sun, 06 May 2012 10:29:37 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_P_H__
@@ -54,6 +54,7 @@ struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pa
 struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op);
 struct mtar_pattern_tag * mtar_pattern_add_tag(struct mtar_pattern_tag * tags, unsigned int * nb_tags, char * tag, enum mtar_pattern_tag_option option);
 void mtar_pattern_show_description(void);
+void mtar_pattern_show_version(void);
 
 #endif
 

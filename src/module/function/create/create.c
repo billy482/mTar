@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 23:37:54 +0200                           *
+*  Last modified: Sun, 06 May 2012 15:28:32 +0200                           *
 \***************************************************************************/
 
 // open
@@ -60,7 +60,6 @@
 #include "common.h"
 
 struct mtar_function_create_param {
-	char filename[256];
 	struct mtar_format_out * format;
 	char * buffer;
 	ssize_t block_size;
@@ -90,7 +89,7 @@ static struct mtar_function mtar_function_create_functions = {
 int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
-	char filename[256];
+	char * filename = 0;
 	struct mtar_format_out * format = mtar_format_get_out(option);
 	ssize_t block_size = format->ops->block_size(format);
 	char * buffer = malloc(block_size);
@@ -110,7 +109,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	int failed = 0;
 	for (i = 0; i < option->nb_files && !failed; i++) {
 		while (option->files[i]->ops->has_next(option->files[i])) {
-			option->files[i]->ops->next(option->files[i], filename, 256);
+			option->files[i]->ops->next(option->files[i], &filename);
 
 			struct stat st;
 			if (lstat(filename, &st)) {
@@ -171,6 +170,8 @@ int mtar_function_create(const struct mtar_option * option) {
 				};
 				utime(filename, &buf);
 			}
+
+			free(filename);
 		}
 	}
 

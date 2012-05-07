@@ -64,7 +64,7 @@ $(1)_DEP_FILES	:= $$(sort $$(shell test -d $${$(1)_DEPEND_DIR} && find $${$(1)_D
 prepare_$(1): ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}
 
 ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}: $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES}
-	@echo " CHCKSUM  $(1)"
+	@echo " CHCKSUM  $$@"
 	@./script/checksum.pl $(1) ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE} $$(sort $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES})
 
 $$($(1)_BIN): $$($(1)_LIB) $$($(1)_OBJ_FILES)
