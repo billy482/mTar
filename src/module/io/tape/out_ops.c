@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:52:56 +0200                           *
+*  Last modified: Mon, 07 May 2012 23:43:12 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -36,6 +36,10 @@
 #include <stdlib.h>
 // memcpy
 #include <string.h>
+// ioctl
+#include <sys/ioctl.h>
+// MT*
+#include <sys/mtio.h>
 // bzero, write
 #include <unistd.h>
 
@@ -175,8 +179,44 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 	return -2;
 }
 
-struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	return 0;
+struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option) {
+	struct mtar_io_tape_out * self = io->data;
+
+	if (self->fd < 0)
+		return 0;
+
+	if (self->buffer_used > 0) {
+		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
+		ssize_t nbWrite = write(self->fd, self->buffer, self->buffer_size);
+
+		if (nbWrite < 0) {
+			self->last_errno = errno;
+			return 0;
+		}
+
+		self->buffer_used = 0;
+	}
+
+	static const struct mtop eof = { MTWEOF, 1 };
+	int failed = ioctl(self->fd, MTIOCTOP, &eof);
+	if (failed)
+		return 0;
+
+	static const struct mtop bsf = { MTBSF, 1 };
+	failed = ioctl(self->fd, MTIOCTOP, &bsf);
+	if (failed)
+		return 0;
+
+	static const struct mtop fsf = { MTFSF, 1 };
+	failed = ioctl(self->fd, MTIOCTOP, &fsf);
+	if (failed)
+		return 0;
+
+	struct mtar_io_in * in = mtar_io_tape_new_in(self->fd, 0, option);
+	if (in)
+		self->fd = -1;
+
+	return in;
 }
 
 struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
