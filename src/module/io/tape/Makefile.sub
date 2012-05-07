@@ -1,0 +1,9 @@
+MTAR_IO_TAPE_SRC_DIR		:= src/module/io/tape
+
+MTAR_IO_TAPE_BIN			:= lib/libio-tape.so
+MTAR_IO_TAPE_CFLAG			:= -I. -fPIC -fvisibility=hidden
+MTAR_IO_TAPE_LD				:= -shared
+
+MTAR_IO_TAPE_CHCKSUM_FILE	:= mtar-io-tape.chcksum
+
+BIN_SYMS					+= MTAR_IO_TAPE
