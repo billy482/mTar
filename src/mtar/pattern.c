@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:04:03 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:17:28 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -388,6 +388,12 @@ struct mtar_pattern_include * mtar_pattern_include_private_new(const char * patt
 	self->current_path = 0;
 	self->first = self->last = 0;
 	self->status = MTAR_PATTERN_INCLUDE_PRIVATE_INIT;
+
+	size_t length = strlen(pattern);
+	while (length > 0 && self->path[length - 1] == '/') {
+		length--;
+		self->path[length] = '\0';
+	}
 
 	struct mtar_pattern_include * pttrn = malloc(sizeof(struct mtar_pattern_include));
 	pttrn->ops = &mtar_pattern_include_private_ops;
