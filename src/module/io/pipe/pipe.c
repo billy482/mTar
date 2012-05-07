@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,26 +26,43 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Mon, 07 May 2012 22:02:28 +0200                           *
 \***************************************************************************/
 
-#ifndef __MTAR_IO_PIPE_H__
-#define __MTAR_IO_PIPE_H__
+#include <mtar-io-pipe.chcksum>
 
-#include <mtar/io.h>
+#include <mtar/verbose.h>
 
-struct mtar_io_pipe {
-	int fd;
-	off_t pos;
-	int last_errno;
+#include "common.h"
+
+static void mtar_io_pipe_init(void) __attribute__((constructor));
+static void mtar_io_pipe_show_description(void);
+static void mtar_io_pipe_version(void);
+
+static struct mtar_io mtar_io_pipe = {
+	.name             = "pipe",
+
+	.new_in           = mtar_io_pipe_new_in,
+	.new_out          = mtar_io_pipe_new_out,
+
+	.show_description = mtar_io_pipe_show_description,
+	.show_version     = mtar_io_pipe_version,
+
+	.api_version      = MTAR_IO_API_VERSION,
 };
 
-ssize_t mtar_io_pipe_common_block_size(struct mtar_io_pipe * file);
-int mtar_io_pipe_common_close(struct mtar_io_pipe * file);
 
-struct mtar_io_in * mtar_io_pipe_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags, const struct mtar_option * option);
+void mtar_io_pipe_init() {
+	mtar_io_register(&mtar_io_pipe);
+}
 
-#endif
+void mtar_io_pipe_show_description() {
+	mtar_verbose_print_help("pipe : used for pipe (from file (mkfifo) or system call (pipe))");
+}
+
+void mtar_io_pipe_version() {
+	mtar_verbose_printf("  pipe : used for pipe (from file (mkfifo) or system call (pipe)) (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("         SHA1 of source files: %s\n", MTAR_IO_PIPE_SRCSUM);
+}
 

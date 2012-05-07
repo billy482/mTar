@@ -26,31 +26,26 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:25:44 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
-#include <mtar/verbose.h>
+#ifndef __MTAR_IO_PIPE_H__
+#define __MTAR_IO_PIPE_H__
 
-#include "common.h"
+#include <mtar/io.h>
 
-static void mtar_io_pipe_init(void) __attribute__((constructor));
-static void mtar_io_pipe_show_description(void);
-
-static struct mtar_io mtar_io_pipe = {
-	.name             = "pipe",
-	.new_in           = mtar_io_pipe_new_in,
-	.new_out          = mtar_io_pipe_new_out,
-	.show_description = mtar_io_pipe_show_description,
-	.api_version      = MTAR_IO_API_VERSION,
+struct mtar_io_pipe {
+	int fd;
+	off_t pos;
+	int last_errno;
 };
 
+ssize_t mtar_io_pipe_common_block_size(struct mtar_io_pipe * file);
+int mtar_io_pipe_common_close(struct mtar_io_pipe * file);
 
-void mtar_io_pipe_init() {
-	mtar_io_register(&mtar_io_pipe);
-}
+struct mtar_io_in * mtar_io_pipe_new_in(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags, const struct mtar_option * option);
 
-void mtar_io_pipe_show_description() {
-	mtar_verbose_print_help("pipe : used for pipe (from file (mkfifo) or system call (pipe))");
-}
+#endif
 

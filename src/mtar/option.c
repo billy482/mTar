@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:34:35 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:58:08 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -87,6 +87,7 @@ void mtar_option_show_full_version() {
 	mtar_format_show_version();
 	mtar_function_show_version();
 	mtar_io_show_version();
+	mtar_pattern_show_version();
 }
 
 void mtar_option_free(struct mtar_option * option) {

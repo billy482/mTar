@@ -1,0 +1,9 @@
+MTAR_IO_PIPE_SRC_DIR		:= src/module/io/pipe
+
+MTAR_IO_PIPE_BIN			:= lib/libio-pipe.so
+MTAR_IO_PIPE_CFLAG			:= -I. -fPIC -fvisibility=hidden
+MTAR_IO_PIPE_LD				:= -shared
+
+MTAR_IO_PIPE_CHCKSUM_FILE	:= mtar-io-pipe.chcksum
+
+BIN_SYMS					+= MTAR_IO_PIPE

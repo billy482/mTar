@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:17:28 +0200                           *
+*  Last modified: Mon, 07 May 2012 21:58:45 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -524,9 +524,12 @@ void mtar_pattern_show_description() {
 
 void mtar_pattern_show_version() {
 	mtar_loader_load_all("pattern");
+	mtar_verbose_printf("List of available backend patterns :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_pattern_nb_drivers; i++)
 		mtar_pattern_drivers[i]->show_version();
+
+	mtar_verbose_printf("\n");
 }
 

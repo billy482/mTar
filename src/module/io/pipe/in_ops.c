@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,94 +26,106 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:51:47 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
 // free, malloc
 #include <stdlib.h>
-// write
+// read
 #include <unistd.h>
 
 #include "common.h"
 
-static ssize_t mtar_io_pipe_out_block_size(struct mtar_io_out * io);
-static int mtar_io_pipe_out_close(struct mtar_io_out * io);
-static int mtar_io_pipe_out_flush(struct mtar_io_out * io);
-static void mtar_io_pipe_out_free(struct mtar_io_out * io);
-static int mtar_io_pipe_out_last_errno(struct mtar_io_out * io);
-static off_t mtar_io_pipe_out_pos(struct mtar_io_out * io);
-static struct mtar_io_in * mtar_io_pipe_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option);
-static ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
+static ssize_t mtar_io_pipe_in_block_size(struct mtar_io_in * io);
+static int mtar_io_pipe_in_close(struct mtar_io_in * io);
+static off_t mtar_io_pipe_in_forward(struct mtar_io_in * io, off_t offset);
+static void mtar_io_pipe_in_free(struct mtar_io_in * io);
+static int mtar_io_pipe_in_last_errno(struct mtar_io_in * io);
+static off_t mtar_io_pipe_in_pos(struct mtar_io_in * io);
+static ssize_t mtar_io_pipe_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
-static struct mtar_io_out_ops mtar_io_pipe_out_ops = {
-	.block_size         = mtar_io_pipe_out_block_size,
-	.close              = mtar_io_pipe_out_close,
-	.flush              = mtar_io_pipe_out_flush,
-	.free               = mtar_io_pipe_out_free,
-	.last_errno         = mtar_io_pipe_out_last_errno,
-	.pos                = mtar_io_pipe_out_pos,
-	.reopen_for_reading = mtar_io_pipe_out_reopen_for_reading,
-	.write              = mtar_io_pipe_out_write,
+static struct mtar_io_in_ops mtar_io_pipe_in_ops = {
+	.block_size = mtar_io_pipe_in_block_size,
+	.close      = mtar_io_pipe_in_close,
+	.forward    = mtar_io_pipe_in_forward,
+	.free       = mtar_io_pipe_in_free,
+	.last_errno = mtar_io_pipe_in_last_errno,
+	.pos        = mtar_io_pipe_in_pos,
+	.read       = mtar_io_pipe_in_read,
 };
 
 
-ssize_t mtar_io_pipe_out_block_size(struct mtar_io_out * io) {
+ssize_t mtar_io_pipe_in_block_size(struct mtar_io_in * io) {
 	return mtar_io_pipe_common_block_size(io->data);
 }
 
-int mtar_io_pipe_out_close(struct mtar_io_out * io) {
+int mtar_io_pipe_in_close(struct mtar_io_in * io) {
 	return mtar_io_pipe_common_close(io->data);
 }
 
-int mtar_io_pipe_out_flush(struct mtar_io_out * io __attribute__((unused))) {
-	return 0;
+off_t mtar_io_pipe_in_forward(struct mtar_io_in * io, off_t offset) {
+	char buffer[4096];
+
+	while (offset > 0) {
+		ssize_t read = offset;
+		if (read > 4096)
+			read = 4096;
+
+		ssize_t nbRead = mtar_io_pipe_in_read(io, buffer, read);
+
+		if (nbRead > 0)
+			offset -= nbRead;
+		else if (nbRead == 0)
+			break;
+		else if (nbRead < 0)
+			return -1;
+	}
+
+	struct mtar_io_pipe * self = io->data;
+	return self->pos;
 }
 
-void mtar_io_pipe_out_free(struct mtar_io_out * io) {
+void mtar_io_pipe_in_free(struct mtar_io_in * io) {
 	mtar_io_pipe_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_pipe_out_last_errno(struct mtar_io_out * io) {
+int mtar_io_pipe_in_last_errno(struct mtar_io_in * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->last_errno;
 }
 
-off_t mtar_io_pipe_out_pos(struct mtar_io_out * io) {
+off_t mtar_io_pipe_in_pos(struct mtar_io_in * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->pos;
 }
 
-ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
+ssize_t mtar_io_pipe_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
 	struct mtar_io_pipe * self = io->data;
 
-	ssize_t nbWrite = write(self->fd, data, length);
+	ssize_t nbRead = read(self->fd, data, length);
 
-	if (nbWrite > 0)
-		self->pos += nbWrite;
-	else if (nbWrite < 0)
+	if (nbRead > 0)
+		self->pos += nbRead;
+	else if (nbRead < 0)
 		self->last_errno = errno;
 
-	return nbWrite;
+	return nbRead;
 }
 
-struct mtar_io_in * mtar_io_pipe_out_reopen_for_reading(struct mtar_io_out * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	return 0;
-}
-
-struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_in * mtar_io_pipe_new_in(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_pipe * data = malloc(sizeof(struct mtar_io_pipe));
 	data->fd = fd;
 	data->pos = 0;
 	data->last_errno = 0;
 
-	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
-	io->ops = &mtar_io_pipe_out_ops;
+	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
+	io->ops = &mtar_io_pipe_in_ops;
 	io->data = data;
 
 	return io;
