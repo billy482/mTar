@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:55:37 +0200                           *
+*  Last modified: Tue, 08 May 2012 12:13:24 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -118,15 +118,6 @@ struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, cons
 }
 
 int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * h_out) {
-	if (access(filename, F_OK)) {
-		mtar_verbose_printf("Can access to file: %s\n", filename);
-		return 1;
-	}
-	if (access(filename, R_OK)) {
-		mtar_verbose_printf("Can read file: %s\n", filename);
-		return 1;
-	}
-
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
@@ -248,11 +239,6 @@ int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * lab
 }
 
 int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * h_out) {
-	if (access(src, F_OK)) {
-		mtar_verbose_printf("Can access to file: %s\n", src);
-		return 1;
-	}
-
 	struct stat sfile;
 	if (stat(src, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", src);
@@ -265,12 +251,12 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 
 	struct mtar_format_ustar_out * format = f->data;
 	bzero(current_header, 512);
-	strncpy(current_header->filename, src, 100);
+	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(src), 100);
 	mtar_format_ustar_out_set_mode(format, current_header, &sfile);
 	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
 	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
 	current_header->flag = '1';
-	strncpy(current_header->linkname, target, 100);
+	strncpy(current_header->linkname, mtar_format_ustar_out_skip_leading_slash(target), 100);
 	strcpy(current_header->magic, "ustar  ");
 
 	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);

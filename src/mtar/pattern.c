@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:58:45 +0200                           *
+*  Last modified: Tue, 08 May 2012 11:03:38 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -39,13 +39,13 @@
 #include <fnmatch.h>
 // free, realloc
 #include <stdlib.h>
-// strcmp, strdup, strlen, strrchr
+// memmove, strcmp, strdup, strlen, strrchr, strstr
 #include <string.h>
-// stat
+// lstat, stat
 #include <sys/types.h>
-// stat
+// lstat, stat
 #include <sys/stat.h>
-// access, stat
+// access, lstat, stat
 #include <unistd.h>
 
 #include <mtar/filter.h>
@@ -265,7 +265,7 @@ int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern)
 				strcat(self->current_path, ptr->nl_next->d_name);
 			}
 
-			if (stat(self->current_path, &st)) {
+			if (lstat(self->current_path, &st)) {
 				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
 				return 0;
 			}
@@ -337,7 +337,7 @@ int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern)
 			break;
 
 		case MTAR_PATTERN_INCLUDE_PRIVATE_INIT:
-			if (stat(self->path, &st)) {
+			if (lstat(self->path, &st)) {
 				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
 				return 0;
 			}
@@ -389,6 +389,13 @@ struct mtar_pattern_include * mtar_pattern_include_private_new(const char * patt
 	self->first = self->last = 0;
 	self->status = MTAR_PATTERN_INCLUDE_PRIVATE_INIT;
 
+	// remove double '/'
+	char * ptr = self->path;
+	while ((ptr = strstr(ptr, "//"))) {
+		memmove(ptr, ptr + 1, strlen(ptr));
+	}
+
+	// remove trailing '/'
 	size_t length = strlen(pattern);
 	while (length > 0 && self->path[length - 1] == '/') {
 		length--;
