@@ -1,0 +1,9 @@
+MTAR_FILTER_GZIP_SRC_DIR		:= src/module/filter/gzip
+
+MTAR_FILTER_GZIP_BIN			:= lib/libfilter-gzip.so
+MTAR_FILTER_GZIP_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FILTER_GZIP_LD				:= -shared -lz
+
+MTAR_FILTER_GZIP_CHCKSUM_FILE	:= mtar-filter-gzip.chcksum
+
+BIN_SYMS						+= MTAR_FILTER_GZIP
