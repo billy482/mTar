@@ -1,0 +1,9 @@
+MTAR_FUNCTION_LIST_SRC_DIR		:= src/module/function/list
+
+MTAR_FUNCTION_LIST_BIN			:= lib/libfunction-list.so
+MTAR_FUNCTION_LIST_CFLAG		:= -fPIC -fvisibility=hidden
+MTAR_FUNCTION_LIST_LD			:= -shared
+
+MTAR_FUNCTION_LIST_CHCKSUM_FILE	:= mtar-function-list.chcksum
+
+BIN_SYMS						+= MTAR_FUNCTION_LIST
