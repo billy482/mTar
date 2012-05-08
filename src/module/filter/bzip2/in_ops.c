@@ -26,7 +26,7 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
 *  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
 \***************************************************************************/
 

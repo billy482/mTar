@@ -1,0 +1,9 @@
+MTAR_FILTER_BZIP2_SRC_DIR		:= src/module/filter/bzip2
+
+MTAR_FILTER_BZIP2_BIN			:= lib/libfilter-bzip2.so
+MTAR_FILTER_BZIP2_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FILTER_BZIP2_LD			:= -shared -lbz2
+
+MTAR_FILTER_BZIP2_CHCKSUM_FILE	:= mtar-filter-bzip2.chcksum
+
+BIN_SYMS						+= MTAR_FILTER_BZIP2
