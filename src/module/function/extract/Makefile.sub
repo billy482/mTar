@@ -1,0 +1,9 @@
+MTAR_FUNCTION_EXTRACT_SRC_DIR		:= src/module/function/extract
+
+MTAR_FUNCTION_EXTRACT_BIN			:= lib/libfunction-extract.so
+MTAR_FUNCTION_EXTRACT_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FUNCTION_EXTRACT_LD			:= -shared
+
+MTAR_FUNCTION_EXTRACT_CHCKSUM_FILE	:= mtar-function-extract.chcksum
+
+BIN_SYMS							+= MTAR_FUNCTION_EXTRACT

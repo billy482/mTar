@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:25:11 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Tue, 08 May 2012 22:35:12 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -38,6 +38,8 @@
 #include <sys/types.h>
 // chdir, close, link, mknod, symlink, write
 #include <unistd.h>
+
+#include <mtar-function-extract.chcksum>
 
 #include <mtar/function.h>
 #include <mtar/io.h>
@@ -51,12 +53,17 @@ static int mtar_function_extract(const struct mtar_option * option);
 static void mtar_function_extract_init(void) __attribute__((constructor));
 static void mtar_function_extract_show_description(void);
 static void mtar_function_extract_show_help(void);
+static void mtar_function_extract_show_version(void);
 
 static struct mtar_function mtar_function_extract_functions = {
 	.name             = "extract",
-	.doWork           = mtar_function_extract,
+
+	.do_work           = mtar_function_extract,
+
 	.show_description = mtar_function_extract_show_description,
 	.show_help        = mtar_function_extract_show_help,
+	.show_version     = mtar_function_extract_show_version,
+
 	.api_version      = MTAR_FUNCTION_API_VERSION,
 };
 
@@ -159,5 +166,10 @@ void mtar_function_extract_show_help() {
 	mtar_verbose_printf("    -z, --gzip          : filter the archive through gzip\n");
 	mtar_verbose_printf("    -C, --directory=DIR : change to directory DIR\n");
 	mtar_verbose_printf("    -v, --verbose       : verbosely extract files processed\n");
+}
+
+void mtar_function_extract_show_version() {
+	mtar_verbose_printf("  extract : Extract files from tar archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("            SHA1 of source files: %s\n", MTAR_FUNCTION_EXTRACT_SRCSUM);
 }
 
