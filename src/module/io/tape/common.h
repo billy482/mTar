@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 13:34:41 +0200                           *
+*  Last modified: Wed, 09 May 2012 21:41:43 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_TAPE_H__
@@ -37,8 +37,6 @@
 
 struct mtar_io_in * mtar_io_tape_new_in(int fd, int flags, const struct mtar_option * option);
 struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags, const struct mtar_option * option);
-int mtar_io_tape_scsi_read_position(int fd, off_t * position);
-int mtar_io_tape_scsi_locate(int fd, off_t position);
 
 #endif
 

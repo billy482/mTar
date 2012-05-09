@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 21:21:57 +0200                           *
+*  Last modified: Wed, 09 May 2012 22:26:49 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -49,8 +49,7 @@
 
 struct mtar_io_tape_out {
 	int fd;
-	off_t position_on_file;
-	off_t position_on_tape;
+	off_t position;
 	int last_errno;
 
 	char * buffer;
@@ -131,7 +130,7 @@ int mtar_io_tape_out_last_errno(struct mtar_io_out * io) {
 
 off_t mtar_io_tape_out_pos(struct mtar_io_out * io) {
 	struct mtar_io_tape_out * self = io->data;
-	return self->position_on_file;
+	return self->position;
 }
 
 ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
@@ -144,7 +143,7 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 		memcpy(self->buffer + self->buffer_used, data, length);
 
 		self->buffer_used += length;
-		self->position_on_file += length;
+		self->position += length;
 		return length;
 	}
 
@@ -158,7 +157,7 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 
 	ssize_t nb_total_write = buffer_available;
 	self->buffer_used = 0;
-	self->position_on_file += buffer_available;
+	self->position += buffer_available;
 
 	const char * c_buffer = data;
 	while (length - nb_total_write >= self->buffer_size) {
@@ -170,14 +169,14 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 		}
 
 		nb_total_write += nb_write;
-		self->position_on_file += nb_write;
+		self->position += nb_write;
 	}
 
 	if (length == nb_total_write)
 		return length;
 
 	self->buffer_used = length - nb_total_write;
-	self->position_on_file += self->buffer_used;
+	self->position += self->buffer_used;
 	memcpy(self->buffer, c_buffer + nb_total_write, self->buffer_used);
 
 	return length;
@@ -201,12 +200,26 @@ struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io,
 		self->buffer_used = 0;
 	}
 
-	static const struct mtop eof = { MTWEOF, 1 };
-	int failed = ioctl(self->fd, MTIOCTOP, &eof);
+	struct mtget status;
+	int failed = ioctl(self->fd, MTIOCGET, &status);
 	if (failed)
 		return 0;
 
-	mtar_io_tape_scsi_locate(self->fd, self->position_on_tape);
+	static const struct mtop eof = { MTWEOF, 1 };
+	failed = ioctl(self->fd, MTIOCTOP, &eof);
+	if (failed)
+		return 0;
+
+	if (status.mt_fileno > 0) {
+		static const struct mtop bsfm = { MTBSFM, 2 };
+		failed = ioctl(self->fd, MTIOCTOP, &bsfm);
+	} else {
+		static const struct mtop rewind = { MTREW, 1 };
+		failed = ioctl(self->fd, MTIOCTOP, &rewind);
+	}
+
+	if (failed)
+		return 0;
 
 	struct mtar_io_in * in = mtar_io_tape_new_in(self->fd, 0, option);
 	if (in)
@@ -218,8 +231,7 @@ struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io,
 struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
 	struct mtar_io_tape_out * data = malloc(sizeof(struct mtar_io_tape_out));
 	data->fd = fd;
-	data->position_on_file = 0;
-	mtar_io_tape_scsi_read_position(fd, &data->position_on_tape);
+	data->position = 0;
 	data->last_errno = 0;
 
 	data->buffer = malloc(option->block_factor << 9);
