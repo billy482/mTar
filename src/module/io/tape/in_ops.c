@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 09 May 2012 19:15:43 +0200                           *
+*  Last modified: Wed, 09 May 2012 21:38:18 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -36,6 +36,10 @@
 #include <stdlib.h>
 // memcpy
 #include <string.h>
+// ioctl
+#include <sys/ioctl.h>
+// MT*
+#include <sys/mtio.h>
 // close, read
 #include <unistd.h>
 
@@ -45,7 +49,7 @@
 
 struct mtar_io_tape_in {
 	int fd;
-	off_t pos;
+	off_t position;
 	int last_errno;
 
 	char * buffer;
@@ -95,25 +99,49 @@ int mtar_io_tape_in_close(struct mtar_io_in * io) {
 }
 
 off_t mtar_io_tape_in_forward(struct mtar_io_in * io, off_t offset) {
-	char buffer[4096];
+	struct mtar_io_tape_in * self = io->data;
 
-	while (offset > 0) {
-		ssize_t read = offset;
-		if (read > 4096)
-			read = 4096;
+	ssize_t nb_total_read = self->block_size - (self->buffer_pos - self->buffer);
+	if (nb_total_read > 0) {
+		ssize_t will_copy = nb_total_read > offset ? offset : nb_total_read;
 
-		ssize_t nbRead = mtar_io_tape_in_read(io, buffer, read);
+		self->buffer_pos += will_copy;
+		self->position += will_copy;
 
-		if (nbRead > 0)
-			offset -= nbRead;
-		else if (nbRead == 0)
-			break;
-		else if (nbRead < 0)
-			return -1;
+		if (will_copy == offset)
+			return offset;
 	}
 
-	struct mtar_io_tape_in * self = io->data;
-	return self->pos;
+	if (offset - nb_total_read >= self->block_size) {
+		int nb_records = (offset - nb_total_read) / self->block_size;
+
+		struct mtop forward = { MTFSR, nb_records };
+		int failed = ioctl(self->fd, MTIOCTOP, &forward);
+
+		if (failed) {
+			self->last_errno = errno;
+			return failed;
+		}
+
+		self->position += nb_records * self->block_size;
+		nb_total_read += nb_records * self->block_size;
+	}
+
+	if (nb_total_read == offset)
+		return self->position;
+
+	ssize_t nb_read = read(self->fd, self->buffer, self->block_size);
+	if (nb_read < 0) {
+		self->last_errno = errno;
+		return nb_read;
+	} else if (nb_read > 0) {
+		ssize_t will_move = offset - nb_total_read;
+		self->buffer_pos = self->buffer + will_move;
+		self->position += will_move;
+		return self->position;
+	} else {
+		return self->position;
+	}
 }
 
 void mtar_io_tape_in_free(struct mtar_io_in * io) {
@@ -133,7 +161,7 @@ int mtar_io_tape_in_last_errno(struct mtar_io_in * io) {
 
 off_t mtar_io_tape_in_pos(struct mtar_io_in * io) {
 	struct mtar_io_tape_in * self = io->data;
-	return self->pos;
+	return self->position;
 }
 
 ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
@@ -145,7 +173,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 		memcpy(data, self->buffer_pos, will_copy);
 
 		self->buffer_pos += will_copy;
-		self->pos += will_copy;
+		self->position += will_copy;
 
 		if (will_copy == length)
 			return length;
@@ -159,7 +187,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 			return nb_read;
 		} else if (nb_read > 0) {
 			nb_total_read += nb_read;
-			self->pos += nb_read;
+			self->position += nb_read;
 		} else {
 			return nb_total_read;
 		}
@@ -176,7 +204,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 		ssize_t will_copy = length - nb_total_read;
 		memcpy(data, self->buffer, will_copy);
 		self->buffer_pos = self->buffer + will_copy;
-		self->pos += will_copy;
+		self->position += will_copy;
 		return length;
 	} else {
 		return nb_total_read;
@@ -186,7 +214,7 @@ ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length
 struct mtar_io_in * mtar_io_tape_new_in(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
 	struct mtar_io_tape_in * data = malloc(sizeof(struct mtar_io_tape_in));
 	data->fd = fd;
-	data->pos = 0;
+	data->position = 0;
 	data->last_errno = 0;
 
 	data->buffer = malloc(option->block_factor << 9);
