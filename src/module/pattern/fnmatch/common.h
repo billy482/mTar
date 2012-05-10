@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,31 +26,17 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:26:17 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Mon, 10 Oct 2011 22:13:44 +0200                           *
 \***************************************************************************/
 
-#include <mtar/verbose.h>
+#ifndef __MTAR_PATTERN_FNMATCH_H__
+#define __MTAR_PATTERN_FNMATCH_H__
 
-#include "common.h"
+#include <mtar/pattern.h>
 
-static void mtar_pattern_fnmatch_init(void) __attribute__((constructor));
-static void mtar_pattern_fnmatch_show_description(void);
+struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option);
 
-static struct mtar_pattern_driver mtar_pattern_fnmatch_driver = {
-	.name             = "fnmatch",
-	.new_exclude      = mtar_pattern_fnmatch_new_exclude,
-	.new_include      = mtar_pattern_fnmatch_new_include,
-	.show_description = mtar_pattern_fnmatch_show_description,
-	.api_version      = MTAR_PATTERN_API_VERSION,
-};
-
-
-void mtar_pattern_fnmatch_init() {
-	mtar_pattern_register(&mtar_pattern_fnmatch_driver);
-}
-
-void mtar_pattern_fnmatch_show_description() {
-	mtar_verbose_print_help("fnmatch : fnmatch based pattern matching");
-}
+#endif
 

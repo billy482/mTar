@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 11:03:38 +0200                           *
+*  Last modified: Thu, 10 May 2012 11:28:08 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -413,19 +413,19 @@ int mtar_pattern_match(const struct mtar_option * option, const char * filename)
 	if (!option || !filename)
 		return 1;
 
+	unsigned int i;
+	for (i = 0; i < option->nb_excludes; i++)
+		if (option->excludes[i]->ops->match(option->excludes[i], filename))
+			return 1;
+
 	const char * file = strrchr(filename, '/');
 	if (file)
 		file++;
 	else
 		file = filename;
 
-	unsigned int i;
-	for (i = 0; i < option->nb_excludes; i++)
-		if (option->excludes[i]->ops->match(option->excludes[i], filename))
-			return 1;
-
 	if (option->exclude_option & MTAR_EXCLUDE_OPTION_BACKUP) {
-		static const char * patterns[] = { ".#*", "*~", "#*#", ".*.swp", 0 };
+		static const char * patterns[] = { ".#*", "*~", "#*#", 0 };
 
 		for (i = 0; patterns[i]; i++)
 			if (!fnmatch(patterns[i], file, 0))

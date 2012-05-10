@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,53 +26,43 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 06 Nov 2011 15:44:59 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 10 May 2012 09:02:33 +0200                           *
 \***************************************************************************/
 
-// fnmatch
-#include <fnmatch.h>
-// free, malloc
-#include <stdlib.h>
+#include <mtar-pattern-fnmatch.chcksum>
+
+#include <mtar/verbose.h>
 
 #include "common.h"
 
-struct mtar_pattern_fnmatch_exclude {
-	const char * pattern;
-	enum mtar_pattern_option option;
+static void mtar_pattern_fnmatch_init(void) __attribute__((constructor));
+static void mtar_pattern_fnmatch_show_description(void);
+static void mtar_pattern_fnmatch_show_version(void);
+
+static struct mtar_pattern_driver mtar_pattern_fnmatch_driver = {
+	.name             = "fnmatch",
+
+	.new_exclude      = mtar_pattern_fnmatch_new_exclude,
+	.new_include      = mtar_pattern_fnmatch_new_include,
+
+	.show_description = mtar_pattern_fnmatch_show_description,
+	.show_version     = mtar_pattern_fnmatch_show_version,
+
+	.api_version      = MTAR_PATTERN_API_VERSION,
 };
 
-static void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex);
-static int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
 
-static struct mtar_pattern_exclude_ops mtar_pattern_fnmatch_exclude_ops = {
-	.free  = mtar_pattern_fnmatch_exclude_free,
-	.match = mtar_pattern_fnmatch_exclude_match,
-};
-
-
-void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex) {
-	if (!ex)
-		return;
-
-	free(ex->data);
-	free(ex);
+void mtar_pattern_fnmatch_init() {
+	mtar_pattern_register(&mtar_pattern_fnmatch_driver);
 }
 
-int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
-	struct mtar_pattern_fnmatch_exclude * self = ex->data;
-	return fnmatch(filename, self->pattern, 0);
+void mtar_pattern_fnmatch_show_description() {
+	mtar_verbose_print_help("fnmatch : fnmatch based pattern matching");
 }
 
-struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * pattern, enum mtar_pattern_option option) {
-	struct mtar_pattern_fnmatch_exclude * self = malloc(sizeof(struct mtar_pattern_fnmatch_exclude));
-	self->pattern = pattern;
-	self->option = option;
-
-	struct mtar_pattern_exclude * ex = malloc(sizeof(struct mtar_pattern_exclude));
-	ex->ops = &mtar_pattern_fnmatch_exclude_ops;
-	ex->data = self;
-
-	return ex;
+void mtar_pattern_fnmatch_show_version() {
+	mtar_verbose_printf("  fnmatch : fnmatch based pattern matching (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("            SHA1 of source files: %s\n", MTAR_PATTERN_FNMATCH_SRCSUM);
 }
 

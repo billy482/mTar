@@ -1,0 +1,9 @@
+MTAR_PATTERN_FNMATCH_SRC_DIR		:= src/module/pattern/fnmatch
+
+MTAR_PATTERN_FNMATCH_BIN			:= lib/libpattern-fnmatch.so
+MTAR_PATTERN_FNMATCH_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_PATTERN_FNMATCH_LD				:= -shared
+
+MTAR_PATTERN_FNMATCH_CHCKSUM_FILE	:= mtar-pattern-fnmatch.chcksum
+
+BIN_SYMS							+= MTAR_PATTERN_FNMATCH

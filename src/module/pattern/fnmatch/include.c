@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,8 +26,8 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 20 Oct 2011 09:18:01 +0200                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Thu, 10 May 2012 09:06:19 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -51,7 +51,7 @@ struct mtar_pattern_fnmatch_include {
 
 static void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern);
 static int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern);
-static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char * filename, size_t length);
+static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename);
 
 static struct mtar_pattern_include_ops mtar_pattern_fnmatch_include_ops = {
 	.free     = mtar_pattern_fnmatch_include_free,
@@ -92,8 +92,9 @@ int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern)
 		return 1;
 	}
 
+	/*
 	while (self->path_gen->ops->has_next(self->path_gen)) {
-		self->path_gen->ops->next(self->path_gen, self->next_file, 256);
+		self->path_gen->ops->next(self->path_gen, &self->next_file);
 
 		if (!fnmatch(self->pattern, self->next_file, 0)) {
 			int i;
@@ -108,17 +109,17 @@ int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern)
 				self->dir_length = 0;
 			return 1;
 		}
-	}
+	}*/
 
 	return 0;
 }
 
-void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char * filename, size_t length) {
+void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename) {
 	struct mtar_pattern_fnmatch_include * self = pattern->data;
-	if (self->dir_length > 0)
-		strncpy(filename, self->next_dir, length);
+	/*if (self->dir_length > 0)
+		strncpy(*filename, self->next_dir, length);
 	else
-		strncpy(filename, self->next_file, length);
+		strncpy(*filename, self->next_file, length);*/
 }
 
 struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option) {
