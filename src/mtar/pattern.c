@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 May 2012 11:28:08 +0200                           *
+*  Last modified: Sat, 12 May 2012 00:19:45 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -85,7 +85,7 @@ static unsigned int mtar_pattern_nb_drivers = 0;
 static void mtar_pattern_exit(void) __attribute__((destructor));
 static int mtar_pattern_include_filter(const struct dirent * file);
 static void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern);
-static int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern);
+static int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
 static void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, char ** filename);
 static struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option);
 
@@ -239,7 +239,7 @@ void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern) {
 	free(pattern);
 }
 
-int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern) {
+int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option) {
 	struct mtar_pattern_include_private * self = pattern->data;
 
 	if (self->current_path)
@@ -247,94 +247,107 @@ int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern)
 	self->current_path = 0;
 
 	size_t length;
-	struct mtar_pattern_include_node * ptr;
+	struct mtar_pattern_include_node * ptr, * cnode = self->last;
 	struct stat st;
+
 	switch (self->status) {
 		case MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED:
 			return 0;
 
 		case MTAR_PATTERN_INCLUDE_PRIVATE_HAS_NEXT:
-			length = strlen(self->path);
-			for (ptr = self->first; ptr; ptr = ptr->next)
-				length += strlen(ptr->nl_next->d_name) + 1;
+			if (!cnode && self->option & MTAR_PATTERN_OPTION_RECURSION) {
+				cnode = malloc(sizeof(struct mtar_pattern_include_private));
 
-			self->current_path = malloc(length + 1);
-			strcpy(self->current_path, self->path);
-			for (ptr = self->first; ptr; ptr = ptr->next) {
-				strcat(self->current_path, "/");
-				strcat(self->current_path, ptr->nl_next->d_name);
-			}
-
-			if (lstat(self->current_path, &st)) {
-				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
-				return 0;
-			}
-
-			if (S_ISDIR(st.st_mode)) {
-				struct mtar_pattern_include_node * cnode = self->last;
-				self->last = cnode->next = malloc(sizeof(struct mtar_pattern_include_private));
-				cnode->next->previous = cnode;
-				cnode = cnode->next;
 				cnode->nl = 0;
 				cnode->nl_next = 0;
-				cnode->next = 0;
+				cnode->next = cnode->previous = 0;
 				cnode->index_nl = 0;
+				cnode->next = cnode->previous = 0;
 
-				cnode->nb_nl = scandir(self->current_path, &cnode->nl, mtar_pattern_include_filter, versionsort);
-				if (cnode->nb_nl > 0)
+				cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_pattern_include_filter, versionsort);
+
+				if (cnode->nb_nl > 0) {
 					cnode->nl_next = *cnode->nl;
-				else {
-					self->last = cnode = cnode->previous;
-					while (cnode) {
-						if (cnode->next) {
-							free(cnode->next);
-							cnode->next = 0;
-						}
 
-						free(cnode->nl_next);
-						cnode->nl_next = cnode->nl[++cnode->index_nl];
+					self->first = self->last = cnode;
+				} else {
+					free(cnode);
+					self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+					return 0;
+				}
+			}
 
-						if (cnode->index_nl < cnode->nb_nl)
-							break;
+			while (cnode) {
+				length = strlen(self->path);
+				for (ptr = self->first; ptr; ptr = ptr->next)
+					length += strlen(ptr->nl_next->d_name) + 1;
 
-						free(cnode->nl);
-
-						self->last = cnode = cnode->previous;
-					}
-
-					if (!cnode)
-						self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
-
-					return 1;
+				self->current_path = malloc(length + 1);
+				strcpy(self->current_path, self->path);
+				for (ptr = self->first; ptr; ptr = ptr->next) {
+					strcat(self->current_path, "/");
+					strcat(self->current_path, ptr->nl_next->d_name);
 				}
 
-			} else {
-				struct mtar_pattern_include_node * cnode = self->last;
-				while (cnode) {
-					if (cnode->next) {
-						free(cnode->next);
-						cnode->next = 0;
+				if (lstat(self->current_path, &st)) {
+					free(self->current_path);
+					self->current_path = 0;
+
+					self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+					return 0;
+				}
+
+				if (mtar_pattern_match(option, self->current_path)) {
+					free(self->current_path);
+					self->current_path = 0;
+				} else if (S_ISDIR(st.st_mode)) {
+					struct mtar_pattern_include_node * csubnode = malloc(sizeof(struct mtar_pattern_include_private));
+					csubnode->next = csubnode->previous = 0;
+
+					csubnode->nl = 0;
+					csubnode->nl_next = 0;
+					csubnode->index_nl = 0;
+
+					csubnode->nb_nl = scandir(self->current_path, &csubnode->nl, mtar_pattern_include_filter, versionsort);
+
+					if (csubnode->nb_nl > 0) {
+						csubnode->nl_next = *csubnode->nl;
+
+						self->last = cnode->next = csubnode;
+						csubnode->previous = cnode;
+
+						return 1;
 					}
 
+					free(csubnode);
+				}
+
+				do {
 					free(cnode->nl_next);
 					cnode->nl_next = cnode->nl[++cnode->index_nl];
+
+					if (self->current_path && cnode->index_nl < cnode->nb_nl)
+						return 1;
 
 					if (cnode->index_nl < cnode->nb_nl)
 						break;
 
 					free(cnode->nl);
+					ptr = cnode->previous;
 
-					self->last = cnode = cnode->previous;
-				}
+					if (ptr)
+						ptr->next = 0;
 
-				if (!self->last) {
-					free(self->first);
-					self->first = 0;
-					self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
-				}
+					free(cnode);
+					self->last = cnode = ptr;
+
+					if (!self->last)
+						self->first = 0;
+				} while (cnode);
 			}
 
-			break;
+			self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+			return self->current_path ? 1 : 0;
 
 		case MTAR_PATTERN_INCLUDE_PRIVATE_INIT:
 			if (lstat(self->path, &st)) {
@@ -342,24 +355,13 @@ int mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern)
 				return 0;
 			}
 
-			self->current_path = strdup(self->path);
-			self->status = MTAR_PATTERN_INCLUDE_PRIVATE_HAS_NEXT;
-
-			if (S_ISDIR(st.st_mode)) {
-				if (!(self->option & MTAR_PATTERN_OPTION_RECURSION)) {
-					self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
-					return 1;
-				}
-
-				struct mtar_pattern_include_node * cnode;
-				self->first = self->last = cnode = malloc(sizeof(struct mtar_pattern_include_private));
-				cnode->nl = 0;
-				cnode->next = cnode->previous = 0;
-				cnode->index_nl = 0;
-
-				cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_pattern_include_filter, versionsort);
-				cnode->nl_next = *cnode->nl;
+			if (mtar_pattern_match(option, self->path)) {
+				self->status = MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
+				return 0;
 			}
+
+			self->current_path = strdup(self->path);
+			self->status = S_ISDIR(st.st_mode) ? MTAR_PATTERN_INCLUDE_PRIVATE_HAS_NEXT : MTAR_PATTERN_INCLUDE_PRIVATE_FINISHED;
 			break;
 	}
 
