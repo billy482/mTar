@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 11 May 2012 10:13:26 +0200                           *
+*  Last modified: Sat, 12 May 2012 00:24:26 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -690,6 +690,6 @@ void mtar_option_show_help() {
 }
 
 void mtar_option_show_version() {
-	mtar_verbose_printf("mtar: modular tar (version: " MTAR_VERSION ", build: " __DATE__ __TIME__ ")\n");
+	mtar_verbose_printf("mtar: modular tar (version: " MTAR_VERSION ", build: " __DATE__ ", " __TIME__ ")\n");
 }
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 13:02:59 +0200                           *
+*  Last modified: Sat, 12 May 2012 00:25:17 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
@@ -66,6 +66,6 @@ void mtar_filter_bzip2_show_description() {
 
 void mtar_filter_bzip2_show_version() {
 	mtar_verbose_printf("  bzip2 : filter from/to compressed data (version: " MTAR_VERSION ") (using libbz2: v%s)\n", BZ2_bzlibVersion());
-	mtar_verbose_printf("          SHA1 of source files: %s\n", MTAR_FILTER_BZIP2_SRCSUM);
+	mtar_verbose_printf("          SHA1 of source files: " MTAR_FILTER_BZIP2_SRCSUM "\n");
 }
 

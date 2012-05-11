@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:25:13 +0200                           *
+*  Last modified: Sat, 12 May 2012 00:26:38 +0200                           *
 \***************************************************************************/
 
 #include <mtar-format-ustar.chcksum>
@@ -63,6 +63,6 @@ void mtar_format_ustar_show_description() {
 
 void mtar_format_ustar_show_version() {
 	mtar_verbose_printf("  ustar: default format of mtar (version: " MTAR_VERSION ")\n");
-	mtar_verbose_printf("         SHA1 of source files: %s\n", MTAR_FORMAT_USTAR_SRCSUM);
+	mtar_verbose_printf("         SHA1 of source files: " MTAR_FORMAT_USTAR_SRCSUM "\n");
 }
 

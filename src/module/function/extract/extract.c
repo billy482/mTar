@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 22:35:12 +0200                           *
+*  Last modified: Sat, 12 May 2012 00:27:10 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -170,6 +170,6 @@ void mtar_function_extract_show_help() {
 
 void mtar_function_extract_show_version() {
 	mtar_verbose_printf("  extract : Extract files from tar archive (version: " MTAR_VERSION ")\n");
-	mtar_verbose_printf("            SHA1 of source files: %s\n", MTAR_FUNCTION_EXTRACT_SRCSUM);
+	mtar_verbose_printf("            SHA1 of source files: " MTAR_FUNCTION_EXTRACT_SRCSUM "\n");
 }
 
