@@ -27,15 +27,21 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 May 2012 09:06:19 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:13:27 +0200                           *
 \***************************************************************************/
 
 // fnmatch
 #include <fnmatch.h>
 // free, malloc
 #include <stdlib.h>
-// strcspn, strdup, strncpy, strrchr
+// strcspn, strdup, strlen, strncpy, strrchr
 #include <string.h>
+// lstat
+#include <sys/types.h>
+// lstat
+#include <sys/stat.h>
+// lstat
+#include <unistd.h>
 
 #include "common.h"
 
@@ -44,13 +50,13 @@ struct mtar_pattern_fnmatch_include {
 	enum mtar_pattern_option option;
 
 	struct mtar_pattern_include * path_gen;
-	char next_file[256];
-	char next_dir[256];
-	size_t dir_length;
+	char * current_dir;
+	char * next_dir;
+	char * next_file;
 };
 
 static void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern);
-static int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern);
+static int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
 static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename);
 
 static struct mtar_pattern_include_ops mtar_pattern_fnmatch_include_ops = {
@@ -72,54 +78,100 @@ void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern) {
 		self->path_gen->ops->free(self->path_gen);
 	self->path_gen = 0;
 
+	if (self->current_dir)
+		free(self->current_dir);
+	self->current_dir = 0;
+
+	if (self->next_dir)
+		free(self->next_dir);
+	self->next_dir = 0;
+
+	if (self->next_file)
+		free(self->next_file);
+	self->next_file = 0;
+
 	free(self);
 	free(pattern);
 }
 
-int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern) {
+int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option) {
 	struct mtar_pattern_fnmatch_include * self = pattern->data;
 
-	if (self->dir_length > 0) {
-		char * ptr = strchr(self->next_file + self->dir_length, '/');
-		if (ptr) {
-			self->dir_length = ptr - self->next_file;
-			strncpy(self->next_dir, self->next_file, self->dir_length);
-			self->next_dir[self->dir_length] = '\0';
-			self->dir_length++;
-		} else
-			self->dir_length = 0;
-
+	if (self->next_dir || self->next_file)
 		return 1;
+
+	while (self->path_gen->ops->has_next(self->path_gen, option)) {
+		char * path = 0;
+		self->path_gen->ops->next(self->path_gen, &path);
+
+		struct stat st;
+		lstat(path, &st);
+
+		if (S_ISDIR(st.st_mode)) {
+			if (self->next_dir)
+				free(self->next_dir);
+			self->next_dir = path;
+		} else if (!fnmatch(self->pattern, path, FNM_PERIOD)) {
+			self->next_file = path;
+			return 1;
+		} else {
+			free(path);
+		}
 	}
 
-	/*
-	while (self->path_gen->ops->has_next(self->path_gen)) {
-		self->path_gen->ops->next(self->path_gen, &self->next_file);
+	if (self->current_dir)
+		free(self->current_dir);
+	self->current_dir = 0;
 
-		if (!fnmatch(self->pattern, self->next_file, 0)) {
-			int i;
-			for (i = 0; self->next_dir[i] == self->next_file[i]; i++);
-			char * ptr = strchr(self->next_file + i + 1, '/');
-			if (ptr) {
-				self->dir_length = ptr - self->next_file;
-				strncpy(self->next_dir, self->next_file, self->dir_length);
-				self->next_dir[self->dir_length] = '\0';
-				self->dir_length++;
-			} else
-				self->dir_length = 0;
-			return 1;
-		}
-	}*/
+	if (self->next_dir)
+		free(self->next_dir);
+	self->next_dir = 0;
+
+	if (self->next_file)
+		free(self->next_file);
+	self->next_file = 0;
 
 	return 0;
 }
 
 void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename) {
 	struct mtar_pattern_fnmatch_include * self = pattern->data;
-	/*if (self->dir_length > 0)
-		strncpy(*filename, self->next_dir, length);
-	else
-		strncpy(*filename, self->next_file, length);*/
+
+	if (!self->current_dir && self->next_dir) {
+		char * ptr = strchr(self->next_dir, '/');
+		if (ptr) {
+			self->current_dir = malloc(strlen(self->next_dir) + 1);
+
+			size_t length = ptr - self->next_dir;
+			strncpy(self->current_dir, self->next_dir, length);
+			self->current_dir[length] = '\0';
+
+			*filename = strdup(self->current_dir);
+		} else {
+			*filename = self->next_dir;
+			self->next_dir = 0;
+		}
+	} else if (self->current_dir) {
+		ssize_t current_length = strlen(self->current_dir);
+
+		char * ptr = strchr(self->next_dir + current_length + 1, '/');
+		if (ptr) {
+			ssize_t copy_length = ptr - self->next_dir - current_length;
+			strncpy(self->current_dir + current_length, self->next_dir + current_length, copy_length);
+			self->current_dir[current_length + copy_length] = '\0';
+
+			*filename = strdup(self->current_dir);
+		} else {
+			free(self->current_dir);
+			self->current_dir = 0;
+
+			*filename = self->next_dir;
+			self->next_dir = 0;
+		}
+	} else if (self->next_file) {
+		*filename = self->next_file;
+		self->next_file = 0;
+	}
 }
 
 struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option) {
@@ -131,24 +183,27 @@ struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * patt
 	size_t pos = strcspn(pattern, "*?{[");
 
 	if (pos > 0) {
-		strncpy(self->next_file, pattern, pos);
-		self->next_file[pos] = '\0';
+		char * dir = malloc(pos + 1);
+		strncpy(dir, pattern, pos);
+		dir[pos] = '\0';
 
-		char * last_slash = strrchr(self->next_file, '/');
+		char * last_slash = strrchr(dir, '/');
 
 		if (last_slash) {
 			*last_slash = '\0';
-			self->path_gen = mtar_pattern_get_include(0, self->next_file, option);
+			self->path_gen = mtar_pattern_get_include(0, dir, option);
 		} else {
 			self->path_gen = mtar_pattern_get_include(0, ".", option);
 		}
+
+		free(dir);
 	} else {
 		self->path_gen = mtar_pattern_get_include(0, ".", option);
 	}
 
-	*self->next_file = '\0';
-	*self->next_dir = '\0';
-	self->dir_length = 0;
+	self->current_dir = 0;
+	self->next_dir = 0;
+	self->next_file = 0;
 
 	struct mtar_pattern_include * ex = malloc(sizeof(struct mtar_pattern_include));
 	ex->ops = &mtar_pattern_fnmatch_include_ops;
