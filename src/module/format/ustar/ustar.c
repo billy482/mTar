@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:26:38 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:27:12 +0200                           *
 \***************************************************************************/
 
 #include <mtar-format-ustar.chcksum>
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "ustar.h"
 
 static void mtar_format_ustar_format_init(void) __attribute__((constructor));
 static void mtar_format_ustar_show_description(void);

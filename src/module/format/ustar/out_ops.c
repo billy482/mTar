@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 12:13:24 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:27:34 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -52,7 +52,7 @@
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "ustar.h"
 
 struct mtar_format_ustar_out {
 	struct mtar_io_out * io;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:28:58 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -43,7 +43,7 @@
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "create.h"
 
 static void mtar_function_create_display1(struct mtar_format_header * header, const char * hardlink);
 static void mtar_function_create_display2(struct mtar_format_header * header, const char * hardlink);

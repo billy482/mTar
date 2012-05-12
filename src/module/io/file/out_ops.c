@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:50:48 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:37:58 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -39,7 +39,7 @@
 // fdatasync, lseek, write
 #include <unistd.h>
 
-#include "common.h"
+#include "file.h"
 
 static ssize_t mtar_io_file_out_block_size(struct mtar_io_out * io);
 static int mtar_io_file_out_close(struct mtar_io_out * io);

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:23:04 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -37,7 +37,7 @@
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "bzip2.h"
 
 struct mtar_filter_bzip2_in {
 	bz_stream strm;

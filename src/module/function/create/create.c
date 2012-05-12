@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:26:55 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:28:44 +0200                           *
 \***************************************************************************/
 
 // open
@@ -57,7 +57,7 @@
 #include <mtar/util.h>
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "create.h"
 
 struct mtar_function_create_param {
 	struct mtar_format_out * format;

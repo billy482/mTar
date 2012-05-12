@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:28:15 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:41:42 +0200                           *
 \***************************************************************************/
 
 #include <mtar-pattern-fnmatch.chcksum>
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "fnmatch.h"
 
 static void mtar_pattern_fnmatch_init(void) __attribute__((constructor));
 static void mtar_pattern_fnmatch_show_description(void);

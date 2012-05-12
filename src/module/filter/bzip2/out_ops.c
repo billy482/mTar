@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:47:20 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:23:17 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -37,7 +37,7 @@
 
 #include <mtar/option.h>
 
-#include "common.h"
+#include "bzip2.h"
 
 struct mtar_filter_bzip2_out {
 	bz_stream strm;

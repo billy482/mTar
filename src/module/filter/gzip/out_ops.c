@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:49:14 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:25:20 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -41,7 +41,7 @@
 
 #include <mtar/option.h>
 
-#include "common.h"
+#include "gzip.h"
 
 
 struct mtar_filter_gzip_out {

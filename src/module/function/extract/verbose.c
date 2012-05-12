@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:29:55 +0200                           *
 \***************************************************************************/
 
 // gettimeofday
@@ -43,7 +43,7 @@
 #include <mtar/option.h>
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "extract.h"
 
 static void mtar_function_extract_display1(struct mtar_format_header * header);
 static void mtar_function_extract_display2(struct mtar_format_header * header);

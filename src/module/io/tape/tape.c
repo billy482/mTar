@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:27:57 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:39:18 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-tape.chcksum>
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "tape.h"
 
 static void mtar_io_tape_init(void) __attribute__((constructor));
 static void mtar_io_tape_show_description(void);

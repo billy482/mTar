@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 09:51:47 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:39:07 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -37,7 +37,7 @@
 // write
 #include <unistd.h>
 
-#include "common.h"
+#include "pipe.h"
 
 static ssize_t mtar_io_pipe_out_block_size(struct mtar_io_out * io);
 static int mtar_io_pipe_out_close(struct mtar_io_out * io);

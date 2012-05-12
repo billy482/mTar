@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 09 May 2012 22:26:49 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:39:44 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -45,7 +45,7 @@
 
 #include <mtar/option.h>
 
-#include "common.h"
+#include "tape.h"
 
 struct mtar_io_tape_out {
 	int fd;

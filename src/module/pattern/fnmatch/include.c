@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:13:27 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:42:03 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -43,7 +43,7 @@
 // lstat
 #include <unistd.h>
 
-#include "common.h"
+#include "fnmatch.h"
 
 struct mtar_pattern_fnmatch_include {
 	char * pattern;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:25:53 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:24:54 +0200                           *
 \***************************************************************************/
 
 // zlibVersion
@@ -37,7 +37,7 @@
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "gzip.h"
 
 static void mtar_filter_gzip_init(void) __attribute__((constructor));
 static void mtar_filter_gzip_show_description(void);

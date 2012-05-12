@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:25:07 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -37,7 +37,7 @@
 // inflate, inflateEnd, inflateInit2
 #include <zlib.h>
 
-#include "common.h"
+#include "gzip.h"
 
 struct mtar_filter_gzip_in {
 	z_stream gz_stream;

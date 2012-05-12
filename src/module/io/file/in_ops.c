@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:37:47 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -37,7 +37,7 @@
 // lseek, read
 #include <unistd.h>
 
-#include "common.h"
+#include "file.h"
 
 static ssize_t mtar_io_file_in_block_size(struct mtar_io_in * io);
 static int mtar_io_file_in_close(struct mtar_io_in * io);

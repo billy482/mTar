@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:27:10 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:29:42 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -47,7 +47,7 @@
 #include <mtar/pattern.h>
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "extract.h"
 
 static int mtar_function_extract(const struct mtar_option * option);
 static void mtar_function_extract_init(void) __attribute__((constructor));

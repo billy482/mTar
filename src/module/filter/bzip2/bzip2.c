@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:25:17 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:23:02 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
@@ -37,7 +37,7 @@
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "bzip2.h"
 
 static void mtar_filter_bzip2_init(void) __attribute__((constructor));
 static void mtar_filter_bzip2_show_description(void);

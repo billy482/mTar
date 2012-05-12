@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:27:23 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -41,7 +41,7 @@
 
 #include <mtar/io.h>
 
-#include "common.h"
+#include "ustar.h"
 
 struct mtar_format_ustar_in {
 	struct mtar_io_in * io;

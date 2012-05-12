@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:27:35 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:37:22 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-file.chcksum>
 
 #include <mtar/verbose.h>
 
-#include "common.h"
+#include "file.h"
 
 static void mtar_io_file_init(void) __attribute__((constructor));
 static void mtar_io_file_show_description(void);

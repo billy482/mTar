@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 May 2012 18:14:39 +0200                           *
+*  Last modified: Sun, 13 May 2012 00:42:05 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -37,7 +37,7 @@
 // strchr
 #include <string.h>
 
-#include "common.h"
+#include "fnmatch.h"
 
 struct mtar_pattern_fnmatch_exclude {
 	const char * pattern;
