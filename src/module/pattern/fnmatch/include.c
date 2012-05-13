@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:42:03 +0200                           *
+*  Last modified: Sun, 13 May 2012 12:41:14 +0200                           *
 \***************************************************************************/
 
 // fnmatch
 #include <fnmatch.h>
 // free, malloc
 #include <stdlib.h>
-// strcspn, strdup, strlen, strncpy, strrchr
+// strcspn, strdup, strlen, strncmp, strncpy, strrchr
 #include <string.h>
 // lstat
 #include <sys/types.h>
@@ -47,11 +47,12 @@
 
 struct mtar_pattern_fnmatch_include {
 	char * pattern;
-	enum mtar_pattern_option option;
+	int fnmatch_flags;
 
 	struct mtar_pattern_include * path_gen;
 	char * current_dir;
 	char * next_dir;
+	size_t next_dir_length;
 	char * next_file;
 };
 
@@ -107,11 +108,31 @@ int mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern,
 		struct stat st;
 		lstat(path, &st);
 
+		if (strncmp(path, self->next_dir, self->next_dir_length)) {
+			free(self->next_dir);
+			self->next_dir = 0;
+			self->next_dir_length = 0;
+
+			if (S_ISDIR(st.st_mode)) {
+				self->next_dir = strdup(path);
+				self->next_dir_length = strlen(path);
+			} else {
+				char * ptr = strrchr(path, '/');
+				if (ptr) {
+					self->next_dir_length = ptr - path;
+					self->next_dir = malloc(self->next_dir_length + 1);
+					strncpy(self->next_dir, path, self->next_dir_length);
+					self->next_dir[self->next_dir_length] = '\0';
+				}
+			}
+		}
+
 		if (S_ISDIR(st.st_mode)) {
 			if (self->next_dir)
 				free(self->next_dir);
 			self->next_dir = path;
-		} else if (!fnmatch(self->pattern, path, FNM_PERIOD)) {
+			self->next_dir_length = strlen(path);
+		} else if (!fnmatch(self->pattern, path, self->fnmatch_flags)) {
 			self->next_file = path;
 			return 1;
 		} else {
@@ -150,6 +171,7 @@ void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, ch
 		} else {
 			*filename = self->next_dir;
 			self->next_dir = 0;
+			self->next_dir_length = 0;
 		}
 	} else if (self->current_dir) {
 		ssize_t current_length = strlen(self->current_dir);
@@ -167,6 +189,7 @@ void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, ch
 
 			*filename = self->next_dir;
 			self->next_dir = 0;
+			self->next_dir_length = 0;
 		}
 	} else if (self->next_file) {
 		*filename = self->next_file;
@@ -177,7 +200,10 @@ void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, ch
 struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option) {
 	struct mtar_pattern_fnmatch_include * self = malloc(sizeof(struct mtar_pattern_fnmatch_include));
 	self->pattern = strdup(pattern);
-	self->option = option;
+	self->fnmatch_flags = 0;
+
+	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
+		self->fnmatch_flags |= FNM_CASEFOLD;
 
 	self->path_gen = 0;
 	size_t pos = strcspn(pattern, "*?{[");
@@ -203,6 +229,7 @@ struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * patt
 
 	self->current_dir = 0;
 	self->next_dir = 0;
+	self->next_dir_length = 0;
 	self->next_file = 0;
 
 	struct mtar_pattern_include * ex = malloc(sizeof(struct mtar_pattern_include));
