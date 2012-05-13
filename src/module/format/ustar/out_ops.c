@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:27:34 +0200                           *
+*  Last modified: Sun, 13 May 2012 13:14:11 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -81,6 +81,7 @@ static void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format
 static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 static struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_format_out * f, const struct mtar_option * option);
+static int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
 static const char * mtar_format_ustar_out_skip_leading_slash(const char * str);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
@@ -92,6 +93,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.free               = mtar_format_ustar_out_free,
 	.last_errno         = mtar_format_ustar_out_last_errno,
 	.reopen_for_reading = mtar_format_ustar_out_reopen_for_reading,
+	.restart_file       = mtar_format_ustar_out_restart_file,
 	.write              = mtar_format_ustar_out_write,
 };
 
@@ -206,11 +208,11 @@ int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * file
 	format->position = 0;
 	format->size = sfile.st_size;
 
-	ssize_t nbWrite = format->io->ops->write(format->io, header, block_size);
+	ssize_t nb_write = format->io->ops->write(format->io, header, block_size);
 
 	free(header);
 
-	return block_size != nbWrite;
+	return block_size != nb_write;
 }
 
 int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label) {
@@ -231,11 +233,11 @@ int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * lab
 	format->position = 0;
 	format->size = 0;
 
-	ssize_t nbWrite = format->io->ops->write(format->io, header, 512);
+	ssize_t nb_write = format->io->ops->write(format->io, header, 512);
 
 	free(header);
 
-	return 512 != nbWrite;
+	return 512 != nb_write;
 }
 
 int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * h_out) {
@@ -267,11 +269,11 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	format->position = 0;
 	format->size = 0;
 
-	ssize_t nbWrite = format->io->ops->write(format->io, header, block_size);
+	ssize_t nb_write = format->io->ops->write(format->io, header, block_size);
 
 	free(header);
 
-	return block_size != nbWrite;
+	return block_size != nb_write;
 }
 
 void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile) {
@@ -359,9 +361,9 @@ int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f) {
 		char * buffer = malloc(512);
 		bzero(buffer, 512 - mod);
 
-		ssize_t nbWrite = format->io->ops->write(format->io, buffer, 512 - mod);
+		ssize_t nb_write = format->io->ops->write(format->io, buffer, 512 - mod);
 		free(buffer);
-		if (nbWrite < 0)
+		if (nb_write < 0)
 			return -1;
 	}
 
@@ -393,6 +395,84 @@ struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_for
 		return mtar_format_ustar_new_in(in, option);
 
 	return 0;
+}
+
+int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * h_out, ssize_t position) {
+	struct stat sfile;
+	if (lstat(filename, &sfile)) {
+		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
+		return 1;
+	}
+
+	ssize_t block_size = 512;
+	struct mtar_format_ustar * header = malloc(block_size);
+	struct mtar_format_ustar * current_header = header;
+
+	int filename_length = strlen(filename);
+	if (S_ISLNK(sfile.st_mode)) {
+		char link[257];
+		ssize_t link_length = readlink(filename, link, 256);
+		link[link_length] = '\0';
+
+		if (filename_length > 100 && link_length > 100) {
+			block_size += 2048 + filename_length - filename_length % 512 + link_length - link_length % 512;
+			current_header = header = realloc(header, block_size);
+
+			bzero(current_header, block_size - 512);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'K', &sfile);
+			mtar_format_ustar_out_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
+
+			current_header += 4;
+		} else if (filename_length > 100) {
+			block_size += 1024 + filename_length - filename_length % 512;
+			current_header = header = realloc(header, block_size);
+
+			bzero(current_header, block_size - 512);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
+
+			current_header += 2;
+		} else if (link_length > 100) {
+			block_size += 1024 + link_length - link_length % 512;
+			current_header = header = realloc(header, block_size);
+
+			bzero(current_header, block_size - 512);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), link, link_length, 'L', &sfile);
+
+			current_header += 2;
+		}
+	} else if (filename_length > 100) {
+		block_size += 1024 + filename_length - filename_length % 512;
+		current_header = header = realloc(header, block_size);
+
+		bzero(current_header, 1024);
+		mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
+
+		current_header += 2;
+	}
+
+	struct mtar_format_ustar_out * format = f->data;
+	bzero(current_header, 512);
+	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(filename), 100);
+	mtar_format_ustar_out_compute_size(current_header->size, sfile.st_size - position);
+	current_header->flag = 'M';
+	mtar_format_ustar_out_set_mode(format, current_header, &sfile);
+	mtar_format_ustar_out_set_owner_and_group(format, current_header, &sfile);
+	snprintf(current_header->mtime, 12, "%0*o", 11, (unsigned int) sfile.st_mtime);
+	strcpy(current_header->magic, "ustar  ");
+	mtar_format_ustar_out_compute_size(current_header->position, position);
+
+	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
+
+	mtar_format_ustar_out_copy(format, h_out, header, &sfile);
+
+	format->position = 0;
+	format->size = sfile.st_size;
+
+	ssize_t nb_write = format->io->ops->write(format->io, header, block_size);
+
+	free(header);
+
+	return block_size != nb_write;
 }
 
 void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile) {
@@ -429,12 +509,12 @@ ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * dat
 	if (format->position + length > format->size)
 		length = format->size - format->position;
 
-	ssize_t nbWrite = format->io->ops->write(format->io, data, length);
+	ssize_t nb_write = format->io->ops->write(format->io, data, length);
 
-	if (nbWrite > 0)
-		format->position += nbWrite;
+	if (nb_write > 0)
+		format->position += nb_write;
 
-	return nbWrite;
+	return nb_write;
 }
 
 const char * mtar_format_ustar_out_skip_leading_slash(const char * str) {

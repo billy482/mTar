@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sun, 13 May 2012 13:13:09 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_USTAR_H__
@@ -50,7 +50,9 @@ struct mtar_format_ustar {
 	char gname[32];
 	char devmajor[8];
 	char devminor[8];
-	char prefix[167];
+	char padding1[24];
+	char position[12];
+	char padding2[131];
 };
 
 struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option);

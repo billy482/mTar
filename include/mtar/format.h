@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 14:38:02 +0200                           *
+*  Last modified: Sun, 13 May 2012 16:11:04 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -82,6 +82,7 @@ struct mtar_format_header {
 	 * \brief Size of file
 	 */
 	ssize_t size;
+	ssize_t position;
 	/**
 	 * \brief List of permission
 	 */
@@ -163,6 +164,7 @@ struct mtar_format_out {
 		void (*free)(struct mtar_format_out * f);
 		int (*last_errno)(struct mtar_format_out * f);
 		struct mtar_format_in * (*reopen_for_reading)(struct mtar_format_out * f, const struct mtar_option * option);
+		int (*restart_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
 		ssize_t (*write)(struct mtar_format_out * f, const void * data, ssize_t length);
 	} * ops;
 	void * data;
