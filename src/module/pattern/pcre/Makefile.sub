@@ -1,0 +1,9 @@
+MTAR_PATTERN_PCRE_SRC_DIR		:= src/module/pattern/pcre
+
+MTAR_PATTERN_PCRE_BIN			:= lib/libpattern-pcre.so
+MTAR_PATTERN_PCRE_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_PATTERN_PCRE_LD			:= -shared -lpcre
+
+MTAR_PATTERN_PCRE_CHCKSUM_FILE	:= mtar-pattern-pcre.chcksum
+
+BIN_SYMS						+= MTAR_PATTERN_PCRE

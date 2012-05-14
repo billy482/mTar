@@ -7,7 +7,7 @@
 *  -----------------------------------------------------------------------  *
 *  This file is a part of mTar                                              *
 *                                                                           *
-*  mTar is free software; you can redistribute it and/or                    *
+*  mTar (modular tar) is free software; you can redistribute it and/or      *
 *  modify it under the terms of the GNU General Public License              *
 *  as published by the Free Software Foundation; either version 3           *
 *  of the License, or (at your option) any later version.                   *
@@ -26,34 +26,63 @@
 *  along with this program.  If not, see <http://www.gnu.org/licenses/>.    *
 *                                                                           *
 *  -----------------------------------------------------------------------  *
-*  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 31 Oct 2011 15:26:26 +0100                           *
+*  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
+*  Last modified: Mon, 14 May 2012 20:40:27 +0200                           *
 \***************************************************************************/
 
-// pcre_version
+// pcre_compile, pcre_exec, pcre_free
 #include <pcre.h>
+// strlen
+#include <string.h>
 
-#include <mtar/verbose.h>
+#include "pcre.h"
 
-#include "common.h"
+struct mtar_pattern_pcre_exclude {
+	pcre * pattern;
+};
 
-static void mtar_pattern_pcre_init(void) __attribute__((constructor));
-static void mtar_pattern_pcre_show_description(void);
+static void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex);
+static int mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
 
-static struct mtar_pattern_driver mtar_pattern_pcre_driver = {
-	.name             = "pcre",
-	.new_exclude      = mtar_pattern_pcre_new_exclude,
-	.new_include      = mtar_pattern_pcre_new_include,
-	.show_description = mtar_pattern_pcre_show_description,
-	.api_version      = MTAR_PATTERN_API_VERSION,
+static struct mtar_pattern_exclude_ops mtar_pattern_pcre_exclude_ops = {
+	.free  = mtar_pattern_pcre_exclude_free,
+	.match = mtar_pattern_pcre_exclude_match,
 };
 
 
-void mtar_pattern_pcre_init() {
-	mtar_pattern_register(&mtar_pattern_pcre_driver);
+void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex) {
+	if (!ex)
+		return;
+
+	struct mtar_pattern_pcre_exclude * self = ex->data;
+	pcre_free(self->pattern);
+	free(self);
+	free(ex);
 }
 
-void mtar_pattern_pcre_show_description() {
-	mtar_verbose_print_help("pcre : pcre powered based pattern matching (using libpcre: v%s)\n", pcre_version());
+int mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
+	struct mtar_pattern_pcre_exclude * self = ex->data;
+	int cap[2];
+	return pcre_exec(self->pattern, 0, filename, strlen(filename), 0, 0, cap, 2) > 0;
+}
+
+struct mtar_pattern_exclude * mtar_pattern_pcre_new_exclude(const char * pattern, enum mtar_pattern_option option) {
+	const char * error = 0;
+	int erroroffset = 0;
+
+	int pcre_option = 0;
+	if (option & MTAR_PATTERN_OPTION_ANCHORED)
+		pcre_option |= PCRE_ANCHORED;
+	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
+		pcre_option |= PCRE_CASELESS;
+
+	struct mtar_pattern_pcre_exclude * self = malloc(sizeof(struct mtar_pattern_pcre_exclude));
+	self->pattern = pcre_compile(pattern, pcre_option, &error, &erroroffset, 0);
+
+	struct mtar_pattern_exclude * ex = malloc(sizeof(struct mtar_pattern_exclude));
+	ex->ops = &mtar_pattern_pcre_exclude_ops;
+	ex->data = self;
+
+	return ex;
 }
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:42:05 +0200                           *
+*  Last modified: Mon, 14 May 2012 20:38:13 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -65,7 +65,7 @@ void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex) {
 int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
 	struct mtar_pattern_fnmatch_exclude * self = ex->data;
 
-	if (self->option == MTAR_PATTERN_OPTION_ANCHORED)
+	if (self->option & MTAR_PATTERN_OPTION_ANCHORED)
 		return fnmatch(self->pattern, filename, self->fnmatch_flags);
 
 	const char * ptr = filename;
@@ -85,7 +85,7 @@ struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * patt
 	self->fnmatch_flags = FNM_PERIOD;
 	self->option = option;
 
-	if (option == MTAR_PATTERN_OPTION_IGNORE_CASE)
+	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
 		self->fnmatch_flags |= FNM_CASEFOLD;
 
 	struct mtar_pattern_exclude * ex = malloc(sizeof(struct mtar_pattern_exclude));
