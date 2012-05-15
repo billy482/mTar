@@ -163,6 +163,7 @@ struct mtar_format_out {
 		int (*end_of_file)(struct mtar_format_out * f);
 		void (*free)(struct mtar_format_out * f);
 		int (*last_errno)(struct mtar_format_out * f);
+		off_t (*position)(struct mtar_format_out * io);
 		struct mtar_format_in * (*reopen_for_reading)(struct mtar_format_out * f, const struct mtar_option * option);
 		int (*restart_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
 		ssize_t (*write)(struct mtar_format_out * f, const void * data, ssize_t length);

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 13:14:11 +0200                           *
+*  Last modified: Tue, 15 May 2012 21:34:17 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -77,12 +77,13 @@ static void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, st
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
-static void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
-static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
-static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
+static off_t mtar_format_ustar_out_position(struct mtar_format_out * io);
 static struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_format_out * f, const struct mtar_option * option);
 static int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
+static void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
+static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static const char * mtar_format_ustar_out_skip_leading_slash(const char * str);
+static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.add_file           = mtar_format_ustar_out_add_file,
@@ -92,6 +93,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.end_of_file        = mtar_format_ustar_out_end_of_file,
 	.free               = mtar_format_ustar_out_free,
 	.last_errno         = mtar_format_ustar_out_last_errno,
+	.position           = mtar_format_ustar_out_position,
 	.reopen_for_reading = mtar_format_ustar_out_reopen_for_reading,
 	.restart_file       = mtar_format_ustar_out_restart_file,
 	.write              = mtar_format_ustar_out_write,
@@ -387,6 +389,11 @@ int mtar_format_ustar_out_last_errno(struct mtar_format_out * f) {
 	return format->io->ops->last_errno(format->io);
 }
 
+off_t mtar_format_ustar_out_position(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * self = f->data;
+	return self->position;
+}
+
 struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_format_out * f, const struct mtar_option * option) {
 	struct mtar_format_ustar_out * format = f->data;
 	struct mtar_io_in * in = format->io->ops->reopen_for_reading(format->io, option);
@@ -500,6 +507,17 @@ void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * fo
 	}
 }
 
+const char * mtar_format_ustar_out_skip_leading_slash(const char * str) {
+	if (!str)
+		return 0;
+
+	const char * ptr;
+	size_t i = 0, length = strlen(str);
+	for (ptr = str; *ptr == '/' && i < length; i++, ptr++);
+
+	return ptr;
+}
+
 ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length) {
 	struct mtar_format_ustar_out * format = f->data;
 
@@ -515,16 +533,5 @@ ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * dat
 		format->position += nb_write;
 
 	return nb_write;
-}
-
-const char * mtar_format_ustar_out_skip_leading_slash(const char * str) {
-	if (!str)
-		return 0;
-
-	const char * ptr;
-	size_t i = 0, length = strlen(str);
-	for (ptr = str; *ptr == '/' && i < length; i++, ptr++);
-
-	return ptr;
 }
 

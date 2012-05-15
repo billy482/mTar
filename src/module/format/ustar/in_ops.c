@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 16:14:27 +0200                           *
+*  Last modified: Mon, 14 May 2012 23:55:40 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -329,27 +329,33 @@ int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
 	if (self->skip_size == 0)
 		return 0;
+
 	if (self->buffer_used > 0) {
 		if (self->skip_size < self->buffer_used) {
 			memmove(self->buffer, self->buffer + self->skip_size, self->buffer_used - self->skip_size);
 			self->buffer_used -= self->skip_size;
+			self->position += self->skip_size;
 			self->filesize = 0;
 			self->skip_size = 0;
 			return 0;
 		} else {
+			self->position += self->buffer_used;
 			self->filesize -= self->buffer_used;
 			self->skip_size -= self->buffer_used;
 			self->buffer_used = 0;
 		}
 	}
+
 	if (self->skip_size > 0) {
 		off_t next_pos = self->io->ops->pos(self->io) + self->skip_size;
 		off_t new_pos = self->io->ops->forward(self->io, self->skip_size);
 		if (new_pos == (off_t) -1)
 			return 1;
+		self->position += self->skip_size;
 		self->filesize = self->skip_size = 0;
 		return new_pos != next_pos;
 	}
+
 	return 0;
 }
 
