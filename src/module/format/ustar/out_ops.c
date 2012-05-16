@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 23:49:31 +0200                           *
+*  Last modified: Wed, 16 May 2012 23:57:59 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -73,7 +73,7 @@ static ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * io
 static ssize_t mtar_format_ustar_out_block_size(struct mtar_format_out * f);
 static void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum);
 static void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
-static void mtar_format_ustar_out_compute_size(char * csize, ssize_t size);
+static void mtar_format_ustar_out_compute_size(char * csize, unsigned long long size);
 static void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile);
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
@@ -349,7 +349,7 @@ void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char 
 	strcpy(link, filename);
 }
 
-void mtar_format_ustar_out_compute_size(char * csize, ssize_t size) {
+void mtar_format_ustar_out_compute_size(char * csize, unsigned long long size) {
 	if (size > 077777777777) {
 		*csize = (char) 0x80;
 		unsigned int i;
@@ -358,7 +358,7 @@ void mtar_format_ustar_out_compute_size(char * csize, ssize_t size) {
 			size >>= 8;
 		}
 	} else {
-		snprintf(csize, 12, "%0*lo", 11, size);
+		snprintf(csize, 12, "%0*llo", 11, size);
 	}
 }
 

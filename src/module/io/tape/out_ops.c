@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 22:11:23 +0200                           *
+*  Last modified: Thu, 17 May 2012 00:01:42 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -54,8 +54,8 @@ struct mtar_io_tape_out {
 	int last_errno;
 
 	char * buffer;
-	unsigned int buffer_size;
-	unsigned int buffer_used;
+	ssize_t buffer_size;
+	ssize_t buffer_used;
 };
 
 static ssize_t mtar_io_tape_out_available_space(struct mtar_io_out * io);

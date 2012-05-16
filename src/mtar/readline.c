@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Wed, 16 May 2012 23:52:46 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -41,8 +41,8 @@
 struct mtar_readline {
 	struct mtar_io_in * io;
 	char * buffer;
-	unsigned int buffer_length;
-	unsigned int buffer_used;
+	ssize_t buffer_length;
+	ssize_t buffer_used;
 	char delimiter;
 	ssize_t blocksize;
 };

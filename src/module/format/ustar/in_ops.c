@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 14 May 2012 23:55:40 +0200                           *
+*  Last modified: Wed, 16 May 2012 23:54:03 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -47,8 +47,8 @@ struct mtar_format_ustar_in {
 	struct mtar_io_in * io;
 	off_t position;
 	char * buffer;
-	unsigned int buffer_size;
-	unsigned int buffer_used;
+	ssize_t buffer_size;
+	ssize_t buffer_used;
 	ssize_t filesize;
 	ssize_t skip_size;
 };

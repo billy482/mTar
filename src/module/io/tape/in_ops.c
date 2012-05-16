@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:39:34 +0200                           *
+*  Last modified: Thu, 17 May 2012 00:00:34 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -53,7 +53,7 @@ struct mtar_io_tape_in {
 	int last_errno;
 
 	char * buffer;
-	unsigned int block_size;
+	ssize_t block_size;
 	char * buffer_pos;
 };
 
