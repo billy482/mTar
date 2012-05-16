@@ -27,16 +27,21 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 09 May 2012 21:41:43 +0200                           *
+*  Last modified: Wed, 16 May 2012 21:56:16 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_TAPE_H__
 #define __MTAR_IO_TAPE_H__
 
+// off_t, ssize_t
+#include <sys/types.h>
+
 #include <mtar/io.h>
 
 struct mtar_io_in * mtar_io_tape_new_in(int fd, int flags, const struct mtar_option * option);
 struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags, const struct mtar_option * option);
+int mtar_io_tape_scsi_read_capacity(int fd, ssize_t * total_free, ssize_t * total);
+int mtar_io_tape_scsi_read_position(int fd, off_t * position);
 
 #endif
 

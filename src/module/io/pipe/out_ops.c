@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 21:35:40 +0200                           *
+*  Last modified: Tue, 15 May 2012 23:22:39 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -39,6 +39,7 @@
 
 #include "pipe.h"
 
+static ssize_t mtar_io_pipe_out_available_space(struct mtar_io_out * io);
 static ssize_t mtar_io_pipe_out_block_size(struct mtar_io_out * io);
 static int mtar_io_pipe_out_close(struct mtar_io_out * io);
 static int mtar_io_pipe_out_flush(struct mtar_io_out * io);
@@ -49,6 +50,7 @@ static struct mtar_io_in * mtar_io_pipe_out_reopen_for_reading(struct mtar_io_ou
 static ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_pipe_out_ops = {
+	.available_space    = mtar_io_pipe_out_available_space,
 	.block_size         = mtar_io_pipe_out_block_size,
 	.close              = mtar_io_pipe_out_close,
 	.flush              = mtar_io_pipe_out_flush,
@@ -59,6 +61,10 @@ static struct mtar_io_out_ops mtar_io_pipe_out_ops = {
 	.write              = mtar_io_pipe_out_write,
 };
 
+
+ssize_t mtar_io_pipe_out_available_space(struct mtar_io_out * io __attribute__((unused))) {
+	return -1;
+}
 
 ssize_t mtar_io_pipe_out_block_size(struct mtar_io_out * io) {
 	return mtar_io_pipe_common_block_size(io->data);

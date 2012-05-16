@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 19:33:52 +0200                           *
+*  Last modified: Tue, 15 May 2012 21:47:33 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -117,6 +117,7 @@ struct mtar_io_out {
 	 * \brief This structure contains only functions pointers used as methods
 	 */
 	struct mtar_io_out_ops {
+		ssize_t (*available_space)(struct mtar_io_out * io);
 		ssize_t (*block_size)(struct mtar_io_out * io);
 		/**
 		 * \brief close the input stream

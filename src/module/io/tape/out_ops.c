@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 21:36:18 +0200                           *
+*  Last modified: Wed, 16 May 2012 22:11:23 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -50,6 +50,7 @@
 struct mtar_io_tape_out {
 	int fd;
 	off_t position;
+	ssize_t total_free_space;
 	int last_errno;
 
 	char * buffer;
@@ -57,6 +58,7 @@ struct mtar_io_tape_out {
 	unsigned int buffer_used;
 };
 
+static ssize_t mtar_io_tape_out_available_space(struct mtar_io_out * io);
 static ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io);
 static int mtar_io_tape_out_close(struct mtar_io_out * io);
 static int mtar_io_tape_out_flush(struct mtar_io_out * io);
@@ -67,6 +69,7 @@ static struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_ou
 static ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_tape_out_ops = {
+	.available_space    = mtar_io_tape_out_available_space,
 	.block_size         = mtar_io_tape_out_block_size,
 	.close              = mtar_io_tape_out_close,
 	.flush              = mtar_io_tape_out_flush,
@@ -77,6 +80,11 @@ static struct mtar_io_out_ops mtar_io_tape_out_ops = {
 	.write              = mtar_io_tape_out_write,
 };
 
+
+ssize_t mtar_io_tape_out_available_space(struct mtar_io_out * io) {
+	struct mtar_io_tape_out * self = io->data;
+	return self->total_free_space ? self->total_free_space - self->position : -1 ;
+}
 
 ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io) {
 	struct mtar_io_tape_out * self = io->data;
@@ -232,11 +240,20 @@ struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unuse
 	struct mtar_io_tape_out * data = malloc(sizeof(struct mtar_io_tape_out));
 	data->fd = fd;
 	data->position = 0;
+	data->total_free_space = 0;
 	data->last_errno = 0;
 
 	data->buffer = malloc(option->block_factor << 9);
 	data->buffer_size = option->block_factor << 9;
 	data->buffer_used = 0;
+
+	off_t tape_position;
+	ssize_t tape_size;
+	int failed = mtar_io_tape_scsi_read_position(fd, &tape_position);
+	if (!failed)
+		failed = mtar_io_tape_scsi_read_capacity(fd, 0, &tape_size);
+	if (!failed)
+		data->total_free_space = tape_size - tape_position * data->buffer_size;
 
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_tape_out_ops;

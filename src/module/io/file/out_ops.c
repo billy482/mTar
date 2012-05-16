@@ -27,13 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 21:35:11 +0200                           *
+*  Last modified: Tue, 15 May 2012 22:08:43 +0200                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
 // free, malloc
 #include <stdlib.h>
+// fstatfs
+#include <sys/statfs.h>
 // lseek
 #include <sys/types.h>
 // fdatasync, lseek, write
@@ -41,6 +43,7 @@
 
 #include "file.h"
 
+static ssize_t mtar_io_file_out_available_space(struct mtar_io_out * io);
 static ssize_t mtar_io_file_out_block_size(struct mtar_io_out * io);
 static int mtar_io_file_out_close(struct mtar_io_out * io);
 static int mtar_io_file_out_flush(struct mtar_io_out * io);
@@ -51,6 +54,7 @@ static struct mtar_io_in * mtar_io_file_out_reopen_for_reading(struct mtar_io_ou
 static ssize_t mtar_io_file_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
 
 static struct mtar_io_out_ops mtar_io_file_out_ops = {
+	.available_space    = mtar_io_file_out_available_space,
 	.block_size         = mtar_io_file_out_block_size,
 	.close              = mtar_io_file_out_close,
 	.flush              = mtar_io_file_out_flush,
@@ -61,6 +65,18 @@ static struct mtar_io_out_ops mtar_io_file_out_ops = {
 	.write              = mtar_io_file_out_write,
 };
 
+
+ssize_t mtar_io_file_out_available_space(struct mtar_io_out * io) {
+	struct mtar_io_file * self = io->data;
+
+	struct statfs fs;
+	int failed = fstatfs(self->fd, &fs);
+
+	if (failed)
+		return -1;
+
+	return fs.f_bsize * fs.f_bavail;
+}
 
 ssize_t mtar_io_file_out_block_size(struct mtar_io_out * io) {
 	return mtar_io_file_common_block_size(io->data);
