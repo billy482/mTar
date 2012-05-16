@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 16:11:04 +0200                           *
+*  Last modified: Wed, 16 May 2012 23:47:52 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -159,6 +159,7 @@ struct mtar_format_out {
 		int (*add_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header);
 		int (*add_label)(struct mtar_format_out * f, const char * label);
 		int (*add_link)(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * header);
+		ssize_t (*available_space)(struct mtar_format_out * io);
 		ssize_t (*block_size)(struct mtar_format_out * f);
 		int (*end_of_file)(struct mtar_format_out * f);
 		void (*free)(struct mtar_format_out * f);

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 21:34:17 +0200                           *
+*  Last modified: Wed, 16 May 2012 23:49:31 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -69,6 +69,7 @@ struct mtar_format_ustar_out {
 static int mtar_format_ustar_out_add_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header);
 static int mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label);
 static int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * header);
+static ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * io);
 static ssize_t mtar_format_ustar_out_block_size(struct mtar_format_out * f);
 static void mtar_format_ustar_out_compute_checksum(const void * header, char * checksum);
 static void mtar_format_ustar_out_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile);
@@ -89,6 +90,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.add_file           = mtar_format_ustar_out_add_file,
 	.add_label          = mtar_format_ustar_out_add_label,
 	.add_link           = mtar_format_ustar_out_add_link,
+	.available_space    = mtar_format_ustar_out_available_space,
 	.block_size         = mtar_format_ustar_out_block_size,
 	.end_of_file        = mtar_format_ustar_out_end_of_file,
 	.free               = mtar_format_ustar_out_free,
@@ -276,6 +278,11 @@ int mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src,
 	free(header);
 
 	return block_size != nb_write;
+}
+
+ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * format = f->data;
+	return format->io->ops->available_space(format->io);
 }
 
 void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile) {
