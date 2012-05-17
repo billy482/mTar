@@ -20,6 +20,9 @@ if ( open my $fd, '<', $filename ) {
     @lines = <$fd>;
     close $fd;
 }
+else {
+    $new_value = 1;
+}
 
 my ( $found_version, $found_commit ) = ( 0, 0 );
 foreach (@lines) {
