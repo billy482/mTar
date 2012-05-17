@@ -41,8 +41,7 @@ LDFLAGS		:=
 CSCOPE_OPT	:= -b -R -s src -U -I include
 CTAGS_OPT	:= -R src
 
-VERSION_FILE	:= mtar.version
-VERSION_OPT		:= MTAR ${VERSION_FILE}
+VERSION_OPT		:= MTAR mtar.version
 
 
 # sub makefiles
@@ -126,7 +125,8 @@ doc: Doxyfile ${LIBOBJECT_SRC_FILES} ${HEAD_FILES}
 	@echo ' DOXYGEN'
 	@${DOXYGEN}
 
-prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS}) ${VERSION_FILE}
+prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS})
+	@./script/version.pl ${VERSION_OPT}
 
 rebuild: clean all
 
@@ -155,9 +155,6 @@ cscope.out: ${SRC_FILES} ${HEAD_FILES}
 tags: ${SRC_FILES} ${HEAD_FILES}
 	@echo " CTAGS"
 	@${CTAGS} ${CTAGS_OPT}
-
-${VERSION_FILE}:
-	@./script/version.pl ${VERSION_OPT}
 
 ifneq (${DEP_FILES},)
 include ${DEP_FILES}
