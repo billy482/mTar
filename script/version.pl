@@ -25,28 +25,29 @@ my ( $found_version, $found_commit ) = ( 0, 0 );
 foreach (@lines) {
     if (/^#define ${symbol}_VERSION "(.+)"/) {
         $found_version = 1;
-        $_ = "#define ${symbol}_VERSION \"$version\"\n" if $version ne $1;
+
+        if ( $version ne $1 ) {
+            $new_value = 1;
+            $_         = "#define ${symbol}_VERSION \"$version\"\n";
+        }
     }
     elsif (/^#define ${symbol}_GIT_COMMIT "(\w+)"/) {
         $found_commit = 1;
-        $_            = "#define ${symbol}_GIT_COMMIT \"$git_commit\"\n"
-            if $git_commit ne $1;
+
+        if ( $git_commit ne $1 ) {
+            $new_value = 1;
+            $_         = "#define ${symbol}_GIT_COMMIT \"$git_commit\"\n";
+        }
     }
 }
 
-unless ($found_version) {
-    $new_value = 1;
-    push @lines, "#define ${symbol}_VERSION \"$version\"\n";
-}
-
-unless ($found_commit) {
-    $new_value = 1;
-    push @lines, "#define ${symbol}_GIT_COMMIT \"$git_commit\"\n";
-}
+push @lines, "#define ${symbol}_VERSION \"$version\"\n" unless $found_version;
+push @lines, "#define ${symbol}_GIT_COMMIT \"$git_commit\"\n"
+    unless $found_commit;
 
 if ($new_value) {
-	open my $fd, '>', $filename;
-	print $fd @lines;
-	close $fd;
+    open my $fd, '>', $filename;
+    print $fd @lines;
+    close $fd;
 }
 
