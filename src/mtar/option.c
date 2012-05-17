@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 12 May 2012 00:24:26 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:40:27 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -40,6 +40,7 @@
 #include <stdlib.h>
 
 #include <mtar.chcksum>
+#include <mtar.version>
 
 #include <mtar/file.h>
 #include <mtar/verbose.h>

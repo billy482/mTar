@@ -27,10 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:27:12 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:41:47 +0200                           *
 \***************************************************************************/
 
 #include <mtar-format-ustar.chcksum>
+#include <mtar.version>
 
 #include <mtar/verbose.h>
 

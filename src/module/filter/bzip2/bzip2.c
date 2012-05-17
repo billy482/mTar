@@ -27,13 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:23:02 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:41:05 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
 #include <bzlib.h>
 
 #include <mtar-filter-bzip2.chcksum>
+#include <mtar.version>
 
 #include <mtar/verbose.h>
 

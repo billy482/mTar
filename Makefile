@@ -14,7 +14,6 @@ STRIP		:= ${TARGET}strip
 # variable
 NAME		:= mtar
 DIR_NAME	:= $(lastword $(subst /, , $(realpath .)))
-VERSION		:= $(shell ./script/version.pl)
 
 
 BINS		:=
@@ -30,19 +29,18 @@ HEAD_FILES	:= $(sort $(shell test -d include && find include -name '*.h'))
 DEP_FILES	:=
 OBJ_FILES	:=
 
-GIT_COMMIT  := $(shell git log -1 --format=%H)
-
 ifndef (${DESTDIR})
 DESTDIR   := output
 endif
 
 
 # compilation flags
-CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR}) -DMTAR_VERSION=\"${VERSION}\" -DMTAR_GIT_COMMIT=\"${GIT_COMMIT}\"
+CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR})
 LDFLAGS		:=
 
 CSCOPE_OPT	:= -b -R -s src -U -I include
 CTAGS_OPT	:= -R src
+VERSION_OPT := MTAR mtar.version
 
 
 # sub makefiles
@@ -127,6 +125,7 @@ doc: Doxyfile ${LIBOBJECT_SRC_FILES} ${HEAD_FILES}
 	@${DOXYGEN}
 
 prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS})
+	@./script/version.pl ${VERSION_OPT}
 
 rebuild: clean all
 

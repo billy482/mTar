@@ -27,13 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 14 May 2012 19:15:29 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:43:20 +0200                           *
 \***************************************************************************/
 
 // pcre_version
 #include <pcre.h>
 
 #include <mtar-pattern-pcre.chcksum>
+#include <mtar.version>
 
 #include <mtar/verbose.h>
 

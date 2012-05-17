@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:29:42 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:42:17 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -40,6 +40,7 @@
 #include <unistd.h>
 
 #include <mtar-function-extract.chcksum>
+#include <mtar.version>
 
 #include <mtar/function.h>
 #include <mtar/io.h>

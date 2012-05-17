@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:28:44 +0200                           *
+*  Last modified: Thu, 17 May 2012 12:42:02 +0200                           *
 \***************************************************************************/
 
 // open
@@ -48,6 +48,7 @@
 #include <utime.h>
 
 #include <mtar-function-create.chcksum>
+#include <mtar.version>
 
 #include <mtar/format.h>
 #include <mtar/function.h>
