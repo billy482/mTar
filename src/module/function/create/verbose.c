@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:28:58 +0200                           *
+*  Last modified: Thu, 17 May 2012 23:20:45 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -45,9 +45,9 @@
 
 #include "create.h"
 
-static void mtar_function_create_display1(struct mtar_format_header * header, const char * hardlink);
-static void mtar_function_create_display2(struct mtar_format_header * header, const char * hardlink);
-static void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink);
+static void mtar_function_create_display1(struct mtar_format_header * header, const char * hardlink, int verify);
+static void mtar_function_create_display2(struct mtar_format_header * header, const char * hardlink, int verify);
+static void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink, int verify);
 static void mtar_function_create_display_label1(const char * label);
 static void mtar_function_create_display_label2(const char * label);
 static void mtar_function_create_display_label3(const char * label);
@@ -55,7 +55,7 @@ static void mtar_function_create_progress1(const char * filename, const char * f
 static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 
-void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink) = mtar_function_create_display1;
+void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink, int verify) = mtar_function_create_display1;
 void (*mtar_function_create_display_label)(const char * label) = mtar_function_create_display_label1;
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
@@ -82,13 +82,15 @@ void mtar_function_create_configure(const struct mtar_option * option) {
 	}
 }
 
-void mtar_function_create_display1(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused))) {}
+void mtar_function_create_display1(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify __attribute__((unused))) {}
 
-void mtar_function_create_display2(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused))) {
+void mtar_function_create_display2(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify) {
+	if (verify)
+		mtar_verbose_printf("Verify ");
 	mtar_verbose_printf("%s\n", header->path);
 }
 
-void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink) {
+void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink, int verify) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 
@@ -107,6 +109,9 @@ void mtar_function_create_display3(struct mtar_format_header * header, const cha
 	static int nsize = 0;
 	int ug1, ug2;
 	int size1, size2;
+
+	if (verify)
+		mtar_verbose_printf("Verify ");
 
 	if (hardlink) {
 		mode[0] = 'h';

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:42:02 +0200                           *
+*  Last modified: Thu, 17 May 2012 23:37:07 +0200                           *
 \***************************************************************************/
 
 // open
@@ -130,7 +130,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				if (!strcmp(target, filename))
 					continue;
 				failed = format->ops->add_link(format, filename, target, &header);
-				mtar_function_create_display(&header, target);
+				mtar_function_create_display(&header, target, 0);
 				if (failed)
 					break;
 				continue;
@@ -139,7 +139,7 @@ int mtar_function_create(const struct mtar_option * option) {
 			mtar_hashtable_put(inode, strdup(key), strdup(filename));
 
 			failed = format->ops->add_file(format, filename, &header);
-			mtar_function_create_display(&header, 0);
+			mtar_function_create_display(&header, 0, 0);
 
 			if (failed)
 				break;
@@ -208,20 +208,23 @@ int mtar_function_create(const struct mtar_option * option) {
 					continue;
 				}
 
-				mtar_function_create_display(&header, 0);
+				mtar_function_create_display(&header, 0, 1);
 
 				if ((st.st_mode & 0777) != (header.mode & 0777))
 					mtar_verbose_printf("%s: mode differs\n", header.path);
 
 				if (S_ISREG(st.st_mode)) {
-					if (st.st_size != header.size)
+					if (st.st_size != header.size && !*header.link)
 						mtar_verbose_printf("%s: size differs\n", header.path);
 				} else if (S_ISLNK(st.st_mode)) {
 					char link[256];
-					readlink(header.path, link, 256);
+					ssize_t slink = readlink(header.path, link, 256);
+					if (slink >= 0) {
+						link[slink] = '\0';
 
-					if (strcmp(link, header.link))
-						mtar_verbose_printf("%s: link differs\n", header.path);
+						if (strcmp(link, header.link))
+							mtar_verbose_printf("%s: link differs\n", header.path);
+					}
 				} else if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
 					if (st.st_rdev != header.dev)
 						mtar_verbose_printf("%s: dev differs\n", header.path);
