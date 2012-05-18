@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Fri, 18 May 2012 22:19:54 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_PIPE_H__
@@ -37,7 +37,7 @@
 
 struct mtar_io_pipe {
 	int fd;
-	off_t pos;
+	off_t position;
 	int last_errno;
 };
 

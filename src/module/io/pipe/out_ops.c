@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 23:22:39 +0200                           *
+*  Last modified: Fri, 18 May 2012 22:28:38 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -36,6 +36,9 @@
 #include <stdlib.h>
 // write
 #include <unistd.h>
+
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
 #include "pipe.h"
 
@@ -74,7 +77,9 @@ int mtar_io_pipe_out_close(struct mtar_io_out * io) {
 	return mtar_io_pipe_common_close(io->data);
 }
 
-int mtar_io_pipe_out_flush(struct mtar_io_out * io __attribute__((unused))) {
+int mtar_io_pipe_out_flush(struct mtar_io_out * io) {
+	struct mtar_io_pipe * self = io->data;
+	self->last_errno = 0;
 	return 0;
 }
 
@@ -92,35 +97,45 @@ int mtar_io_pipe_out_last_errno(struct mtar_io_out * io) {
 
 off_t mtar_io_pipe_out_position(struct mtar_io_out * io) {
 	struct mtar_io_pipe * self = io->data;
-	return self->pos;
+	return self->position;
 }
 
 ssize_t mtar_io_pipe_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
 	struct mtar_io_pipe * self = io->data;
 
-	ssize_t nbWrite = write(self->fd, data, length);
+	if (length < 1)
+		return 0;
 
-	if (nbWrite > 0)
-		self->pos += nbWrite;
-	else if (nbWrite < 0)
+	self->last_errno = 0;
+
+	ssize_t nb_write = write(self->fd, data, length);
+
+	if (nb_write > 0)
+		self->position += nb_write;
+	else if (nb_write < 0)
 		self->last_errno = errno;
 
-	return nbWrite;
+	return nb_write;
 }
 
 struct mtar_io_in * mtar_io_pipe_out_reopen_for_reading(struct mtar_io_out * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	return 0;
 }
 
-struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	struct mtar_io_pipe * data = malloc(sizeof(struct mtar_io_pipe));
-	data->fd = fd;
-	data->pos = 0;
-	data->last_errno = 0;
+struct mtar_io_out * mtar_io_pipe_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
+	if (option->multi_volume) {
+		mtar_verbose_printf("Error: I'm not able to write a multi volume archive into a pipe\n");
+		return 0;
+	}
+
+	struct mtar_io_pipe * self = malloc(sizeof(struct mtar_io_pipe));
+	self->fd = fd;
+	self->position = 0;
+	self->last_errno = 0;
 
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_pipe_out_ops;
-	io->data = data;
+	io->data = self;
 
 	return io;
 }
