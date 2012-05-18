@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 22:08:43 +0200                           *
+*  Last modified: Fri, 18 May 2012 22:17:01 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -40,6 +40,9 @@
 #include <sys/types.h>
 // fdatasync, lseek, write
 #include <unistd.h>
+
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
 #include "file.h"
 
@@ -68,6 +71,9 @@ static struct mtar_io_out_ops mtar_io_file_out_ops = {
 
 ssize_t mtar_io_file_out_available_space(struct mtar_io_out * io) {
 	struct mtar_io_file * self = io->data;
+
+	if (self->volume_size > 0)
+		return self->volume_size - self->position;
 
 	struct statfs fs;
 	int failed = fstatfs(self->fd, &fs);
@@ -110,7 +116,7 @@ int mtar_io_file_out_last_errno(struct mtar_io_out * io) {
 
 off_t mtar_io_file_out_position(struct mtar_io_out * io) {
 	struct mtar_io_file * self = io->data;
-	return self->pos;
+	return self->position;
 }
 
 struct mtar_io_in * mtar_io_file_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option) {
@@ -119,8 +125,8 @@ struct mtar_io_in * mtar_io_file_out_reopen_for_reading(struct mtar_io_out * io,
 	if (self->fd < 0)
 		return 0;
 
-	off_t pos = lseek(self->fd, 0, SEEK_SET);
-	if (pos > 0) {
+	off_t position = lseek(self->fd, 0, SEEK_SET);
+	if (position > 0) {
 		// lseek error
 		self->last_errno = errno;
 		return 0;
@@ -136,25 +142,49 @@ struct mtar_io_in * mtar_io_file_out_reopen_for_reading(struct mtar_io_out * io,
 ssize_t mtar_io_file_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
 	struct mtar_io_file * self = io->data;
 
-	ssize_t nbWrite = write(self->fd, data, length);
+	if (self->fd < 0)
+		return 0;
 
-	if (nbWrite > 0)
-		self->pos += nbWrite;
-	else if (nbWrite < 0)
+	self->last_errno = 0;
+
+	if (length < 1)
+		return 0;
+
+	if (self->volume_size > 0 && self->position + length > self->volume_size) {
+		if (self->volume_size == self->position) {
+			self->last_errno = ENOSPC;
+			return -1;
+		}
+		length = self->volume_size - self->position;
+	}
+
+	ssize_t nb_write = write(self->fd, data, length);
+
+	if (nb_write > 0)
+		self->position += nb_write;
+	else if (nb_write < 0)
 		self->last_errno = errno;
 
-	return nbWrite;
+	return nb_write;
 }
 
-struct mtar_io_out * mtar_io_file_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	struct mtar_io_file * data = malloc(sizeof(struct mtar_io_file));
-	data->fd = fd;
-	data->pos = 0;
-	data->last_errno = 0;
+struct mtar_io_out * mtar_io_file_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
+	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
+	self->fd = fd;
+	self->position = 0;
+	self->last_errno = 0;
+	self->volume_size = 0;
+
+	if (option->multi_volume) {
+		if (option->tape_length > 0)
+			self->volume_size = option->tape_length;
+		else
+			mtar_verbose_printf("Warning: discard parameter '-M' because parameter '-L' is not specified\n");
+	}
 
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_file_out_ops;
-	io->data = data;
+	io->data = self;
 
 	return io;
 }
