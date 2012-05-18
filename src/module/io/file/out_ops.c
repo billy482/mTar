@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 22:17:01 +0200                           *
+*  Last modified: Fri, 18 May 2012 22:57:03 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -177,7 +177,7 @@ struct mtar_io_out * mtar_io_file_new_out(int fd, int flags __attribute__((unuse
 
 	if (option->multi_volume) {
 		if (option->tape_length > 0)
-			self->volume_size = option->tape_length;
+			self->volume_size = option->tape_length << 10;
 		else
 			mtar_verbose_printf("Warning: discard parameter '-M' because parameter '-L' is not specified\n");
 	}

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 19:47:57 +0200                           *
+*  Last modified: Fri, 18 May 2012 22:55:26 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -61,7 +61,7 @@ struct mtar_option {
 
 	// device selection and switching
 	const char * filename;
-	ssize_t tape_length;
+	ssize_t tape_length; // size in kilo bytes
 	unsigned char multi_volume;
 
 	// device blocking

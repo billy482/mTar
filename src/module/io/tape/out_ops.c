@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 00:01:42 +0200                           *
+*  Last modified: Fri, 18 May 2012 23:03:17 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -117,7 +117,9 @@ int mtar_io_tape_out_close(struct mtar_io_out * io) {
 	return failed;
 }
 
-int mtar_io_tape_out_flush(struct mtar_io_out * io __attribute__((unused))) {
+int mtar_io_tape_out_flush(struct mtar_io_out * io) {
+	struct mtar_io_tape_out * self = io->data;
+	self->last_errno = 0;
 	return 0;
 }
 
@@ -141,8 +143,57 @@ off_t mtar_io_tape_out_position(struct mtar_io_out * io) {
 	return self->position;
 }
 
+struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option) {
+	struct mtar_io_tape_out * self = io->data;
+
+	if (self->fd < 0)
+		return 0;
+
+	if (self->buffer_used > 0) {
+		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
+		ssize_t nb_write = write(self->fd, self->buffer, self->buffer_size);
+
+		if (nb_write < 0) {
+			self->last_errno = errno;
+			return 0;
+		}
+
+		self->buffer_used = 0;
+	}
+
+	struct mtget status;
+	int failed = ioctl(self->fd, MTIOCGET, &status);
+	if (failed)
+		return 0;
+
+	static const struct mtop eof = { MTWEOF, 1 };
+	failed = ioctl(self->fd, MTIOCTOP, &eof);
+	if (failed)
+		return 0;
+
+	if (status.mt_fileno > 0) {
+		static const struct mtop bsfm = { MTBSFM, 2 };
+		failed = ioctl(self->fd, MTIOCTOP, &bsfm);
+	} else {
+		static const struct mtop rewind = { MTREW, 1 };
+		failed = ioctl(self->fd, MTIOCTOP, &rewind);
+	}
+
+	if (failed)
+		return 0;
+
+	struct mtar_io_in * in = mtar_io_tape_new_in(self->fd, 0, option);
+	if (in)
+		self->fd = -1;
+
+	return in;
+}
+
 ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
 	struct mtar_io_tape_out * self = io->data;
+
+	if (length < 1)
+		return 0;
 
 	self->last_errno = 0;
 
@@ -190,52 +241,6 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 	return length;
 }
 
-struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option) {
-	struct mtar_io_tape_out * self = io->data;
-
-	if (self->fd < 0)
-		return 0;
-
-	if (self->buffer_used > 0) {
-		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
-		ssize_t nbWrite = write(self->fd, self->buffer, self->buffer_size);
-
-		if (nbWrite < 0) {
-			self->last_errno = errno;
-			return 0;
-		}
-
-		self->buffer_used = 0;
-	}
-
-	struct mtget status;
-	int failed = ioctl(self->fd, MTIOCGET, &status);
-	if (failed)
-		return 0;
-
-	static const struct mtop eof = { MTWEOF, 1 };
-	failed = ioctl(self->fd, MTIOCTOP, &eof);
-	if (failed)
-		return 0;
-
-	if (status.mt_fileno > 0) {
-		static const struct mtop bsfm = { MTBSFM, 2 };
-		failed = ioctl(self->fd, MTIOCTOP, &bsfm);
-	} else {
-		static const struct mtop rewind = { MTREW, 1 };
-		failed = ioctl(self->fd, MTIOCTOP, &rewind);
-	}
-
-	if (failed)
-		return 0;
-
-	struct mtar_io_in * in = mtar_io_tape_new_in(self->fd, 0, option);
-	if (in)
-		self->fd = -1;
-
-	return in;
-}
-
 struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
 	struct mtar_io_tape_out * data = malloc(sizeof(struct mtar_io_tape_out));
 	data->fd = fd;
@@ -247,13 +252,17 @@ struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unuse
 	data->buffer_size = option->block_factor << 9;
 	data->buffer_used = 0;
 
-	off_t tape_position;
-	ssize_t tape_size;
-	int failed = mtar_io_tape_scsi_read_position(fd, &tape_position);
-	if (!failed)
-		failed = mtar_io_tape_scsi_read_capacity(fd, 0, &tape_size);
-	if (!failed)
-		data->total_free_space = tape_size - tape_position * data->buffer_size;
+	if (option->tape_length > 0) {
+		data->total_free_space = option->tape_length << 10;
+	} else {
+		off_t tape_position;
+		ssize_t tape_size;
+		int failed = mtar_io_tape_scsi_read_position(fd, &tape_position);
+		if (!failed)
+			failed = mtar_io_tape_scsi_read_capacity(fd, 0, &tape_size);
+		if (!failed)
+			data->total_free_space = tape_size - tape_position * data->buffer_size;
+	}
 
 	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
 	io->ops = &mtar_io_tape_out_ops;
