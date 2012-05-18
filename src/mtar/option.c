@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:40:27 +0200                           *
+*  Last modified: Fri, 18 May 2012 19:52:30 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -58,7 +58,7 @@ static void mtar_option_show_version(void);
 
 
 int mtar_option_check(struct mtar_option * option) {
-	if (!option->doWork) {
+	if (!option->do_work) {
 		mtar_verbose_printf("No function defined\n");
 		return 1;
 	}
@@ -93,7 +93,7 @@ void mtar_option_show_full_version() {
 
 void mtar_option_free(struct mtar_option * option) {
 	// main operation mode
-	option->doWork = 0;
+	option->do_work = 0;
 
 	// overwrite control
 	option->verify = 0;
@@ -136,7 +136,7 @@ void mtar_option_free(struct mtar_option * option) {
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// main operation mode
-	option->doWork = 0;
+	option->do_work = 0;
 
 	// overwrite control
 	option->verify = 0;
@@ -149,6 +149,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	// device selection and switching
 	option->filename = 0;
+	option->tape_length = 0;
+	option->multi_volume = 0;
 
 	// device blocking
 	option->block_factor = 10;
@@ -206,7 +208,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'c':
-					option->doWork = mtar_function_get("create");
+					option->do_work = mtar_function_get("create");
 					break;
 
 				case 'C':
@@ -236,7 +238,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 't':
-					option->doWork = mtar_function_get("list");
+					option->do_work = mtar_function_get("list");
 					break;
 
 				case 'T':
@@ -257,7 +259,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'x':
-					option->doWork = mtar_function_get("extract");
+					option->do_work = mtar_function_get("extract");
 					break;
 
 				case 'X':
@@ -415,7 +417,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_CREATE:
-				option->doWork = mtar_function_get("create");
+				option->do_work = mtar_function_get("create");
 				break;
 
 			case OPT_DIRECTORY:
@@ -463,7 +465,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_EXTRACT:
-				option->doWork = mtar_function_get("extract");
+				option->do_work = mtar_function_get("extract");
 				break;
 
 			case OPT_FILE:
@@ -493,7 +495,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					mtar_function_show_help(optarg + 5);
 					return 1;
 				} else {
-					option->doWork = mtar_function_get(optarg);
+					option->do_work = mtar_function_get(optarg);
 				}
 				break;
 
@@ -514,7 +516,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case OPT_LIST:
-				option->doWork = mtar_function_get("list");
+				option->do_work = mtar_function_get("list");
 				break;
 
 			case OPT_LIST_FILTERS:
@@ -627,6 +629,8 @@ void mtar_option_show_help() {
 
 	mtar_verbose_printf("  Device selection and switching:\n");
 	mtar_verbose_print_help("-f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE");
+	mtar_verbose_print_help("-L, --tape-length=NUMBER : change tape after writing NUMBER x 1024 bytes");
+	mtar_verbose_print_help("-M, --multi-volume : create/list/extract multi-volume archive");
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("  Device blocking:\n");

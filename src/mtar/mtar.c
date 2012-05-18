@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 14:19:21 +0200                           *
+*  Last modified: Fri, 18 May 2012 19:48:14 +0200                           *
 \***************************************************************************/
 
 #include "option.h"
@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
 	if (option.nb_plugins > 0)
 		mtar_plugin_load(&option);
 
-	failed = option.doWork(&option);
+	failed = option.do_work(&option);
 
 	mtar_option_free(&option);
 

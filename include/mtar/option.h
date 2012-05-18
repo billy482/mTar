@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 21:32:46 +0200                           *
+*  Last modified: Fri, 18 May 2012 19:47:57 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -44,7 +44,7 @@ struct mtar_pattern_tag;
 
 struct mtar_option {
 	// main operation mode
-	mtar_function_f doWork;
+	mtar_function_f do_work;
 
 	// overwrite control
 	char verify;
@@ -61,6 +61,8 @@ struct mtar_option {
 
 	// device selection and switching
 	const char * filename;
+	ssize_t tape_length;
+	unsigned char multi_volume;
 
 	// device blocking
 	int block_factor;
@@ -71,7 +73,7 @@ struct mtar_option {
 
 	// compression options
 	const char * compress_module;
-	int compress_level;
+	short compress_level;
 
 	// local file selections
 	struct mtar_pattern_include ** files;
