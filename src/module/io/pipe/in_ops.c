@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 22:21:22 +0200                           *
+*  Last modified: Fri, 18 May 2012 23:16:19 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -53,7 +53,7 @@ static struct mtar_io_in_ops mtar_io_pipe_in_ops = {
 	.forward    = mtar_io_pipe_in_forward,
 	.free       = mtar_io_pipe_in_free,
 	.last_errno = mtar_io_pipe_in_last_errno,
-	.pos        = mtar_io_pipe_in_position,
+	.position   = mtar_io_pipe_in_position,
 	.read       = mtar_io_pipe_in_read,
 };
 

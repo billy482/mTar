@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:25:07 +0200                           *
+*  Last modified: Fri, 18 May 2012 23:10:41 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -52,7 +52,7 @@ static int mtar_filter_gzip_in_close(struct mtar_io_in * io);
 static off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_filter_gzip_in_free(struct mtar_io_in * io);
 static int mtar_filter_gzip_in_last_errno(struct mtar_io_in * io);
-static off_t mtar_filter_gzip_in_pos(struct mtar_io_in * io);
+static off_t mtar_filter_gzip_in_position(struct mtar_io_in * io);
 static ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
@@ -61,7 +61,7 @@ static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
 	.forward    = mtar_filter_gzip_in_forward,
 	.free       = mtar_filter_gzip_in_free,
 	.last_errno = mtar_filter_gzip_in_last_errno,
-	.pos        = mtar_filter_gzip_in_pos,
+	.position   = mtar_filter_gzip_in_position,
 	.read       = mtar_filter_gzip_in_read,
 };
 
@@ -136,7 +136,7 @@ int mtar_filter_gzip_in_last_errno(struct mtar_io_in * io) {
 	return self->io->ops->last_errno(self->io);
 }
 
-off_t mtar_filter_gzip_in_pos(struct mtar_io_in * io) {
+off_t mtar_filter_gzip_in_position(struct mtar_io_in * io) {
 	struct mtar_filter_gzip_in * self = io->data;
 	return self->gz_stream.total_out;
 }

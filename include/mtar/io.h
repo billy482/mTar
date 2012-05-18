@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 15 May 2012 21:47:33 +0200                           *
+*  Last modified: Fri, 18 May 2012 23:08:45 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -91,7 +91,7 @@ struct mtar_io_in {
 		 * \param[in] io : io module
 		 * \return position of stream
 		 */
-		off_t (*pos)(struct mtar_io_in * io);
+		off_t (*position)(struct mtar_io_in * io);
 		/**
 		 * \brief read data from stream
 		 * \param[in] io : instance of stream

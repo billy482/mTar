@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 00:00:34 +0200                           *
+*  Last modified: Fri, 18 May 2012 23:17:13 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -62,7 +62,7 @@ static int mtar_io_tape_in_close(struct mtar_io_in * io);
 static off_t mtar_io_tape_in_forward(struct mtar_io_in * io, off_t offset);
 static void mtar_io_tape_in_free(struct mtar_io_in * io);
 static int mtar_io_tape_in_last_errno(struct mtar_io_in * io);
-static off_t mtar_io_tape_in_pos(struct mtar_io_in * io);
+static off_t mtar_io_tape_in_position(struct mtar_io_in * io);
 static ssize_t mtar_io_tape_in_read(struct mtar_io_in * io, void * data, ssize_t length);
 
 static struct mtar_io_in_ops mtar_io_tape_in_ops = {
@@ -71,7 +71,7 @@ static struct mtar_io_in_ops mtar_io_tape_in_ops = {
 	.forward    = mtar_io_tape_in_forward,
 	.free       = mtar_io_tape_in_free,
 	.last_errno = mtar_io_tape_in_last_errno,
-	.pos        = mtar_io_tape_in_pos,
+	.position   = mtar_io_tape_in_position,
 	.read       = mtar_io_tape_in_read,
 };
 
@@ -157,7 +157,7 @@ int mtar_io_tape_in_last_errno(struct mtar_io_in * io) {
 	return self->last_errno;
 }
 
-off_t mtar_io_tape_in_pos(struct mtar_io_in * io) {
+off_t mtar_io_tape_in_position(struct mtar_io_in * io) {
 	struct mtar_io_tape_in * self = io->data;
 	return self->position;
 }
