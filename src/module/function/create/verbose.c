@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 23:20:45 +0200                           *
+*  Last modified: Sat, 19 May 2012 21:41:04 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -151,34 +151,25 @@ void mtar_function_create_progress1(const char * filename __attribute__((unused)
 
 void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
-	static struct timeval last = {0, 0};
+	static struct timeval begin = { 0, 0 };
+	static struct timeval middle = { 0, 0 };
+	static double current_diff = 0;
 
-	struct timeval curtime;
-	gettimeofday(&curtime, 0);
-
-	if (current_file == 0) {
+	if (current_file != filename) {
 		current_file = filename;
-		last = curtime;
+		gettimeofday(&begin, 0);
+		current_diff = 4;
 		mtar_verbose_restart_timer();
 		return;
 	}
 
-	double diff = difftime(curtime.tv_sec, last.tv_sec) + difftime(curtime.tv_usec, last.tv_usec) / 1000000;
+	gettimeofday(&middle, 0);
 
-	if (filename != current_file) {
-		if (diff < 2)
-			return;
+	double diff = difftime(middle.tv_sec, begin.tv_sec) + difftime(middle.tv_usec, begin.tv_usec) / 1000000;
 
-		current_file = filename;
-		last = curtime;
-		mtar_verbose_restart_timer();
-	} else {
-		if (diff < 1)
-			return;
-
-		last = curtime;
+	if (diff > current_diff) {
+		current_diff = diff + 1;
+		mtar_verbose_progress(format, current, upperLimit);
 	}
-
-	mtar_verbose_progress(format, current, upperLimit);
 }
 

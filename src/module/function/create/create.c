@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 23:37:07 +0200                           *
+*  Last modified: Sat, 19 May 2012 21:45:23 +0200                           *
 \***************************************************************************/
 
 // open
@@ -136,7 +136,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				continue;
 			}
 
-			mtar_hashtable_put(inode, strdup(key), strdup(filename));
+			mtar_hashtable_put(inode, strdup(key), filename);
 
 			failed = format->ops->add_file(format, filename, &header);
 			mtar_function_create_display(&header, 0, 0);
@@ -147,16 +147,16 @@ int mtar_function_create(const struct mtar_option * option) {
 			if (S_ISREG(st.st_mode)) {
 				int fd = open(filename, O_RDONLY);
 
-				ssize_t nbRead;
-				ssize_t totalNbRead = 0;
-				while ((nbRead = read(fd, buffer, block_size)) > 0) {
-					format->ops->write(format, buffer, nbRead);
+				ssize_t nb_read;
+				ssize_t total_nb_read = 0;
+				while ((nb_read = read(fd, buffer, block_size)) > 0) {
+					format->ops->write(format, buffer, nb_read);
 
-					totalNbRead += nbRead;
+					total_nb_read += nb_read;
 
-					mtar_function_create_progress(filename, "\r%b [%P] ETA: %E", totalNbRead, st.st_size);
+					mtar_function_create_progress(filename, "\r[%b @%P] ETA: %E", total_nb_read, st.st_size);
 
-					// mtar_plugin_write(buffer, nbRead);
+					// mtar_plugin_write(buffer, nb_read);
 				}
 
 				format->ops->end_of_file(format);
@@ -171,8 +171,6 @@ int mtar_function_create(const struct mtar_option * option) {
 				};
 				utime(filename, &buf);
 			}
-
-			free(filename);
 		}
 	}
 
