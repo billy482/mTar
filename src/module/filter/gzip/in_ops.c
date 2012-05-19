@@ -27,13 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 23:10:41 +0200                           *
+*  Last modified: Sat, 19 May 2012 20:36:03 +0200                           *
 \***************************************************************************/
 
 // free, malloc
 #include <stdlib.h>
-// strchr
-#include <string.h>
 // inflate, inflateEnd, inflateInit2
 #include <zlib.h>
 
@@ -170,44 +168,50 @@ ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t le
 }
 
 struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
+	struct gzip_header header;
+	ssize_t nb_read = io->ops->read(io, &header, sizeof(header));
+
+	if (nb_read < 10 || header.magic[0] != 0x1F || header.magic[1] != 0x8B)
+		return 0;
+
+	if (header.flag & gzip_flag_extra_field) {
+		unsigned short extra_size;
+		nb_read = io->ops->read(io, &extra_size, sizeof(extra_size));
+
+		if (nb_read < 2)
+			return 0;
+
+		io->ops->forward(io, extra_size);
+	}
+
+	if (header.flag & gzip_flag_name) {
+		char c;
+		do {
+			nb_read = io->ops->read(io, &c, 1);
+		} while (c && nb_read > 0);
+	}
+
+	if (header.flag & gzip_flag_comment) {
+		char c;
+		do {
+			nb_read = io->ops->read(io, &c, 1);
+		} while (c && nb_read > 0);
+	}
+
+	if (header.flag & gzip_flag_header_crc16)
+		io->ops->forward(io, 2);
+
 	struct mtar_filter_gzip_in * self = malloc(sizeof(struct mtar_filter_gzip_in));
 	self->io = io;
 	self->closed = 0;
-
-	int nbRead = io->ops->read(io, self->bufferIn, 1024);
-
-	if (nbRead < 10 || self->bufferIn[0] != 0x1f || ((unsigned char) self->bufferIn[1]) != 0x8b) {
-		free(self);
-		return 0;
-	}
-
-	// skip gzip header
-	unsigned char flag = self->bufferIn[3];
-	char * ptr = self->bufferIn + 10;
-	if (flag & 0x4) {
-		unsigned short length = ptr[0] << 8 | ptr[1];
-		ptr += length + 2;
-	}
-	if (flag & 0x8) {
-		char * end = strchr(ptr, 0);
-		if (end)
-			ptr = end + 1;
-	}
-	if (flag & 0x10) {
-		char * end = strchr(ptr, 0);
-		if (end)
-			ptr = end + 1;
-	}
-	if (flag & 0x2)
-		ptr += 2;
 
 	// init data
 	self->gz_stream.zalloc = 0;
 	self->gz_stream.zfree = 0;
 	self->gz_stream.opaque = 0;
 
-	self->gz_stream.next_in = (unsigned char *) ptr;
-	self->gz_stream.avail_in = nbRead - (ptr - self->bufferIn);
+	self->gz_stream.next_in = 0;
+	self->gz_stream.avail_in = 0;
 	self->gz_stream.total_in = 0;
 
 	self->gz_stream.total_out = 0;

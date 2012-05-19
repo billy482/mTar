@@ -27,13 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 14:51:08 +0200                           *
+*  Last modified: Sat, 19 May 2012 20:02:00 +0200                           *
 \***************************************************************************/
 
 // free, malloc
 #include <stdlib.h>
-// snprintf
-#include <stdio.h>
 // time
 #include <time.h>
 // crc32, deflate, deflateEnd, deflateInit2
@@ -227,11 +225,16 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 		return 0;
 	}
 
-	// write header
-	char header[11];
-	time_t current = time(0);
-	snprintf(header, 11, "%c%c%c%c%c%c%c%c%c%c", 0x1f, 0x8b, 0x8, 0, (char) (current & 0xff), (char) (current >> 8 & 0xff), (char) (current >> 16 & 0xff), (char) (current >> 24 & 0xff), self->gz_stream.data_type, 3);
-	io->ops->write(io, header, 10);
+	struct gzip_header header = {
+		.magic = { 0x1F, 0x8B },
+		.compression_method = 0x08,
+		.flag = gzip_flag_none,
+		.mtime = time(0),
+		.extra_flag = self->gz_stream.data_type,
+		.os = gzip_os_unix,
+	};
+
+	io->ops->write(io, &header, sizeof(header));
 
 	struct mtar_io_out * io2 = malloc(sizeof(struct mtar_io_out));
 	io2->ops = &mtar_filter_gzip_out_ops;
