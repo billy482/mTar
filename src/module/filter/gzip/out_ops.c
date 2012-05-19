@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 23:45:21 +0200                           *
+*  Last modified: Sat, 19 May 2012 14:51:08 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -46,9 +46,14 @@
 
 struct mtar_filter_gzip_out {
 	z_stream gz_stream;
+
 	struct mtar_io_out * io;
 	uLong crc32;
 	short closed;
+
+	char * buffer;
+	ssize_t buffer_size;
+	ssize_t block_size;
 };
 
 static ssize_t mtar_filter_gzip_out_available_space(struct mtar_io_out * io);
@@ -69,6 +74,7 @@ static struct mtar_io_out_ops mtar_filter_gzip_out_ops = {
 	.flush              = mtar_filter_gzip_out_flush,
 	.free               = mtar_filter_gzip_out_free,
 	.last_errno         = mtar_filter_gzip_out_last_errno,
+	.next_prefered_size = mtar_filter_gzip_out_block_size,
 	.position           = mtar_filter_gzip_out_position,
 	.reopen_for_reading = mtar_filter_gzip_out_reopen_for_reading,
 	.write              = mtar_filter_gzip_out_write,
@@ -77,12 +83,12 @@ static struct mtar_io_out_ops mtar_filter_gzip_out_ops = {
 
 ssize_t mtar_filter_gzip_out_available_space(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
-	return self->io->ops->available_space(self->io);
+	return self->io->ops->available_space(self->io) - self->block_size - 4096;
 }
 
 ssize_t mtar_filter_gzip_out_block_size(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
-	return self->io->ops->block_size(self->io);
+	return self->block_size;
 }
 
 int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
@@ -97,19 +103,18 @@ int mtar_filter_gzip_out_close(struct mtar_io_out * io) {
 }
 
 int mtar_filter_gzip_out_finish(struct mtar_filter_gzip_out * self) {
-	char buffer[1024];
 	self->gz_stream.next_in = 0;
 	self->gz_stream.avail_in = 0;
 
 	int err = 0;
 	do {
-		self->gz_stream.next_out = (unsigned char *) buffer;
-		self->gz_stream.avail_out = 1024;
+		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 		self->gz_stream.total_out = 0;
 
 		err = deflate(&self->gz_stream, Z_FINISH);
 		if (err >= 0)
-			self->io->ops->write(self->io, buffer, self->gz_stream.total_out);
+			self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
 	} while (err == Z_OK);
 
 	self->io->ops->write(self->io, &self->crc32, 4);
@@ -125,18 +130,16 @@ int mtar_filter_gzip_out_finish(struct mtar_filter_gzip_out * self) {
 int mtar_filter_gzip_out_flush(struct mtar_io_out * io) {
 	struct mtar_filter_gzip_out * self = io->data;
 
-	char buffer[1024];
-
 	self->gz_stream.next_in = 0;
 	self->gz_stream.avail_in = 0;
 
-	self->gz_stream.next_out = (unsigned char *) buffer;
-	self->gz_stream.avail_out = 1024;
+	self->gz_stream.next_out = (unsigned char *) self->buffer;
+	self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 	self->gz_stream.total_out = 0;
 
 	deflate(&self->gz_stream, Z_FULL_FLUSH);
 
-	self->io->ops->write(self->io, buffer, self->gz_stream.total_out);
+	self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
 
 	return self->io->ops->flush(self->io);
 }
@@ -147,6 +150,7 @@ void mtar_filter_gzip_out_free(struct mtar_io_out * io) {
 		mtar_filter_gzip_out_close(io);
 
 	self->io->ops->free(self->io);
+	free(self->buffer);
 	free(self);
 	free(io);
 }
@@ -177,7 +181,6 @@ struct mtar_io_in * mtar_filter_gzip_out_reopen_for_reading(struct mtar_io_out *
 
 ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
 	struct mtar_filter_gzip_out * self = io->data;
-	char buff[1024];
 
 	self->gz_stream.next_in = (unsigned char *) data;
 	self->gz_stream.avail_in = length;
@@ -185,13 +188,13 @@ ssize_t mtar_filter_gzip_out_write(struct mtar_io_out * io, const void * data, s
 	self->crc32 = crc32(self->crc32, data, length);
 
 	while (self->gz_stream.avail_in > 0) {
-		self->gz_stream.next_out = (unsigned char *) buff;
-		self->gz_stream.avail_out = 1024;
+		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 		self->gz_stream.total_out = 0;
 
 		int err = deflate(&self->gz_stream, Z_NO_FLUSH);
 		if (err >= 0 && self->gz_stream.total_out > 0)
-			self->io->ops->write(self->io, buff, self->gz_stream.total_out);
+			self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
 	}
 
 	return length;
@@ -201,6 +204,9 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 	struct mtar_filter_gzip_out * self = malloc(sizeof(struct mtar_filter_gzip_out));
 	self->io = io;
 	self->closed = 0;
+	self->buffer_size = io->ops->block_size(io);
+	self->buffer = malloc(self->buffer_size);
+	self->block_size = (1 << 17) + (1 << (option->compress_level + 2));
 
 	self->gz_stream.zalloc = 0;
 	self->gz_stream.zfree = 0;
@@ -215,7 +221,7 @@ struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const str
 
 	self->crc32 = crc32(0, Z_NULL, 0);
 
-	int err = deflateInit2(&self->gz_stream, option->compress_level, Z_DEFLATED, -MAX_WBITS, 9, Z_DEFAULT_STRATEGY);
+	int err = deflateInit2(&self->gz_stream, option->compress_level, Z_DEFLATED, -MAX_WBITS, option->compress_level, Z_DEFAULT_STRATEGY);
 	if (err) {
 		free(self);
 		return 0;
