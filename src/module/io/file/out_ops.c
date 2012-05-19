@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 22:57:03 +0200                           *
+*  Last modified: Sat, 19 May 2012 12:30:33 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -52,6 +52,7 @@ static int mtar_io_file_out_close(struct mtar_io_out * io);
 static int mtar_io_file_out_flush(struct mtar_io_out * io);
 static void mtar_io_file_out_free(struct mtar_io_out * io);
 static int mtar_io_file_out_last_errno(struct mtar_io_out * io);
+static ssize_t mtar_io_file_out_next_prefered_size(struct mtar_io_out * io);
 static off_t mtar_io_file_out_position(struct mtar_io_out * io);
 static struct mtar_io_in * mtar_io_file_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_io_file_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
@@ -63,6 +64,7 @@ static struct mtar_io_out_ops mtar_io_file_out_ops = {
 	.flush              = mtar_io_file_out_flush,
 	.free               = mtar_io_file_out_free,
 	.last_errno         = mtar_io_file_out_last_errno,
+	.next_prefered_size = mtar_io_file_out_next_prefered_size,
 	.position           = mtar_io_file_out_position,
 	.reopen_for_reading = mtar_io_file_out_reopen_for_reading,
 	.write              = mtar_io_file_out_write,
@@ -112,6 +114,13 @@ void mtar_io_file_out_free(struct mtar_io_out * io) {
 int mtar_io_file_out_last_errno(struct mtar_io_out * io) {
 	struct mtar_io_file * self = io->data;
 	return self->last_errno;
+}
+
+ssize_t mtar_io_file_out_next_prefered_size(struct mtar_io_out * io) {
+	struct mtar_io_file * self = io->data;
+	ssize_t block_size = mtar_io_file_common_block_size(self);
+	ssize_t next_size = self->position % block_size;
+	return next_size == 0 ? block_size : next_size;
 }
 
 off_t mtar_io_file_out_position(struct mtar_io_out * io) {
@@ -173,6 +182,7 @@ struct mtar_io_out * mtar_io_file_new_out(int fd, int flags __attribute__((unuse
 	self->fd = fd;
 	self->position = 0;
 	self->last_errno = 0;
+	self->block_size = 0;
 	self->volume_size = 0;
 
 	if (option->multi_volume) {

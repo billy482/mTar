@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 23:11:37 +0200                           *
+*  Last modified: Sat, 19 May 2012 12:30:56 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -114,6 +114,7 @@ struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)
 	self->fd = fd;
 	self->position = 0;
 	self->last_errno = 0;
+	self->block_size = 0;
 	self->volume_size = 0;
 
 	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 22:07:03 +0200                           *
+*  Last modified: Sat, 19 May 2012 12:30:10 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_FILE_H__
@@ -39,6 +39,7 @@ struct mtar_io_file {
 	int fd;
 	off_t position;
 	int last_errno;
+	ssize_t block_size;
 	ssize_t volume_size;
 };
 
