@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 23:03:17 +0200                           *
+*  Last modified: Sat, 19 May 2012 12:55:04 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -64,6 +64,7 @@ static int mtar_io_tape_out_close(struct mtar_io_out * io);
 static int mtar_io_tape_out_flush(struct mtar_io_out * io);
 static void mtar_io_tape_out_free(struct mtar_io_out * io);
 static int mtar_io_tape_out_last_errno(struct mtar_io_out * io);
+static ssize_t mtar_io_tape_out_next_prefered_size(struct mtar_io_out * io);
 static off_t mtar_io_tape_out_position(struct mtar_io_out * io);
 static struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
@@ -75,6 +76,7 @@ static struct mtar_io_out_ops mtar_io_tape_out_ops = {
 	.flush              = mtar_io_tape_out_flush,
 	.free               = mtar_io_tape_out_free,
 	.last_errno         = mtar_io_tape_out_last_errno,
+	.next_prefered_size = mtar_io_tape_out_next_prefered_size,
 	.position           = mtar_io_tape_out_position,
 	.reopen_for_reading = mtar_io_tape_out_reopen_for_reading,
 	.write              = mtar_io_tape_out_write,
@@ -136,6 +138,11 @@ void mtar_io_tape_out_free(struct mtar_io_out * io) {
 int mtar_io_tape_out_last_errno(struct mtar_io_out * io) {
 	struct mtar_io_tape_out * self = io->data;
 	return self->last_errno;
+}
+
+ssize_t mtar_io_tape_out_next_prefered_size(struct mtar_io_out * io) {
+	struct mtar_io_tape_out * self = io->data;
+	return self->buffer_size - self->buffer_used;
 }
 
 off_t mtar_io_tape_out_position(struct mtar_io_out * io) {
