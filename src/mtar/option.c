@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 19:52:30 +0200                           *
+*  Last modified: Sun, 20 May 2012 17:14:58 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -191,7 +191,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-bcCfHjtTvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-bcCfHjLMtTvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -231,6 +231,14 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				case 'H':
 					option->format = argv[optind++];
+					break;
+
+				case 'L':
+					option->tape_length = atol(argv[optind++]);
+					break;
+
+				case 'M':
+					option->multi_volume = 1;
 					break;
 
 				case 'j':
@@ -291,6 +299,8 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		OPT_HELP            = '?',
 		OPT_LABEL           = 'V',
 		OPT_LIST            = 't',
+		OPT_MULTI_VOLUME    = 'M',
+		OPT_TAPE_LENGTH     = 'L',
 		OPT_VERBOSE         = 'v',
 		OPT_VERIFY          = 'W',
 
@@ -363,6 +373,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "list-functions",       0, 0, OPT_LIST_FUNCTINOS },
 		{ "list-ios",             0, 0, OPT_LIST_IOS },
 		{ "mode",                 1, 0, OPT_MODE },
+		{ "multi-volume",         0, 0, OPT_MULTI_VOLUME },
 		{ "no-anchored",          0, 0, OPT_NO_ANCHORED },
 		{ "no-null",              0, 0, OPT_NO_NULL },
 		{ "no-recursion",         0, 0, OPT_NO_RECURSION },
@@ -371,6 +382,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "pattern-engine",       1, 0, OPT_PATTERN_ENGINE },
 		{ "plugin",               1, 0, OPT_PLUGIN },
 		{ "recursion",            0, 0, OPT_RECURSION },
+		{ "tape-length",          1, 0, OPT_TAPE_LENGTH },
 		{ "ungzip",               0, 0, OPT_GZIP },
 		{ "verbose",              0, 0, OPT_VERBOSE },
 		{ "verify",               0, 0, OPT_VERIFY },
@@ -387,7 +399,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		}
 
 		int option_index;
-		int c = getopt_long(argc, argv, "b:cC:f:H:jtT:vV:WxX:z?", long_options, &option_index);
+		int c = getopt_long(argc, argv, "b:cC:f:H:jML:tT:vV:WxX:z?", long_options, &option_index);
 		if (c == -1)
 			break;
 
@@ -543,6 +555,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				sscanf(optarg, "%o", &option->mode);
 				break;
 
+			case OPT_MULTI_VOLUME:
+				option->multi_volume = 1;
+				break;
+
 			case OPT_NO_NULL:
 				option->delimiter = '\n';
 				break;
@@ -577,6 +593,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case OPT_RECURSION:
 				exclude_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
 				include_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
+				break;
+
+			case OPT_TAPE_LENGTH:
+				sscanf(optarg, "%zd", &option->tape_length);
 				break;
 
 			case OPT_VERBOSE:
