@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 23:57:59 +0200                           *
+*  Last modified: Sun, 20 May 2012 14:25:58 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -107,17 +107,17 @@ struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, cons
 		return 0;
 
 	struct mtar_format_ustar_out * data = malloc(sizeof(struct mtar_format_ustar_out));
-	data->io       = io;
+	data->io = io;
 	data->position = 0;
-	data->size     = 0;
+	data->size = 0;
 
 	// handling of file attributes
-	data->mode  = option->mode;
+	data->mode = option->mode;
 	data->owner = option->owner;
 	data->group = option->group;
 
 	struct mtar_format_out * self = malloc(sizeof(struct mtar_format_out));
-	self->ops  = &mtar_format_ustar_out_ops;
+	self->ops = &mtar_format_ustar_out_ops;
 	self->data = data;
 
 	return self;
@@ -288,9 +288,30 @@ ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * f) {
 void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile) {
 	mtar_format_init_header(h_to);
 
+	if (h_from->flag == 'K' || h_from->flag == 'L') {
+		const char * filename = (const char *) (h_from + 1);
+		h_to->path = strdup(filename);
+	} else if (strlen(h_from->filename) > 100) {
+		h_to->path = malloc(101);
+		strncpy(h_to->path, h_from->filename, 100);
+		h_to->path[100] = '\0';
+	} else
+		h_to->path = strdup(h_from->filename);
+
+	if (h_from->flag == 'K' || h_from->flag == 'L') {
+		const char * linkname = (const char *) (h_from + 3);
+		h_to->link = strdup(linkname);
+	} else if (h_from->flag == 'L') {
+		const char * linkname = (const char *) (h_from + 1);
+		h_to->link = strdup(linkname);
+	} else if (strlen(h_from->linkname) > 100) {
+		h_to->link = malloc(101);
+		strncpy(h_to->link, h_from->linkname, 100);
+		h_to->link[100] = '\0';
+	} else
+		h_to->link = strdup(h_from->linkname);
+
 	h_to->dev = sfile->st_rdev;
-	strcpy(h_to->path, h_from->filename);
-	strcpy(h_to->link, h_from->linkname);
 	h_to->size = S_ISREG(sfile->st_mode) ? sfile->st_size : 0;
 	h_to->mode = sfile->st_mode;
 	h_to->mtime = sfile->st_mtime;
