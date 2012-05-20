@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:26:39 +0200                           *
+*  Last modified: Sun, 20 May 2012 12:25:32 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -109,14 +109,26 @@ struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const str
 	return 0;
 }
 
+void mtar_format_free_header(struct mtar_format_header * h) {
+	if (!h)
+		return;
+
+	if (h->path)
+		free(h->path);
+	h->path = 0;
+
+	if (h->link)
+		free(h->link);
+	h->link = 0;
+}
+
 void mtar_format_init_header(struct mtar_format_header * h) {
 	if (!h)
 		return;
 
 	h->dev = 0;
-	bzero(h->path, 256);
-	h->filename = 0;
-	bzero(h->link, 256);
+	h->path = 0;
+	h->link = 0;
 	h->size = 0;
 	h->mode = 0;
 	h->mtime = 0;

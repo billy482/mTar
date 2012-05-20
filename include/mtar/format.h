@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 23:47:52 +0200                           *
+*  Last modified: Sun, 20 May 2012 11:50:52 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -72,12 +72,11 @@ struct mtar_format_header {
 	/**
 	 * \brief A partial filename as recorded into tar
 	 */
-	char path[256];
-	char * filename;
+	char * path;
 	/**
 	 * \brief Value of hard or symbolic link
 	 */
-	char link[256];
+	char * link;
 	/**
 	 * \brief Size of file
 	 */
@@ -190,6 +189,7 @@ struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option);
 struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
 struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option);
 struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
+void mtar_format_free_header(struct mtar_format_header * h);
 void mtar_format_init_header(struct mtar_format_header * h);
 void mtar_format_register(struct mtar_format * format);
 

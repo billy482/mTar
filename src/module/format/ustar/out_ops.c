@@ -290,7 +290,6 @@ void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, struct mt
 
 	h_to->dev = sfile->st_rdev;
 	strcpy(h_to->path, h_from->filename);
-	h_to->filename = h_to->path;
 	strcpy(h_to->link, h_from->linkname);
 	h_to->size = S_ISREG(sfile->st_mode) ? sfile->st_size : 0;
 	h_to->mode = sfile->st_mode;

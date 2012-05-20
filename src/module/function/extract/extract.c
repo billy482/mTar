@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:42:17 +0200                           *
+*  Last modified: Sun, 20 May 2012 12:36:45 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -144,6 +144,8 @@ int mtar_function_extract(const struct mtar_option * option) {
 				ok = 0;
 				continue;
 		}
+
+		mtar_format_free_header(&header);
 	}
 
 	format->ops->free(format);

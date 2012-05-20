@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 23:17:46 +0200                           *
+*  Last modified: Sun, 20 May 2012 13:04:12 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -46,10 +46,11 @@
 struct mtar_format_ustar_in {
 	struct mtar_io_in * io;
 	off_t position;
+
 	char * buffer;
 	ssize_t buffer_size;
-	ssize_t buffer_used;
-	ssize_t filesize;
+
+	ssize_t file_size;
 	ssize_t skip_size;
 };
 
@@ -63,9 +64,7 @@ static uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header)
 static void mtar_format_ustar_in_free(struct mtar_format_in * f);
 static enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
 static int mtar_format_ustar_in_last_errno(struct mtar_format_in * f);
-static ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_t length);
 static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
-static ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * f, void * data, ssize_t length);
 static int mtar_format_ustar_in_skip_file(struct mtar_format_in * f);
 
 static struct mtar_format_in_ops mtar_format_ustar_in_ops = {
@@ -151,58 +150,98 @@ void mtar_format_ustar_in_free(struct mtar_format_in * f) {
 
 enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header) {
 	struct mtar_format_ustar_in * self = f->data;
-	ssize_t nbRead = mtar_format_ustar_in_prefetch(self, 2560);
-	if (nbRead == 0)
+
+	ssize_t nb_read = self->io->ops->read(self->io, self->buffer, 512);
+	if (nb_read == 0)
 		return MTAR_FORMAT_HEADER_NOT_FOUND;
-	if (nbRead < 0)
+	if (nb_read < 0)
 		return MTAR_FORMAT_HEADER_BAD_HEADER;
+
+	struct mtar_format_ustar * raw_header = (struct mtar_format_ustar *) self->buffer;
+
+	if (raw_header->filename[0] == '\0')
+		return MTAR_FORMAT_HEADER_NOT_FOUND;
+
+	if (mtar_format_ustar_in_check_header(raw_header))
+		return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
 
 	mtar_format_init_header(header);
 
-	do {
-		char buffer[512];
-		struct mtar_format_ustar * h = (struct mtar_format_ustar *) buffer;
-		nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512);
-
-		if (h->filename[0] == '\0')
-			return MTAR_FORMAT_HEADER_NOT_FOUND;
-
-		// no header found
-		if (nbRead < 512)
-			return MTAR_FORMAT_HEADER_BAD_HEADER;
-
-		if (mtar_format_ustar_in_check_header(h)) {
-			// header checksum failed !!!
-			return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
-		}
-
+	for (;;) {
 		ssize_t next_read;
-		switch (h->flag) {
+		switch (raw_header->flag) {
 			case 'L':
-				next_read = mtar_format_ustar_in_convert_size(h->size);
-				nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512 + next_read - next_read % 512);
-				strncpy(header->path, buffer, next_read);
+				next_read = 512 + mtar_format_ustar_in_convert_size(raw_header->size);
+				if (next_read % 512)
+					next_read -= next_read % 512;
+
+				if (next_read > self->buffer_size)
+					self->buffer = realloc(self->buffer, next_read);
+
+				nb_read = self->io->ops->read(self->io, self->buffer, next_read);
+				if (nb_read < next_read) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_HEADER;
+				}
+				header->path = strdup(self->buffer);
+
+				nb_read = self->io->ops->read(self->io, self->buffer, 512);
+				if (nb_read < 512) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_HEADER;
+				}
+				if (mtar_format_ustar_in_check_header(raw_header)) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
+				}
 				continue;
 
 			case 'K':
-				next_read = mtar_format_ustar_in_convert_size(h->size);
-				nbRead = mtar_format_ustar_in_read_buffer(self, buffer, 512 + next_read - next_read % 512);
-				strncpy(header->link, buffer, next_read);
+				next_read = 512 + mtar_format_ustar_in_convert_size(raw_header->size);
+				if (next_read % 512)
+					next_read -= next_read % 512;
+
+				if (next_read > self->buffer_size)
+					self->buffer = realloc(self->buffer, next_read);
+
+				nb_read = self->io->ops->read(self->io, self->buffer, next_read);
+				if (nb_read < next_read) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_HEADER;
+				}
+				header->link = strdup(self->buffer);
+
+				nb_read = self->io->ops->read(self->io, self->buffer, 512);
+				if (nb_read < 512) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_HEADER;
+				}
+				if (mtar_format_ustar_in_check_header(raw_header)) {
+					mtar_format_free_header(header);
+					return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
+				}
 				continue;
 
 			case 'M':
-				header->position = mtar_format_ustar_in_convert_size(h->position);
+				header->position = mtar_format_ustar_in_convert_size(raw_header->position);
 				break;
 
 			case '1':
 			case '2':
-				if (header->link[0] == 0)
-					strncpy(header->link, h->linkname, 256);
+				if (!header->link) {
+					if (strlen(raw_header->linkname) > 100) {
+						header->link = malloc(101);
+						strncpy(header->link, raw_header->linkname, 100);
+						header->link[100] = '\0';
+					} else {
+						header->link = strdup(raw_header->linkname);
+					}
+				}
 				break;
 
 			case '3':
 			case '4':
-				header->dev = mtar_format_ustar_in_convert_dev(h);
+				header->dev = mtar_format_ustar_in_convert_dev(raw_header);
 				break;
 
 			case 'V':
@@ -210,19 +249,27 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 				break;
 		}
 
-		if (header->path[0] == 0)
-			strncpy(header->path, h->filename, 256);
-		header->filename = header->path;
-		header->size = mtar_format_ustar_in_convert_size(h->size);
-		sscanf(h->filemode, "%o", &header->mode);
-		header->mtime = mtar_format_ustar_in_convert_time(h);
-		header->uid = mtar_format_ustar_in_convert_uid(h);
-		strcpy(header->uname, h->uname);
-		header->gid = mtar_format_ustar_in_convert_gid(h);
-		strcpy(header->gname, h->gname);
+		if (!header->path) {
+			if (strlen(raw_header->filename) > 100) {
+				header->path = malloc(101);
+				strncpy(header->path, raw_header->filename, 100);
+				header->path[100] = '\0';
+			} else {
+				header->path = strdup(raw_header->filename);
+			}
+		}
+		header->size = mtar_format_ustar_in_convert_size(raw_header->size);
+		sscanf(raw_header->filemode, "%o", &header->mode);
+		header->mtime = mtar_format_ustar_in_convert_time(raw_header);
+		header->uid = mtar_format_ustar_in_convert_uid(raw_header);
+		strcpy(header->uname, raw_header->uname);
+		header->gid = mtar_format_ustar_in_convert_gid(raw_header);
+		strcpy(header->gname, raw_header->gname);
 
-		switch (h->flag) {
+		switch (raw_header->flag) {
 			case '0':
+			case '1':
+			case 'M':
 				header->mode |= S_IFREG;
 				break;
 
@@ -246,9 +293,11 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 				header->mode |= S_IFIFO;
 				break;
 		}
-	} while (!header->filename);
 
-	self->skip_size = self->filesize = header->size;
+		break;
+	}
+
+	self->skip_size = self->file_size = header->size;
 
 	if (header->size > 0 && header->size % 512)
 		self->skip_size = 512 + header->size - header->size % 512;
@@ -261,90 +310,30 @@ int mtar_format_ustar_in_last_errno(struct mtar_format_in * f) {
 	return self->io->ops->last_errno(self->io);
 }
 
-ssize_t mtar_format_ustar_in_prefetch(struct mtar_format_ustar_in * self, ssize_t length) {
-	if (self->buffer_size < length) {
-		self->buffer = realloc(self->buffer, length);
-		self->buffer_size = length;
-	}
-	if (self->buffer_used < length) {
-		ssize_t nbRead = self->io->ops->read(self->io, self->buffer + self->buffer_used, length - self->buffer_used);
-		if (nbRead < 0)
-			return nbRead;
-		if (nbRead > 0)
-			self->buffer_used += nbRead;
-	}
-	return self->buffer_used;
-}
-
 ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length) {
 	struct mtar_format_ustar_in * self = f->data;
-	if (length > self->filesize)
-		length = self->filesize;
-	ssize_t nbRead = mtar_format_ustar_in_read_buffer(self, data, length);
-	if (nbRead > 0) {
-		self->filesize -= nbRead;
-		self->skip_size -= nbRead;
+
+	if (length > self->file_size)
+		length = self->file_size;
+
+	ssize_t nb_read = self->io->ops->read(self->io, data, length);
+
+	if (nb_read > 0) {
+		self->file_size -= nb_read;
+		self->skip_size -= nb_read;
 	}
-	if (self->filesize == 0 && self->skip_size > 0)
+
+	if (self->file_size == 0 && self->skip_size > 0)
 		mtar_format_ustar_in_skip_file(f);
-	return nbRead;
-}
 
-ssize_t mtar_format_ustar_in_read_buffer(struct mtar_format_ustar_in * self, void * data, ssize_t length) {
-	ssize_t nbRead = 0;
-	if (self->buffer_used > 0) {
-		nbRead = length > self->buffer_used ? self->buffer_used : length;
-		memcpy(data, self->buffer, nbRead);
-
-		self->buffer_used -= nbRead;
-		if (self->buffer_used > 0)
-			memmove(self->buffer, self->buffer + nbRead, self->buffer_used);
-
-		if (length == nbRead) {
-			self->position += nbRead;
-			return nbRead;
-		}
-	}
-
-	char * pdata = data;
-	ssize_t r = self->io->ops->read(self->io, pdata + nbRead, length - nbRead);
-	if (r < 0) {
-		memcpy(self->buffer, data, nbRead);
-		self->buffer_used = nbRead;
-		return r;
-	}
-
-	if (self->buffer_used == 0) {
-		free(self->buffer);
-		self->buffer = 0;
-		self->buffer_size = 0;
-	}
-
-	nbRead += r;
-	self->position += nbRead;
-	return nbRead;
+	return nb_read;
 }
 
 int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
+
 	if (self->skip_size == 0)
 		return 0;
-
-	if (self->buffer_used > 0) {
-		if (self->skip_size < self->buffer_used) {
-			memmove(self->buffer, self->buffer + self->skip_size, self->buffer_used - self->skip_size);
-			self->buffer_used -= self->skip_size;
-			self->position += self->skip_size;
-			self->filesize = 0;
-			self->skip_size = 0;
-			return 0;
-		} else {
-			self->position += self->buffer_used;
-			self->filesize -= self->buffer_used;
-			self->skip_size -= self->buffer_used;
-			self->buffer_used = 0;
-		}
-	}
 
 	if (self->skip_size > 0) {
 		off_t next_pos = self->io->ops->position(self->io) + self->skip_size;
@@ -352,7 +341,7 @@ int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 		if (new_pos == (off_t) -1)
 			return 1;
 		self->position += self->skip_size;
-		self->filesize = self->skip_size = 0;
+		self->file_size = self->skip_size = 0;
 		return new_pos != next_pos;
 	}
 
@@ -363,19 +352,20 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 	if (!io)
 		return 0;
 
-	struct mtar_format_ustar_in * data = malloc(sizeof(struct mtar_format_ustar_in));
-	data->io = io;
-	data->position = 0;
-	data->buffer = 0;
-	data->buffer_size = 0;
-	data->buffer_used = 0;
-	data->filesize = 0;
-	data->skip_size = 0;
+	struct mtar_format_ustar_in * self = malloc(sizeof(struct mtar_format_ustar_in));
+	self->io = io;
+	self->position = 0;
 
-	struct mtar_format_in * self = malloc(sizeof(struct mtar_format_in));
-	self->ops = &mtar_format_ustar_in_ops;
-	self->data = data;
+	self->buffer = malloc(2560);
+	self->buffer_size = 2560;
 
-	return self;
+	self->file_size = 0;
+	self->skip_size = 0;
+
+	struct mtar_format_in * f = malloc(sizeof(struct mtar_format_in));
+	f->ops = &mtar_format_ustar_in_ops;
+	f->data = self;
+
+	return f;
 }
 

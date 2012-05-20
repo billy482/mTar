@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:30:33 +0200                           *
+*  Last modified: Sat, 19 May 2012 22:49:08 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -119,6 +119,10 @@ int mtar_io_file_out_last_errno(struct mtar_io_out * io) {
 ssize_t mtar_io_file_out_next_prefered_size(struct mtar_io_out * io) {
 	struct mtar_io_file * self = io->data;
 	ssize_t block_size = mtar_io_file_common_block_size(self);
+
+	if (self->volume_size > 0 && self->position + block_size > self->volume_size)
+		return self->volume_size == self->position ? 0 : self->volume_size - self->position;
+
 	ssize_t next_size = self->position % block_size;
 	return next_size == 0 ? block_size : next_size;
 }

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:42:26 +0200                           *
+*  Last modified: Sun, 20 May 2012 12:32:01 +0200                           *
 \***************************************************************************/
 
 #include <mtar-function-list.chcksum>
@@ -96,6 +96,8 @@ int mtar_function_list(const struct mtar_option * option) {
 				ok = 0;
 				continue;
 		}
+
+		mtar_format_free_header(&header);
 
 		if (format->ops->skip_file(format)) {
 			mtar_verbose_printf("Failed to skip file\n");

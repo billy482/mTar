@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 00:29:55 +0200                           *
+*  Last modified: Sun, 20 May 2012 13:37:25 +0200                           *
 \***************************************************************************/
 
 // gettimeofday
@@ -105,19 +105,19 @@ void mtar_function_extract_display3(struct mtar_format_header * header) {
 	if (header->is_label) {
 		mode[0] = 'V';
 		mtar_verbose_printf("%s %s --Volume Header: %s--\n", mode, mtime, header->path);
-	} else if (header->link[0] != '\0' && !(header->mode & S_IFMT)) {
+	} else if (S_ISREG(header->mode) && header->path && header->link) {
 		mode[0] = 'h';
-		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+		mtar_verbose_printf("%s %n%*s%n %n%*zd%n %s %s link to %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, header->size, &size2, mtime, header->path, header->link);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
 	} else if (S_ISLNK(header->mode)) {
-		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path, header->link);
+		mtar_verbose_printf("%s %n%*s%n %n%*zd%n %s %s -> %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, header->size, &size2, mtime, header->path, header->link);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
 	} else {
-		mtar_verbose_printf("%s %n%*s%n %n%*lld%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, (long long) header->size, &size2, mtime, header->path);
+		mtar_verbose_printf("%s %n%*s%n %n%*zd%n %s %s\n", mode, &ug1, sug, user_group, &ug2, &size1, nsize, header->size, &size2, mtime, header->path);
 
 		sug = ug2 - ug1;
 		nsize = size2 - size1;
