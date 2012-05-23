@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 11:50:52 +0200                           *
+*  Last modified: Wed, 23 May 2012 20:47:48 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -120,6 +120,12 @@ enum mtar_format_in_header_status {
 	MTAR_FORMAT_HEADER_BAD_CHECKSUM,
 };
 
+enum mtar_format_out_status {
+	MTAR_FORMAT_OUT_END_OF_TAPE,
+	MTAR_FORMAT_OUT_ERROR,
+	MTAR_FORMAT_OUT_OK,
+};
+
 /**
  * \brief Used for reading tar
  */
@@ -155,9 +161,9 @@ struct mtar_format_in {
 
 struct mtar_format_out {
 	struct mtar_format_out_ops {
-		int (*add_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header);
-		int (*add_label)(struct mtar_format_out * f, const char * label);
-		int (*add_link)(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * header);
+		enum mtar_format_out_status (*add_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header);
+		enum mtar_format_out_status (*add_label)(struct mtar_format_out * f, const char * label);
+		enum mtar_format_out_status (*add_link)(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * header);
 		ssize_t (*available_space)(struct mtar_format_out * io);
 		ssize_t (*block_size)(struct mtar_format_out * f);
 		int (*end_of_file)(struct mtar_format_out * f);
