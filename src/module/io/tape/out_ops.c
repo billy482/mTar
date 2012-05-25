@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:55:04 +0200                           *
+*  Last modified: Fri, 25 May 2012 10:10:40 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -98,9 +98,9 @@ int mtar_io_tape_out_close(struct mtar_io_out * io) {
 
 	if (self->buffer_used > 0) {
 		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
-		ssize_t nbWrite = write(self->fd, self->buffer, self->buffer_size);
+		ssize_t nb_write = write(self->fd, self->buffer, self->buffer_size);
 
-		if (nbWrite < 0) {
+		if (nb_write < 0) {
 			self->last_errno = errno;
 			return -1;
 		}

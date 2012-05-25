@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 23:10:04 +0200                           *
+*  Last modified: Fri, 25 May 2012 10:08:58 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -107,14 +107,14 @@ off_t mtar_filter_bzip2_in_forward(struct mtar_io_in * io, off_t offset) {
 			}
 		}
 
-		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
-		if (nbRead > 0) {
+		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
+		if (nb_read > 0) {
 			self->strm.next_in = self->bufferIn;
-			self->strm.avail_in += nbRead;
-		} else if (nbRead == 0) {
+			self->strm.avail_in += nb_read;
+		} else if (nb_read == 0) {
 			return self->strm.total_out_lo32;
 		} else {
-			return nbRead;
+			return nb_read;
 		}
 	}
 
@@ -155,14 +155,14 @@ ssize_t mtar_filter_bzip2_in_read(struct mtar_io_in * io, void * data, ssize_t l
 				return self->strm.total_out_lo32 - previous_pos;
 		}
 
-		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
-		if (nbRead > 0) {
+		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
+		if (nb_read > 0) {
 			self->strm.next_in = self->bufferIn;
-			self->strm.avail_in += nbRead;
-		} else if (nbRead == 0) {
+			self->strm.avail_in += nb_read;
+		} else if (nb_read == 0) {
 			return self->strm.total_out_lo32 - previous_pos;
 		} else {
-			return nbRead;
+			return nb_read;
 		}
 	}
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 23:52:46 +0200                           *
+*  Last modified: Fri, 25 May 2012 10:10:11 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -92,21 +92,21 @@ char * mtar_readline_getline(struct mtar_readline * rl) {
 		if (needRead > rl->blocksize)
 			needRead = rl->blocksize;
 
-		ssize_t nbRead = rl->io->ops->read(rl->io, rl->buffer + rl->buffer_used, needRead - 1);
+		ssize_t nb_read = rl->io->ops->read(rl->io, rl->buffer + rl->buffer_used, needRead - 1);
 
-		if (nbRead < 0)
+		if (nb_read < 0)
 			return 0;
 
-		if (nbRead == 0 && rl->buffer_used) {
+		if (nb_read == 0 && rl->buffer_used) {
 			char * line = strdup(rl->buffer);
 			rl->buffer_used = 0;
 			return line;
 		}
 
-		if (nbRead == 0)
+		if (nb_read == 0)
 			return 0;
 
-		rl->buffer_used += nbRead;
+		rl->buffer_used += nb_read;
 		rl->buffer[rl->buffer_used] = '\0';
 
 		pos = 0;

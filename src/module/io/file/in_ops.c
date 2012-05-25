@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:30:56 +0200                           *
+*  Last modified: Fri, 25 May 2012 10:09:53 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -99,14 +99,14 @@ off_t mtar_io_file_in_position(struct mtar_io_in * io) {
 ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
 	struct mtar_io_file * self = io->data;
 
-	ssize_t nbRead = read(self->fd, data, length);
+	ssize_t nb_read = read(self->fd, data, length);
 
-	if (nbRead > 0)
-		self->position += nbRead;
-	else if (nbRead < 0)
+	if (nb_read > 0)
+		self->position += nb_read;
+	else if (nb_read < 0)
 		self->last_errno = errno;
 
-	return nbRead;
+	return nb_read;
 }
 
 struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {

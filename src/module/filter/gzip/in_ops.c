@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 20:36:03 +0200                           *
+*  Last modified: Fri, 25 May 2012 10:09:24 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -105,14 +105,14 @@ off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
 			}
 		}
 
-		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
-		if (nbRead > 0) {
+		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
+		if (nb_read > 0) {
 			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
-			self->gz_stream.avail_in += nbRead;
-		} else if (nbRead == 0) {
+			self->gz_stream.avail_in += nb_read;
+		} else if (nb_read == 0) {
 			return self->gz_stream.total_out;
 		} else {
-			return nbRead;
+			return nb_read;
 		}
 	}
 
@@ -153,14 +153,14 @@ ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t le
 				return self->gz_stream.total_out - previous_pos;
 		}
 
-		int nbRead = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
-		if (nbRead > 0) {
+		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
+		if (nb_read > 0) {
 			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
-			self->gz_stream.avail_in += nbRead;
-		} else if (nbRead == 0) {
+			self->gz_stream.avail_in += nb_read;
+		} else if (nb_read == 0) {
 			return self->gz_stream.total_out - previous_pos;
 		} else {
-			return nbRead;
+			return nb_read;
 		}
 	}
 
