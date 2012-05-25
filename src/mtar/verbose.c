@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 06 Nov 2011 15:38:33 +0100                           *
+*  Last modified: Thu, 24 May 2012 22:41:55 +0200                           *
 \****************************************************************************/
 
 #define _GNU_SOURCE
@@ -49,6 +49,8 @@
 #include <termios.h>
 // difftime
 #include <time.h>
+// fdatasync, read
+#include <unistd.h>
 
 #include <mtar/option.h>
 #include <mtar/util.h>
@@ -82,6 +84,10 @@ void mtar_verbose_clean() {
 	dprintf(2, buffer);
 
 	*buffer = '\0';
+}
+
+void mtar_verbose_flush() {
+	fdatasync(2);
 }
 
 void mtar_verbose_init() {
@@ -240,6 +246,78 @@ void mtar_verbose_progress(const char * format, unsigned long long current, unsi
 	}
 
 	dprintf(2, buffer);
+}
+
+char * mtar_verbose_prompt(const char * format, ...) {
+	va_list args;
+	va_start(args, format);
+	vdprintf(2, format, args);
+	va_end(args);
+	fdatasync(2);
+
+	static char buffer[512];
+	static ssize_t buffer_used = 0;
+
+	char * line = 0;
+	ssize_t line_length = 0;
+
+	if (buffer_used > 0) {
+		line = malloc(buffer_used + 1);
+		memcpy(line, buffer, buffer_used);
+		line_length = buffer_used;
+		line[buffer_used] = '\0';
+
+		char * end_of_line = strchr(line, '\n');
+		if (end_of_line) {
+			*end_of_line = '\0';
+			end_of_line++;
+
+			ssize_t length = end_of_line - line;
+			if (length < line_length) {
+				buffer_used = line_length - length;
+				memcpy(buffer, end_of_line, buffer_used);
+
+				line = realloc(line, length + 1);
+			}
+
+			return line;
+		}
+	}
+
+	while (!buffer_used) {
+		ssize_t nb_read = read(0, buffer, 511);
+
+		if (nb_read < 0) {
+			if (line)
+				free(line);
+			return 0;
+		}
+
+		buffer[nb_read] = '\0';
+
+		line = realloc(line, line_length + nb_read + 1);
+		memcpy(line + line_length, buffer, nb_read + 1);
+		line_length += nb_read;
+
+		char * end_of_line = strchr(line, '\n');
+		if (end_of_line) {
+			*end_of_line = '\0';
+			end_of_line++;
+
+			ssize_t length = end_of_line - line;
+			if (length < line_length) {
+				buffer_used = line_length - length;
+				memcpy(buffer, end_of_line, buffer_used);
+
+				line = realloc(line, length + 1);
+			}
+
+			return line;
+		}
+
+	}
+
+	return 0;
 }
 
 void mtar_verbose_restart_timer() {

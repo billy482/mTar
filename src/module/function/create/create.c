@@ -27,9 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 21:45:23 +0200                           *
+*  Last modified: Thu, 24 May 2012 23:06:21 +0200                           *
 \***************************************************************************/
 
+// errno
+#include <errno.h>
 // open
 #include <fcntl.h>
 // free, malloc
@@ -60,15 +62,8 @@
 
 #include "create.h"
 
-struct mtar_function_create_param {
-	struct mtar_format_out * format;
-	char * buffer;
-	ssize_t block_size;
-	struct mtar_hashtable * inode;
-	const struct mtar_option * option;
-};
-
 static int mtar_function_create(const struct mtar_option * option);
+static int mtar_function_create_change_volume(struct mtar_format_out * format, const struct mtar_option * option);
 static void mtar_function_create_init(void) __attribute__((constructor));
 static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
@@ -96,18 +91,33 @@ int mtar_function_create(const struct mtar_option * option) {
 	char * buffer = malloc(block_size);
 	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
+	int failed = 0;
+	enum mtar_format_out_status status;
+
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
-		return 1;
+		failed = 1;
 	}
 
-	if (option->label) {
+	if (!failed && option->label) {
 		mtar_function_create_display_label(option->label);
-		format->ops->add_label(format, option->label);
+		status = format->ops->add_label(format, option->label);
+
+		switch (status) {
+			case MTAR_FORMAT_OUT_ERROR:
+				failed = 1;
+				break;
+
+			case MTAR_FORMAT_OUT_END_OF_TAPE:
+				failed = mtar_function_create_change_volume(format, option);
+				break;
+
+			case MTAR_FORMAT_OUT_OK:
+				break;
+		}
 	}
 
 	unsigned int i;
-	int failed = 0;
 	for (i = 0; i < option->nb_files && !failed; i++) {
 		while (option->files[i]->ops->has_next(option->files[i], option)) {
 			option->files[i]->ops->next(option->files[i], &filename);
@@ -129,8 +139,23 @@ int mtar_function_create(const struct mtar_option * option) {
 				const char * target = mtar_hashtable_value(inode, key);
 				if (!strcmp(target, filename))
 					continue;
-				failed = format->ops->add_link(format, filename, target, &header);
+
+				status = format->ops->add_link(format, filename, target, &header);
 				mtar_function_create_display(&header, target, 0);
+
+				switch (status) {
+					case MTAR_FORMAT_OUT_ERROR:
+						failed = 1;
+						break;
+
+					case MTAR_FORMAT_OUT_END_OF_TAPE:
+						failed = mtar_function_create_change_volume(format, option);
+						break;
+
+					case MTAR_FORMAT_OUT_OK:
+						continue;
+				}
+
 				if (failed)
 					break;
 				continue;
@@ -138,8 +163,21 @@ int mtar_function_create(const struct mtar_option * option) {
 
 			mtar_hashtable_put(inode, strdup(key), filename);
 
-			failed = format->ops->add_file(format, filename, &header);
+			status = format->ops->add_file(format, filename, &header);
 			mtar_function_create_display(&header, 0, 0);
+
+			switch (status) {
+				case MTAR_FORMAT_OUT_ERROR:
+					failed = 1;
+					break;
+
+				case MTAR_FORMAT_OUT_END_OF_TAPE:
+					failed = mtar_function_create_change_volume(format, option);
+					break;
+
+				case MTAR_FORMAT_OUT_OK:
+					break;
+			}
 
 			if (failed)
 				break;
@@ -148,15 +186,37 @@ int mtar_function_create(const struct mtar_option * option) {
 				int fd = open(filename, O_RDONLY);
 
 				ssize_t nb_read;
-				ssize_t total_nb_read = 0;
-				while ((nb_read = read(fd, buffer, block_size)) > 0) {
-					format->ops->write(format, buffer, nb_read);
+				ssize_t total_nb_write = 0;
+				while (!failed && (nb_read = read(fd, buffer, block_size)) > 0) {
+					ssize_t nb_write = format->ops->write(format, buffer, nb_read);
 
-					total_nb_read += nb_read;
+					if (nb_write < 0) {
+						int last_errno = format->ops->last_errno(format);
 
-					mtar_function_create_progress(filename, "\r[%b @%P] ETA: %E", total_nb_read, st.st_size);
+						switch (last_errno) {
+							case ENOSPC:
+								failed = mtar_function_create_change_volume(format, option);
+								break;
 
-					// mtar_plugin_write(buffer, nb_read);
+							default:
+								failed = 1;
+								break;
+						}
+					} else if (nb_write < nb_read) {
+						// end of volume
+						failed = mtar_function_create_change_volume(format, option);
+					}
+
+					total_nb_write += nb_write;
+
+					mtar_function_create_progress(filename, "\r[%b @%P] ETA: %E", total_nb_write, st.st_size);
+
+					// mtar_plugin_write(buffer, nb_write);
+				}
+
+				if (nb_read < 0) {
+					// error while reading
+					failed = 1;
 				}
 
 				format->ops->end_of_file(format);
@@ -264,6 +324,46 @@ int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	return failed;
+}
+
+int mtar_function_create_change_volume(struct mtar_format_out * format, const struct mtar_option * option) {
+	static unsigned int i_volume = 2;
+
+	for (;;) {
+		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return:", i_volume, option->filename);
+		if (!line)
+			break;
+
+		switch (*line) {
+			case 'n':
+				// new filename
+				break;
+
+			case 'q':
+				free(line);
+				return 1;
+
+			case 'y':
+				// reuse same filename
+				break;
+
+			case '!':
+				// spawn shell
+				break;
+
+			case '?':
+				mtar_verbose_printf(" n name        Give a new file name for the next (and subsequent) volume(s)\n");
+				mtar_verbose_printf(" q             Abort mtar\n");
+				mtar_verbose_printf(" y or newline  Continue operation\n");
+				mtar_verbose_printf(" !             Spawn a subshell\n");
+				mtar_verbose_printf(" ?             Print this list\n");
+				break;
+		}
+
+		free(line);
+	}
+
+	return 1;
 }
 
 void mtar_function_create_init() {
