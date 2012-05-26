@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 23 May 2012 20:50:36 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:11:00 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -84,6 +84,7 @@ static void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, st
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
+static void mtar_format_ustar_out_new_volume(struct mtar_format_out * f, struct mtar_io_out * file);
 static off_t mtar_format_ustar_out_position(struct mtar_format_out * io);
 static struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_format_out * f, const struct mtar_option * option);
 static int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
@@ -101,6 +102,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.end_of_file        = mtar_format_ustar_out_end_of_file,
 	.free               = mtar_format_ustar_out_free,
 	.last_errno         = mtar_format_ustar_out_last_errno,
+	.new_volume         = mtar_format_ustar_out_new_volume,
 	.position           = mtar_format_ustar_out_position,
 	.reopen_for_reading = mtar_format_ustar_out_reopen_for_reading,
 	.restart_file       = mtar_format_ustar_out_restart_file,
@@ -489,6 +491,15 @@ void mtar_format_ustar_out_free(struct mtar_format_out * f) {
 int mtar_format_ustar_out_last_errno(struct mtar_format_out * f) {
 	struct mtar_format_ustar_out * format = f->data;
 	return format->io->ops->last_errno(format->io);
+}
+
+void mtar_format_ustar_out_new_volume(struct mtar_format_out * f, struct mtar_io_out * file) {
+	struct mtar_format_ustar_out * self = f->data;
+
+	if (self->io)
+		self->io->ops->free(self->io);
+
+	self->io = file;
 }
 
 off_t mtar_format_ustar_out_position(struct mtar_format_out * f) {

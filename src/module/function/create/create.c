@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 24 May 2012 23:06:21 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:18:15 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -52,6 +52,7 @@
 #include <mtar-function-create.chcksum>
 #include <mtar.version>
 
+#include <mtar/filter.h>
 #include <mtar/format.h>
 #include <mtar/function.h>
 #include <mtar/hashtable.h>
@@ -330,14 +331,20 @@ int mtar_function_create_change_volume(struct mtar_format_out * format, const st
 	static unsigned int i_volume = 2;
 
 	for (;;) {
-		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return:", i_volume, option->filename);
+		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, option->filename);
 		if (!line)
 			break;
 
 		switch (*line) {
-			case 'n':
+			case 'n': {
 				// new filename
-				break;
+					char * filename;
+					for (filename = line + 1; *filename == ' '; filename++);
+
+					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, option);
+					format->ops->new_volume(format, new_file);
+				}
+				return 0;
 
 			case 'q':
 				free(line);
