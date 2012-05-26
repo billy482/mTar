@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 10:31:05 +0200                           *
+*  Last modified: Sat, 26 May 2012 22:34:36 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -42,9 +42,11 @@
 #include <string.h>
 // lstat, open
 #include <sys/stat.h>
-// lstat, open, utime
+// lstat, open, utime, waitpid
 #include <sys/types.h>
-// chdir, lstat, read, readlink
+// waitpid
+#include <sys/wait.h>
+// chdir, execl, _exit, fork, lstat, read, readlink
 #include <unistd.h>
 // utime
 #include <utime.h>
@@ -208,6 +210,9 @@ int mtar_function_create(const struct mtar_option * option) {
 						failed = mtar_function_create_change_volume(format, option);
 					}
 
+					if (failed)
+						break;
+
 					total_nb_write += nb_write;
 
 					mtar_function_create_progress(filename, "\r[%b @%P] ETA: %E", total_nb_write, st.st_size);
@@ -328,10 +333,15 @@ int mtar_function_create(const struct mtar_option * option) {
 }
 
 int mtar_function_create_change_volume(struct mtar_format_out * format, const struct mtar_option * option) {
-	static unsigned int i_volume = 2;
+	static unsigned int i_volume = 1;
+	i_volume++;
+
+	static const char * last_filename = 0;
+	if (!last_filename)
+		last_filename = option->filename;
 
 	for (;;) {
-		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, option->filename);
+		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, last_filename);
 		if (!line)
 			break;
 
@@ -341,21 +351,40 @@ int mtar_function_create_change_volume(struct mtar_format_out * format, const st
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
+					if (last_filename != option->filename)
+						free((void *) last_filename);
+					last_filename = strdup(filename);
+
 					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, option);
 					format->ops->new_volume(format, new_file);
 				}
 				return 0;
 
 			case 'q':
-				free(line);
-				return 1;
+				mtar_verbose_printf("Archive is not complete\n");
+				_exit(1);
 
-			case 'y':
-				// reuse same filename
-				break;
+			case '\0':
+			case 'y': {
+					// reuse same filename
+					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, option);
+					format->ops->new_volume(format, new_file);
+				}
+				return 0;
 
-			case '!':
-				// spawn shell
+			case '!': {
+					// spawn shell
+					pid_t pid = fork();
+					if (pid > 0) {
+						int status;
+						waitpid(pid, &status, 0);
+					} else if (pid == 0) {
+						int failed = execl("/bin/bash", "bash", (const char *) 0);
+						_exit(failed);
+					} else {
+						mtar_verbose_printf("Failed to spawn shell because %m\n");
+					}
+				}
 				break;
 
 			case '?':

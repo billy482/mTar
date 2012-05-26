@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 10:30:39 +0200                           *
+*  Last modified: Sat, 26 May 2012 20:10:18 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -62,11 +62,20 @@ void (*mtar_function_create_display)(struct mtar_format_header * header, const c
 void (*mtar_function_create_display_label)(const char * label) = mtar_function_create_display_label1;
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
+static struct timeval begin = { 0, 0 };
+static struct timeval middle = { 0, 0 };
+static double current_diff = 0;
+
 
 void mtar_function_create_clean1() {}
 
 void mtar_function_create_clean2() {
-	mtar_verbose_clean();
+	gettimeofday(&middle, 0);
+
+	double diff = difftime(middle.tv_sec, begin.tv_sec) + difftime(middle.tv_usec, begin.tv_usec) / 1000000;
+
+	if (diff > 4)
+		mtar_verbose_clean();
 }
 
 void mtar_function_create_configure(const struct mtar_option * option) {
@@ -163,9 +172,6 @@ void mtar_function_create_progress1(const char * filename __attribute__((unused)
 
 void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
-	static struct timeval begin = { 0, 0 };
-	static struct timeval middle = { 0, 0 };
-	static double current_diff = 0;
 
 	if (current_file != filename) {
 		current_file = filename;
