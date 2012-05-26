@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 23:17:56 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:27:31 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FUNCTION_CREATE_VERBOSE_H__
@@ -35,6 +35,7 @@
 
 #include <mtar/format.h>
 
+extern void (*mtar_function_create_clean)(void);
 extern void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink, int verify);
 extern void (*mtar_function_create_display_label)(const char * label);
 extern void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 10:18:15 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:31:05 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -221,7 +221,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				}
 
 				format->ops->end_of_file(format);
-				mtar_verbose_clean();
+				mtar_function_create_clean();
 				close(fd);
 			}
 

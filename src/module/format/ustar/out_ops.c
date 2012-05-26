@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 10:11:00 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:45:39 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -350,7 +350,7 @@ enum mtar_format_out_status mtar_format_ustar_out_add_link(struct mtar_format_ou
 
 	free(header);
 
-	return block_size != nb_write;
+	return MTAR_FORMAT_OUT_OK;
 }
 
 ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * f) {

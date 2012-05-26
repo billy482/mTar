@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 21:41:04 +0200                           *
+*  Last modified: Sat, 26 May 2012 10:30:39 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -45,6 +45,8 @@
 
 #include "create.h"
 
+static void mtar_function_create_clean1(void);
+static void mtar_function_create_clean2(void);
 static void mtar_function_create_display1(struct mtar_format_header * header, const char * hardlink, int verify);
 static void mtar_function_create_display2(struct mtar_format_header * header, const char * hardlink, int verify);
 static void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink, int verify);
@@ -55,26 +57,36 @@ static void mtar_function_create_progress1(const char * filename, const char * f
 static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
 
+void (*mtar_function_create_clean)(void);
 void (*mtar_function_create_display)(struct mtar_format_header * header, const char * hardlink, int verify) = mtar_function_create_display1;
 void (*mtar_function_create_display_label)(const char * label) = mtar_function_create_display_label1;
 void (*mtar_function_create_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_create_progress1;
 
 
+void mtar_function_create_clean1() {}
+
+void mtar_function_create_clean2() {
+	mtar_verbose_clean();
+}
+
 void mtar_function_create_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
 		case 0:
+			mtar_function_create_clean = mtar_function_create_clean1;
 			mtar_function_create_display = mtar_function_create_display1;
 			mtar_function_create_display_label = mtar_function_create_display_label1;
 			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		case 1:
+			mtar_function_create_clean = mtar_function_create_clean2;
 			mtar_function_create_display = mtar_function_create_display2;
 			mtar_function_create_display_label = mtar_function_create_display_label2;
 			mtar_function_create_progress = mtar_function_create_progress1;
 			break;
 
 		default:
+			mtar_function_create_clean = mtar_function_create_clean2;
 			mtar_function_create_display = mtar_function_create_display3;
 			mtar_function_create_display_label = mtar_function_create_display_label3;
 			mtar_function_create_progress = mtar_function_create_progress2;
