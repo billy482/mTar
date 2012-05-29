@@ -33,7 +33,7 @@
 #ifndef __MTAR_HASHTABLE_H__
 #define __MTAR_HASHTABLE_H__
 
-typedef unsigned long long (*mtar_hashtable_computeHash_f)(const void * key);
+typedef unsigned long long (*mtar_hashtable_compupte_hash_f)(const void * key);
 typedef void (*mtar_hashtable_free_f)(void * key, void * value);
 
 struct mtar_hashtable {
@@ -43,17 +43,17 @@ struct mtar_hashtable {
 		void * value;
 		struct mtar_hashtable_node * next;
 	} ** nodes;
-	unsigned int nbElements;
-	unsigned int sizeNode;
+	unsigned int nb_elements;
+	unsigned int size_node;
 
-	unsigned char allowRehash;
+	unsigned char allow_rehash;
 
-	mtar_hashtable_computeHash_f computeHash;
-	mtar_hashtable_free_f releaseKeyValue;
+	mtar_hashtable_compupte_hash_f compupte_hash;
+	mtar_hashtable_free_f release_key_value;
 };
 
-struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_computeHash_f computeHash);
-struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_computeHash_f computeHash, mtar_hashtable_free_f releaseKeyValue);
+struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_compupte_hash_f compupte_hash);
+struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_compupte_hash_f compupte_hash, mtar_hashtable_free_f release_key_value);
 void mtar_hashtable_free(struct mtar_hashtable * hashtable);
 short mtar_hashtable_hasKey(struct mtar_hashtable * hashtable, const void * key);
 const void ** mtar_hashtable_keys(struct mtar_hashtable * hashtable);
