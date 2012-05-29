@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 29 May 2012 10:23:44 +0200                           *
+*  Last modified: Tue, 29 May 2012 18:30:58 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -393,6 +393,8 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 	static const char * last_filename = 0;
 	if (!last_filename)
 		last_filename = param->option->filename;
+
+	mtar_function_create_clean();
 
 	for (;;) {
 		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, last_filename);
