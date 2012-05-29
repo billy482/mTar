@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 10:45:39 +0200                           *
+*  Last modified: Sun, 27 May 2012 17:08:00 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -62,7 +62,7 @@ struct mtar_format_ustar_out {
 	ssize_t size;
 
 	// multi volume
-	struct mtar_format_ustar * remain_header;
+	void * remain_header;
 	ssize_t remain_size;
 
 	// handling of file attributes
@@ -84,14 +84,16 @@ static void mtar_format_ustar_out_copy(struct mtar_format_ustar_out * format, st
 static int mtar_format_ustar_out_end_of_file(struct mtar_format_out * f);
 static void mtar_format_ustar_out_free(struct mtar_format_out * f);
 static int mtar_format_ustar_out_last_errno(struct mtar_format_out * f);
+static ssize_t mtar_format_ustar_out_next_prefered_size(struct mtar_format_out * f);
 static void mtar_format_ustar_out_new_volume(struct mtar_format_out * f, struct mtar_io_out * file);
 static off_t mtar_format_ustar_out_position(struct mtar_format_out * io);
 static struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_format_out * f, const struct mtar_option * option);
-static int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header, ssize_t position);
+static int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, ssize_t position);
 static void mtar_format_ustar_out_set_mode(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static void mtar_format_ustar_out_set_owner_and_group(struct mtar_format_ustar_out * format, struct mtar_format_ustar * header, struct stat * sfile);
 static const char * mtar_format_ustar_out_skip_leading_slash(const char * str);
 static ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * data, ssize_t length);
+static enum mtar_format_out_status mtar_format_ustar_out_write_header(struct mtar_format_ustar_out * f, void * data, ssize_t length);
 
 static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.add_file           = mtar_format_ustar_out_add_file,
@@ -102,6 +104,7 @@ static struct mtar_format_out_ops mtar_format_ustar_out_ops = {
 	.end_of_file        = mtar_format_ustar_out_end_of_file,
 	.free               = mtar_format_ustar_out_free,
 	.last_errno         = mtar_format_ustar_out_last_errno,
+	.next_prefered_size = mtar_format_ustar_out_next_prefered_size,
 	.new_volume         = mtar_format_ustar_out_new_volume,
 	.position           = mtar_format_ustar_out_position,
 	.reopen_for_reading = mtar_format_ustar_out_reopen_for_reading,
@@ -224,32 +227,7 @@ enum mtar_format_out_status mtar_format_ustar_out_add_file(struct mtar_format_ou
 	format->position = 0;
 	format->size = sfile.st_size;
 
-	ssize_t nb_write = format->io->ops->write(format->io, header, block_size);
-
-	int last_errno = 0;
-	if (nb_write < 0) {
-		last_errno = format->io->ops->last_errno(format->io);
-
-		if (last_errno != ENOSPC)
-			return MTAR_FORMAT_OUT_ERROR;
-
-		nb_write = 0;
-	}
-
-	if (block_size > nb_write) {
-		format->remain_size = block_size - nb_write;
-		format->remain_header = malloc(format->remain_size);
-		memcpy(format->remain_header, header, format->remain_size);
-		free(header);
-
-		format->io->ops->close(format->io);
-
-		return MTAR_FORMAT_OUT_END_OF_TAPE;
-	}
-
-	free(header);
-
-	return MTAR_FORMAT_OUT_OK;
+	return mtar_format_ustar_out_write_header(format, header, block_size);
 }
 
 enum mtar_format_out_status mtar_format_ustar_out_add_label(struct mtar_format_out * f, const char * label) {
@@ -270,30 +248,7 @@ enum mtar_format_out_status mtar_format_ustar_out_add_label(struct mtar_format_o
 	format->position = 0;
 	format->size = 0;
 
-	ssize_t nb_write = format->io->ops->write(format->io, header, 512);
-
-	int last_errno = 0;
-	if (nb_write < 0) {
-		last_errno = format->io->ops->last_errno(format->io);
-
-		if (last_errno != ENOSPC)
-			return MTAR_FORMAT_OUT_ERROR;
-
-		nb_write = 0;
-	}
-
-	if (512 > nb_write) {
-		format->remain_size = 512;
-		format->remain_header = header;
-
-		format->io->ops->close(format->io);
-
-		return MTAR_FORMAT_OUT_END_OF_TAPE;
-	}
-
-	free(header);
-
-	return 512 != nb_write;
+	return mtar_format_ustar_out_write_header(format, header, 512);
 }
 
 enum mtar_format_out_status mtar_format_ustar_out_add_link(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * h_out) {
@@ -325,32 +280,7 @@ enum mtar_format_out_status mtar_format_ustar_out_add_link(struct mtar_format_ou
 	format->position = 0;
 	format->size = 0;
 
-	ssize_t nb_write = format->io->ops->write(format->io, header, block_size);
-
-	int last_errno = 0;
-	if (nb_write < 0) {
-		last_errno = format->io->ops->last_errno(format->io);
-
-		if (last_errno != ENOSPC)
-			return MTAR_FORMAT_OUT_ERROR;
-
-		nb_write = 0;
-	}
-
-	if (block_size > nb_write) {
-		format->remain_size = block_size - nb_write;
-		format->remain_header = malloc(format->remain_size);
-		memcpy(format->remain_header, header, format->remain_size);
-		free(header);
-
-		format->io->ops->close(format->io);
-
-		return MTAR_FORMAT_OUT_END_OF_TAPE;
-	}
-
-	free(header);
-
-	return MTAR_FORMAT_OUT_OK;
+	return mtar_format_ustar_out_write_header(format, header, block_size);
 }
 
 ssize_t mtar_format_ustar_out_available_space(struct mtar_format_out * f) {
@@ -493,6 +423,11 @@ int mtar_format_ustar_out_last_errno(struct mtar_format_out * f) {
 	return format->io->ops->last_errno(format->io);
 }
 
+ssize_t mtar_format_ustar_out_next_prefered_size(struct mtar_format_out * f) {
+	struct mtar_format_ustar_out * format = f->data;
+	return format->io->ops->next_prefered_size(format->io);
+}
+
 void mtar_format_ustar_out_new_volume(struct mtar_format_out * f, struct mtar_io_out * file) {
 	struct mtar_format_ustar_out * self = f->data;
 
@@ -517,7 +452,7 @@ struct mtar_format_in * mtar_format_ustar_out_reopen_for_reading(struct mtar_for
 	return 0;
 }
 
-int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, struct mtar_format_header * h_out, ssize_t position) {
+int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * filename, ssize_t position) {
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
@@ -595,8 +530,6 @@ int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * 
 
 	mtar_format_ustar_out_compute_checksum(current_header, current_header->checksum);
 
-	mtar_format_ustar_out_copy(format, h_out, header, &sfile);
-
 	format->position = 0;
 	format->size = sfile.st_size;
 
@@ -658,5 +591,46 @@ ssize_t mtar_format_ustar_out_write(struct mtar_format_out * f, const void * dat
 		format->position += nb_write;
 
 	return nb_write;
+}
+
+enum mtar_format_out_status mtar_format_ustar_out_write_header(struct mtar_format_ustar_out * f, void * data, ssize_t length) {
+	ssize_t available = f->io->ops->available_space(f->io);
+
+	ssize_t nb_write = 0;
+
+	if (available > 0)
+		nb_write = f->io->ops->write(f->io, data, length);
+
+	int last_errno = 0;
+	if (nb_write < 0) {
+		last_errno = f->io->ops->last_errno(f->io);
+
+		if (last_errno != ENOSPC)
+			return MTAR_FORMAT_OUT_ERROR;
+
+		nb_write = 0;
+	}
+
+	if (nb_write == 0) {
+		f->remain_size = length;
+		f->remain_header = data;
+
+		f->io->ops->close(f->io);
+
+		return MTAR_FORMAT_OUT_END_OF_TAPE;
+	} else if (length > nb_write) {
+		f->remain_size = length - nb_write;
+		f->remain_header = malloc(f->remain_size);
+		memcpy(f->remain_header, data, f->remain_size);
+		free(data);
+
+		f->io->ops->close(f->io);
+
+		return MTAR_FORMAT_OUT_END_OF_TAPE;
+	}
+
+	free(data);
+
+	return MTAR_FORMAT_OUT_OK;
 }
 

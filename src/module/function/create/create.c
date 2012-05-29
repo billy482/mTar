@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 22:34:36 +0200                           *
+*  Last modified: Tue, 29 May 2012 10:23:44 +0200                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
 // open
 #include <fcntl.h>
-// free, malloc
+// free, malloc, realloc
 #include <stdlib.h>
 // snprintf, sprintf
 #include <stdio.h>
@@ -65,8 +65,17 @@
 
 #include "create.h"
 
+struct mtar_function_create_param {
+	const struct mtar_option * option;
+
+	char * buffer;
+	ssize_t block_size;
+
+	struct mtar_format_out * format;
+};
+
 static int mtar_function_create(const struct mtar_option * option);
-static int mtar_function_create_change_volume(struct mtar_format_out * format, const struct mtar_option * option);
+static int mtar_function_create_change_volume(struct mtar_function_create_param * param);
 static void mtar_function_create_init(void) __attribute__((constructor));
 static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
@@ -89,10 +98,18 @@ int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
 	char * filename = 0;
+	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
+
 	struct mtar_format_out * format = mtar_format_get_out(option);
 	ssize_t block_size = format->ops->block_size(format);
-	char * buffer = malloc(block_size);
-	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
+	struct mtar_function_create_param param = {
+		.option = option,
+
+		.buffer = malloc(block_size),
+		.block_size = block_size,
+
+		.format = format,
+	};
 
 	int failed = 0;
 	enum mtar_format_out_status status;
@@ -112,7 +129,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				break;
 
 			case MTAR_FORMAT_OUT_END_OF_TAPE:
-				failed = mtar_function_create_change_volume(format, option);
+				failed = mtar_function_create_change_volume(&param);
 				break;
 
 			case MTAR_FORMAT_OUT_OK:
@@ -152,7 +169,7 @@ int mtar_function_create(const struct mtar_option * option) {
 						break;
 
 					case MTAR_FORMAT_OUT_END_OF_TAPE:
-						failed = mtar_function_create_change_volume(format, option);
+						failed = mtar_function_create_change_volume(&param);
 						break;
 
 					case MTAR_FORMAT_OUT_OK:
@@ -175,7 +192,7 @@ int mtar_function_create(const struct mtar_option * option) {
 					break;
 
 				case MTAR_FORMAT_OUT_END_OF_TAPE:
-					failed = mtar_function_create_change_volume(format, option);
+					failed = mtar_function_create_change_volume(&param);
 					break;
 
 				case MTAR_FORMAT_OUT_OK:
@@ -188,26 +205,63 @@ int mtar_function_create(const struct mtar_option * option) {
 			if (S_ISREG(st.st_mode)) {
 				int fd = open(filename, O_RDONLY);
 
-				ssize_t nb_read;
-				ssize_t total_nb_write = 0;
-				while (!failed && (nb_read = read(fd, buffer, block_size)) > 0) {
-					ssize_t nb_write = format->ops->write(format, buffer, nb_read);
+				ssize_t nb_read, total_nb_write = 0;
+				while (!failed) {
+					ssize_t next_read = format->ops->next_prefered_size(format);
 
-					if (nb_write < 0) {
+					nb_read = 0;
+					if (next_read > 0)
+						nb_read = read(fd, param.buffer, next_read);
+
+					if (nb_read < 0) {
+						// error while reading
+						failed = 1;
+						break;
+					}
+
+					if (next_read > 0 && nb_read == 0)
+						break;
+
+					ssize_t nb_write = 0;
+					if (nb_read > 0)
+						nb_write = format->ops->write(format, param.buffer, nb_read);
+
+					while (nb_write < 0) {
 						int last_errno = format->ops->last_errno(format);
 
 						switch (last_errno) {
 							case ENOSPC:
-								failed = mtar_function_create_change_volume(format, option);
+								failed = mtar_function_create_change_volume(&param);
 								break;
 
 							default:
 								failed = 1;
 								break;
 						}
-					} else if (nb_write < nb_read) {
+
+						if (failed)
+							break;
+
+						format->ops->restart_file(format, filename, total_nb_write);
+						nb_write = format->ops->write(format, param.buffer, nb_read);
+					}
+
+					while (next_read == 0 || nb_read > nb_write) {
 						// end of volume
-						failed = mtar_function_create_change_volume(format, option);
+						failed = mtar_function_create_change_volume(&param);
+
+						if (failed)
+							break;
+
+						format->ops->restart_file(format, filename, total_nb_write);
+
+						if (nb_read > nb_write) {
+							ssize_t nb_write2 = format->ops->write(format, param.buffer + nb_write, nb_read - nb_write);
+
+							if (nb_write2 > 0)
+								nb_write += nb_write2;
+						} else
+							break;
 					}
 
 					if (failed)
@@ -240,7 +294,7 @@ int mtar_function_create(const struct mtar_option * option) {
 		}
 	}
 
-	free(buffer);
+	free(param.buffer);
 	mtar_hashtable_free(inode);
 
 	if (failed || !option->verify) {
@@ -332,13 +386,13 @@ int mtar_function_create(const struct mtar_option * option) {
 	return failed;
 }
 
-int mtar_function_create_change_volume(struct mtar_format_out * format, const struct mtar_option * option) {
+int mtar_function_create_change_volume(struct mtar_function_create_param * param) {
 	static unsigned int i_volume = 1;
 	i_volume++;
 
 	static const char * last_filename = 0;
 	if (!last_filename)
-		last_filename = option->filename;
+		last_filename = param->option->filename;
 
 	for (;;) {
 		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, last_filename);
@@ -351,12 +405,18 @@ int mtar_function_create_change_volume(struct mtar_format_out * format, const st
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
-					if (last_filename != option->filename)
+					if (last_filename != param->option->filename)
 						free((void *) last_filename);
 					last_filename = strdup(filename);
 
-					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, option);
-					format->ops->new_volume(format, new_file);
+					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, param->option);
+					param->format->ops->new_volume(param->format, new_file);
+
+					ssize_t block_size = param->format->ops->block_size(param->format);
+					if (block_size != param->block_size) {
+						param->block_size = block_size;
+						param->buffer = realloc(param->buffer, block_size);
+					}
 				}
 				return 0;
 
@@ -367,8 +427,14 @@ int mtar_function_create_change_volume(struct mtar_format_out * format, const st
 			case '\0':
 			case 'y': {
 					// reuse same filename
-					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, option);
-					format->ops->new_volume(format, new_file);
+					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, param->option);
+					param->format->ops->new_volume(param->format, new_file);
+
+					ssize_t block_size = param->format->ops->block_size(param->format);
+					if (block_size != param->block_size) {
+						param->block_size = block_size;
+						param->buffer = realloc(param->buffer, block_size);
+					}
 				}
 				return 0;
 
