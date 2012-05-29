@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 27 May 2012 17:08:00 +0200                           *
+*  Last modified: Tue, 29 May 2012 21:47:58 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -431,8 +431,10 @@ ssize_t mtar_format_ustar_out_next_prefered_size(struct mtar_format_out * f) {
 void mtar_format_ustar_out_new_volume(struct mtar_format_out * f, struct mtar_io_out * file) {
 	struct mtar_format_ustar_out * self = f->data;
 
-	if (self->io)
+	if (self->io) {
+		self->io->ops->close(self->io);
 		self->io->ops->free(self->io);
+	}
 
 	self->io = file;
 }

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 12:11:58 +0200                           *
+*  Last modified: Tue, 29 May 2012 21:16:44 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -57,6 +57,7 @@ static int mtar_filter_bzip2_out_finish(struct mtar_filter_bzip2_out * io);
 static int mtar_filter_bzip2_out_flush(struct mtar_io_out * io);
 static void mtar_filter_bzip2_out_free(struct mtar_io_out * io);
 static int mtar_filter_bzip2_out_last_errno(struct mtar_io_out * io);
+static ssize_t mtar_filter_bzip2_out_next_prefered_size(struct mtar_io_out * io);
 static off_t mtar_filter_bzip2_out_position(struct mtar_io_out * io);
 static struct mtar_io_in * mtar_filter_bzip2_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option);
 static ssize_t mtar_filter_bzip2_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
@@ -68,7 +69,7 @@ static struct mtar_io_out_ops mtar_filter_bzip2_out_ops = {
 	.flush              = mtar_filter_bzip2_out_flush,
 	.free               = mtar_filter_bzip2_out_free,
 	.last_errno         = mtar_filter_bzip2_out_last_errno,
-	.next_prefered_size = mtar_filter_bzip2_out_block_size,
+	.next_prefered_size = mtar_filter_bzip2_out_next_prefered_size,
 	.position           = mtar_filter_bzip2_out_position,
 	.reopen_for_reading = mtar_filter_bzip2_out_reopen_for_reading,
 	.write              = mtar_filter_bzip2_out_write,
@@ -77,7 +78,8 @@ static struct mtar_io_out_ops mtar_filter_bzip2_out_ops = {
 
 ssize_t mtar_filter_bzip2_out_available_space(struct mtar_io_out * io) {
 	struct mtar_filter_bzip2_out * self = io->data;
-	return self->io->ops->available_space(self->io) - self->block_size - 4096;
+	ssize_t available = self->io->ops->available_space(self->io);
+	return available > self->block_size ? available : 0;
 }
 
 ssize_t mtar_filter_bzip2_out_block_size(struct mtar_io_out * io) {
@@ -154,6 +156,17 @@ int mtar_filter_bzip2_out_last_errno(struct mtar_io_out * io) {
 	return self->io->ops->last_errno(self->io);
 }
 
+ssize_t mtar_filter_bzip2_out_next_prefered_size(struct mtar_io_out * io) {
+	struct mtar_filter_bzip2_out * self = io->data;
+	ssize_t next = self->io->ops->next_prefered_size(self->io);
+	if (next < self->block_size) {
+		ssize_t available = self->io->ops->available_space(self->io);
+		if (available < self->block_size)
+			return 0;
+	}
+	return self->block_size;
+}
+
 off_t mtar_filter_bzip2_out_position(struct mtar_io_out * io) {
 	struct mtar_filter_bzip2_out * self = io->data;
 	return (((unsigned long long int) self->strm.total_in_hi32) << 32) + self->strm.total_in_lo32;
@@ -188,6 +201,10 @@ ssize_t mtar_filter_bzip2_out_write(struct mtar_io_out * io, const void * data, 
 		if (err == BZ_RUN_OK && self->strm.total_out_lo32 > 0)
 			self->io->ops->write(self->io, self->buffer, self->strm.total_out_lo32);
 	}
+
+	ssize_t available = self->io->ops->available_space(self->io);
+	if (available < 2 * self->block_size)
+		mtar_filter_bzip2_out_flush(io);
 
 	return length;
 }

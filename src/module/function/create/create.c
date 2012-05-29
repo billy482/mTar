@@ -253,7 +253,7 @@ int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						format->ops->restart_file(format, filename, total_nb_write);
+						format->ops->restart_file(format, filename, total_nb_write + nb_write);
 
 						if (nb_read > nb_write) {
 							ssize_t nb_write2 = format->ops->write(format, param.buffer + nb_write, nb_read - nb_write);
