@@ -1,0 +1,8 @@
+TEST_SRC_DIR		:= src/test
+
+TEST_BIN			:= bin/test
+TEST_LD				:= -ldl -rdynamic -lcunit
+
+TEST_CHCKSUM_FILE	:= test.chcksum
+
+BIN_SYMS			+= TEST

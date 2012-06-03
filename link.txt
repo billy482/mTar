@@ -1,0 +1,3 @@
+src/mtar/file.c -> src/test/mtar/file/file.c
+src/mtar/hashtable.c -> src/test/mtar/file/hashtable.c
+src/mtar/util.c -> src/test/mtar/file/util.c
