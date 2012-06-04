@@ -27,68 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 03 Jun 2012 17:50:33 +0200                           *
+*  Last modified: Mon, 04 Jun 2012 23:00:40 +0200                           *
 \***************************************************************************/
 
-// CU_add_suite, CU_cleanup_registry, CU_cleanup_registry
-#include <CUnit/CUnit.h>
-// printf
-#include <stdio.h>
-#include <sys/stat.h>
-// _exit
-#include <unistd.h>
+#ifndef __TEST_MTAR_HASHTABLE_H__
+#define __TEST_MTAR_HASHTABLE_H__
 
-#include <mtar/file.h>
+void test_mtar_hashtable_add_suite(void);
 
-#include "test.h"
-
-static void test_mtar_file_convert_mode(void);
-
-static struct {
-	void (*function)(void);
-	char * name;
-} test_functions[] = {
-	{ test_mtar_file_convert_mode, "mtar: file convert mode" },
-
-	{ 0, 0 },
-};
-
-void test_mtar_file_add_suite() {
-	CU_pSuite suite = CU_add_suite("mTar: file", 0, 0);
-	if (!suite) {
-		CU_cleanup_registry();
-		printf("Error while adding suite mTar file because %s\n", CU_get_error_msg());
-		_exit(3);
-	}
-
-	int i;
-	for (i = 0; test_functions[i].name; i++) {
-		if (!CU_add_test(suite, test_functions[i].name, test_functions[i].function)) {
-			CU_cleanup_registry();
-			printf("Error while adding test function '%s' mTar file because %s\n", test_functions[i].name, CU_get_error_msg());
-			_exit(3);
-		}
-	}
-}
-
-
-void test_mtar_file_convert_mode() {
-	char buffer[11];
-
-	mode_t mode = S_IFREG | 0644;
-	mtar_file_convert_mode(buffer, mode);
-	CU_ASSERT_STRING_EQUAL(buffer, "-rw-r--r--");
-
-	mode = S_IFREG | 0640;
-	mtar_file_convert_mode(buffer, mode);
-	CU_ASSERT_STRING_EQUAL(buffer, "-rw-r-----");
-
-	mode = S_IFDIR | 0700;
-	mtar_file_convert_mode(buffer, mode);
-	CU_ASSERT_STRING_EQUAL(buffer, "drwx------");
-
-	mode = S_IFCHR | 01700;
-	mtar_file_convert_mode(buffer, mode);
-	CU_ASSERT_STRING_EQUAL(buffer, "crwx-----T");
-}
+#endif
 

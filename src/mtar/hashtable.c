@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Mon, 04 Jun 2012 23:38:00 +0200                           *
 \***************************************************************************/
 
 // calloc, free, malloc
@@ -62,7 +62,7 @@ void mtar_hashtable_free(struct mtar_hashtable * hashtable) {
 	free(hashtable);
 }
 
-short mtar_hashtable_hasKey(struct mtar_hashtable * hashtable, const void * key) {
+short mtar_hashtable_has_key(struct mtar_hashtable * hashtable, const void * key) {
 	if (!hashtable || !key)
 		return 0;
 
@@ -213,7 +213,7 @@ void * mtar_hashtable_remove(struct mtar_hashtable * hashtable, const void * key
 		hashtable->nb_elements--;
 		return value;
 	}
-	while (node->next) {
+	while (node && node->next) {
 		if (node->next->hash == hash) {
 			struct mtar_hashtable_node * current_node = node->next;
 			node->next = current_node->next;

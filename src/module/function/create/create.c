@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 29 May 2012 18:30:58 +0200                           *
+*  Last modified: Mon, 04 Jun 2012 23:34:43 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -155,7 +155,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 			char key[16];
 			snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
-			if (mtar_hashtable_hasKey(inode, key)) {
+			if (mtar_hashtable_has_key(inode, key)) {
 				const char * target = mtar_hashtable_value(inode, key);
 				if (!strcmp(target, filename))
 					continue;

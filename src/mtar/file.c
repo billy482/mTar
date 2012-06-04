@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 15:22:53 +0200                           *
+*  Last modified: Mon, 04 Jun 2012 23:31:53 +0200                           *
 \***************************************************************************/
 
 // open
@@ -121,7 +121,7 @@ void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid) {
 	char cid[16];
 	snprintf(cid, 16, "%u", gid);
 
-	if (!mtar_hashtable_hasKey(mtar_file_gidCached, cid)) {
+	if (!mtar_hashtable_has_key(mtar_file_gidCached, cid)) {
 		// if lookup has failed
 		mtar_file_lookup("/etc/group", name, namelength, cid);
 		mtar_hashtable_put(mtar_file_gidCached, strdup(cid), strdup(name));
@@ -136,7 +136,7 @@ void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid) {
 gid_t mtar_file_group2gid(const char * group) {
 	char gid[8];
 
-	if (!mtar_hashtable_hasKey(mtar_file_userCached, group)) {
+	if (!mtar_hashtable_has_key(mtar_file_userCached, group)) {
 		// if lookup has failed
 		mtar_file_rlookup("/etc/group", group, gid, 8);
 		mtar_hashtable_put(mtar_file_userCached, strdup(group), strdup(gid));
@@ -223,7 +223,7 @@ void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid) {
 	char cid[16];
 	snprintf(cid, 16, "%u", uid);
 
-	if (!mtar_hashtable_hasKey(mtar_file_uidCached, cid)) {
+	if (!mtar_hashtable_has_key(mtar_file_uidCached, cid)) {
 		// if lookup has failed
 		mtar_file_lookup("/etc/passwd", name, namelength, cid);
 		mtar_hashtable_put(mtar_file_uidCached, strdup(cid), strdup(name));
@@ -238,7 +238,7 @@ void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid) {
 uid_t mtar_file_user2uid(const char * user) {
 	char uid[8];
 
-	if (!mtar_hashtable_hasKey(mtar_file_userCached, user)) {
+	if (!mtar_hashtable_has_key(mtar_file_userCached, user)) {
 		// if lookup has failed
 		mtar_file_rlookup("/etc/passwd", user, uid, 8);
 		mtar_hashtable_put(mtar_file_userCached, strdup(user), strdup(uid));
