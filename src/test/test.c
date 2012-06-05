@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 04 Jun 2012 23:03:03 +0200                           *
+*  Last modified: Tue, 05 Jun 2012 08:59:38 +0200                           *
 \***************************************************************************/
 
 // CU_basic_run_tests
@@ -45,6 +45,7 @@
 // printf
 #include <stdio.h>
 
+#include "format/test.h"
 #include "mtar/file/test.h"
 #include "mtar/hashtable/test.h"
 
@@ -137,6 +138,8 @@ int main(int argc, char * argv[]) {
 
 	test_mtar_file_add_suite();
 	test_mtar_hashtable_add_suite();
+
+	test_format_add_suite();
 
 	switch (interface) {
 		case interface_basic:

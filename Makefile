@@ -140,6 +140,9 @@ stat-extra:
 
 tar: ${NAME}.tar.bz2
 
+test: prepare ${TEST_BIN}
+	@./${TEST_BIN}
+
 
 # real target
 ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS}:

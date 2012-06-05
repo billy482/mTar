@@ -1,3 +1,12 @@
-src/mtar/file.c -> src/test/mtar/file/file.c
-src/mtar/util.c -> src/test/mtar/file/util.c
-src/mtar/hashtable.c -> src/test/mtar/hashtable/hashtable.c
+src/mtar/file.c -> src/test/ext/mtar/file.c
+src/mtar/filter.c -> src/test/ext/mtar/filter.c
+src/mtar/filter.h -> src/test/ext/mtar/filter.h
+src/mtar/format.c -> src/test/ext/mtar/format.c
+src/mtar/format.h -> src/test/ext/mtar/format.h
+src/mtar/hashtable.c -> src/test/ext/mtar/hashtable.c
+src/mtar/io.c -> src/test/ext/mtar/io.c
+src/mtar/io.h -> src/test/ext/mtar/io.h
+src/mtar/loader.c -> src/test/ext/mtar/loader.c
+src/mtar/loader.h -> src/test/ext/mtar/loader.h
+src/mtar/util.c -> src/test/ext/mtar/util.c
+src/mtar/verbose.c -> src/test/ext/mtar/verbose.c

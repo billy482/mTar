@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 12:25:32 +0200                           *
+*  Last modified: Tue, 05 Jun 2012 10:02:42 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -130,6 +130,7 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 	h->path = 0;
 	h->link = 0;
 	h->size = 0;
+	h->position = 0;
 	h->mode = 0;
 	h->mtime = 0;
 	h->uid = 0;
