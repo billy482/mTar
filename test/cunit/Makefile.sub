@@ -1,0 +1,8 @@
+TEST_CUNIT_SRC_DIR		:= test/cunit
+
+TEST_CUNIT_BIN			:= bin/cunit
+TEST_CUNIT_LD			:= -ldl -rdynamic -lcunit
+
+TEST_CUNIT_CHCKSUM_FILE	:= cunit.chcksum
+
+TEST_BIN_SYMS			+= TEST_CUNIT

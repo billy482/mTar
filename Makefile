@@ -19,6 +19,9 @@ DIR_NAME	:= $(lastword $(subst /, , $(realpath .)))
 BINS		:=
 BIN_SYMS	:=
 
+TEST_BINS		:=
+TEST_BIN_SYMS	:=
+
 BUILD_DIR	:= build
 CHCKSUM_DIR	:= checksum
 DEPEND_DIR	:= depend
@@ -45,7 +48,7 @@ VERSION_OPT		:= MTAR mtar.version
 
 
 # sub makefiles
-SUB_MAKES	:= $(sort $(shell test -d src && find src -name Makefile.sub))
+SUB_MAKES	:= $(sort $(shell test -d src -a -d test && find src test -name Makefile.sub))
 ifeq (${SUB_MAKES},)
 $(error "No sub makefiles")
 endif
@@ -78,7 +81,7 @@ $$($(1)_BUILD_DIR)/%.o: $$($(1)_SRC_DIR)/%.c
 	@echo " CC       $$@"
 	@${CC} -c $${CFLAGS} $$($(1)_CFLAG) -Wp,-MD,$$($(1)_DEPEND_DIR)/$$*.d,-MT,$$@ -o $$@ $$<
 
-BINS		+= $$($(1)_BIN)
+BINS		+= $$($(1)_BIN) $$($(1)_LIB)
 SRC_FILES	+= $$($(1)_SRC_FILES)
 HEAD_FILES	+= $$($(1)_HEAD_FILES)
 DEP_FILES	+= $$($(1)_DEP_FILES)
@@ -86,6 +89,42 @@ OBJ_FILES	+= $$($(1)_OBJ_FILES)
 endef
 
 $(foreach prog,${BIN_SYMS},$(eval $(call BIN_template,${prog})))
+
+define TEST_template
+$(1)_BUILD_DIR	:= $$(patsubst test/%,${BUILD_DIR}/%,$${$(1)_SRC_DIR})
+$(1)_DEPEND_DIR	:= $$(patsubst test/%,${DEPEND_DIR}/%,$${$(1)_SRC_DIR})
+
+$(1)_SRC_FILES	:= $$(sort $$(shell test -d $${$(1)_SRC_DIR} && find $${$(1)_SRC_DIR} -name '*.c'))
+$(1)_HEAD_FILES	:= $$(sort $$(shell test -d $${$(1)_SRC_DIR} && find $${$(1)_SRC_DIR} -name '*.h'))
+$(1)_OBJ_FILES	:= $$(sort $$(patsubst test/%.c,${BUILD_DIR}/%.o,$${$(1)_SRC_FILES}))
+$(1)_DEP_FILES	:= $$(sort $$(shell test -d $${$(1)_DEPEND_DIR} && find $${$(1)_DEPEND_DIR} -name '*.d'))
+
+prepare_$(1): ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}
+
+${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE}: $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES}
+	@echo " CHCKSUM  $$@"
+	@./script/checksum.pl $(1) ${CHCKSUM_DIR}/$${$(1)_CHCKSUM_FILE} $$(sort $${$(1)_SRC_FILES} $${$(1)_HEAD_FILES})
+
+$$($(1)_BIN): $$($(1)_LIB) $$($(1)_OBJ_FILES)
+	@echo " LD       $$@"
+	@${CC} -o $$@ $$($(1)_OBJ_FILES) ${LDFLAGS} $$($(1)_LD)
+	@${OBJCOPY} --only-keep-debug $$@ $$@.debug
+	@${STRIP} $$@
+	@${OBJCOPY} --add-gnu-debuglink=$$@.debug $$@
+	@chmod -x $$@.debug
+
+$$($(1)_BUILD_DIR)/%.o: $$($(1)_SRC_DIR)/%.c
+	@echo " CC       $$@"
+	@${CC} -c $${CFLAGS} $$($(1)_CFLAG) -Wp,-MD,$$($(1)_DEPEND_DIR)/$$*.d,-MT,$$@ -o $$@ $$<
+
+TEST_BINS	+= $$($(1)_BIN) $$($(1)_LIB)
+SRC_FILES	+= $$($(1)_SRC_FILES)
+HEAD_FILES	+= $$($(1)_HEAD_FILES)
+DEP_FILES	+= $$($(1)_DEP_FILES)
+OBJ_FILES	+= $$($(1)_OBJ_FILES)
+endef
+
+$(foreach prog,${TEST_BIN_SYMS},$(eval $(call TEST_template,${prog})))
 
 
 BIN_DIRS	:= $(sort $(dir ${BINS}))
@@ -95,7 +134,7 @@ DEP_DIRS	:= $(patsubst ${BUILD_DIR}/%,${DEPEND_DIR}/%,${OBJ_DIRS})
 
 # phony target
 .DEFAULT_GOAL	:= all
-.PHONY: all binaries clean cscope ctags debug distclean lib prepare realclean stat stat-extra TAGS tar
+.PHONY: all binaries clean cscope ctags debug distclean lib prepare realclean stat stat-extra TAGS tar test
 .NOTPARALLEL: prepare
 
 all: binaries cscope tags
@@ -126,7 +165,7 @@ doc: Doxyfile ${LIBOBJECT_SRC_FILES} ${HEAD_FILES}
 	@echo ' DOXYGEN'
 	@${DOXYGEN}
 
-prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS})
+prepare: ${BIN_DIRS} ${CHCKSUM_DIR} ${DEP_DIRS} ${OBJ_DIRS} $(addprefix prepare_,${BIN_SYMS}) $(addprefix prepare_,${TEST_BIN_SYMS})
 	@./script/version.pl ${VERSION_OPT}
 
 rebuild: clean all
@@ -140,8 +179,8 @@ stat-extra:
 
 tar: ${NAME}.tar.bz2
 
-test: prepare ${TEST_BIN}
-	@./${TEST_BIN}
+test: prepare $(sort ${TEST_BINS})
+	@./${TEST_CUNIT_BIN}
 
 
 # real target
