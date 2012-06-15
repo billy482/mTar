@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 15 Jun 2012 20:54:17 +0200                           *
+*  Last modified: Fri, 15 Jun 2012 21:13:46 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -160,8 +160,8 @@ enum mtar_format_out_status mtar_format_ustar_out_add_file(struct mtar_format_ou
 			current_header = header = realloc(header, block_size);
 
 			bzero(current_header, block_size - 512);
-			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'K', &sfile);
-			mtar_format_ustar_out_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
+			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), link, link_length, 'K', &sfile);
+			mtar_format_ustar_out_compute_link(current_header + 2, (char *) (current_header + 3), filename, filename_length, 'L', &sfile);
 
 			current_header += 4;
 		} else if (filename_length > 100) {
