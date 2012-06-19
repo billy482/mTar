@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 27 May 2012 17:07:08 +0200                           *
+*  Last modified: Mon, 18 Jun 2012 22:46:27 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -150,8 +150,9 @@ struct mtar_format_in {
 		 * \param[in] f : a tar format
 		 */
 		int (*last_errno)(struct mtar_format_in * f);
+		void (*next_volume)(struct mtar_format_in * f, struct mtar_io_in * new_volume);
 		ssize_t (*read)(struct mtar_format_in * f, void * data, ssize_t length);
-		int (*skip_file)(struct mtar_format_in * f);
+		enum mtar_format_in_header_status (*skip_file)(struct mtar_format_in * f);
 	} * ops;
 	/**
 	 * \brief Private data used by io module

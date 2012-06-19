@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 25 May 2012 10:09:53 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 09:07:50 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -36,6 +36,9 @@
 #include <stdlib.h>
 // lseek, read
 #include <unistd.h>
+
+#include <mtar/option.h>
+#include <mtar/verbose.h>
 
 #include "file.h"
 
@@ -68,6 +71,9 @@ int mtar_io_file_in_close(struct mtar_io_in * io) {
 
 off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
 	struct mtar_io_file * self = io->data;
+
+	if (self->position + offset > self->volume_size && self->volume_size > 0)
+		offset = self->volume_size - self->position;
 
 	off_t ok = lseek(self->fd, offset, SEEK_CUR);
 	if (ok == (off_t) -1)
@@ -116,6 +122,13 @@ struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)
 	self->last_errno = 0;
 	self->block_size = 0;
 	self->volume_size = 0;
+
+	if (option->multi_volume) {
+		if (option->tape_length > 0)
+			self->volume_size = option->tape_length << 10;
+		else
+			mtar_verbose_printf("Warning: discard parameter '-M' because parameter '-L' is not specified\n");
+	}
 
 	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
 	io->ops = &mtar_io_file_in_ops;

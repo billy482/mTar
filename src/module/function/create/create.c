@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 04 Jun 2012 23:34:43 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 09:58:28 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -71,12 +71,21 @@ struct mtar_function_create_param {
 	char * buffer;
 	ssize_t block_size;
 
-	struct mtar_format_out * format;
+	struct mtar_format_in * tar_in;
+	struct mtar_format_out * tar_out;
+
+	struct mtar_function_create_param_files {
+		char * filename;
+		unsigned long long int hash_filename;
+	} * files;
+	unsigned int nb_files;
+	unsigned int i_files;
 };
 
 static int mtar_function_create(const struct mtar_option * option);
 static int mtar_function_create_change_volume(struct mtar_function_create_param * param);
 static void mtar_function_create_init(void) __attribute__((constructor));
+static int mtar_function_create_select_volume(struct mtar_function_create_param * param);
 static void mtar_function_create_show_description(void);
 static void mtar_function_create_show_help(void);
 static void mtar_function_create_show_version(void);
@@ -100,16 +109,24 @@ int mtar_function_create(const struct mtar_option * option) {
 	char * filename = 0;
 	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
-	struct mtar_format_out * format = mtar_format_get_out(option);
-	ssize_t block_size = format->ops->block_size(format);
+	struct mtar_format_out * tar_out = mtar_format_get_out(option);
+	ssize_t block_size = tar_out->ops->block_size(tar_out);
 	struct mtar_function_create_param param = {
 		.option = option,
 
 		.buffer = malloc(block_size),
 		.block_size = block_size,
 
-		.format = format,
+		.tar_in = 0,
+		.tar_out = tar_out,
+
+		.files = malloc(sizeof(struct mtar_function_create_param_files)),
+		.nb_files = 1,
+		.i_files = 0,
 	};
+
+	param.files->filename = strdup(option->filename);
+	param.files->hash_filename = mtar_util_compute_hash_string(option->filename);
 
 	int failed = 0;
 	enum mtar_format_out_status status;
@@ -121,7 +138,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	if (!failed && option->label) {
 		mtar_function_create_display_label(option->label);
-		status = format->ops->add_label(format, option->label);
+		status = tar_out->ops->add_label(tar_out, option->label);
 
 		switch (status) {
 			case MTAR_FORMAT_OUT_ERROR:
@@ -160,7 +177,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				if (!strcmp(target, filename))
 					continue;
 
-				status = format->ops->add_link(format, filename, target, &header);
+				status = tar_out->ops->add_link(tar_out, filename, target, &header);
 				mtar_function_create_display(&header, target, 0);
 
 				switch (status) {
@@ -183,7 +200,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 			mtar_hashtable_put(inode, strdup(key), filename);
 
-			status = format->ops->add_file(format, filename, &header);
+			status = tar_out->ops->add_file(tar_out, filename, &header);
 			mtar_function_create_display(&header, 0, 0);
 
 			switch (status) {
@@ -207,7 +224,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 				ssize_t nb_read, total_nb_write = 0;
 				while (!failed) {
-					ssize_t next_read = format->ops->next_prefered_size(format);
+					ssize_t next_read = tar_out->ops->next_prefered_size(tar_out);
 
 					nb_read = 0;
 					if (next_read > 0)
@@ -224,10 +241,10 @@ int mtar_function_create(const struct mtar_option * option) {
 
 					ssize_t nb_write = 0;
 					if (nb_read > 0)
-						nb_write = format->ops->write(format, param.buffer, nb_read);
+						nb_write = tar_out->ops->write(tar_out, param.buffer, nb_read);
 
 					while (nb_write < 0) {
-						int last_errno = format->ops->last_errno(format);
+						int last_errno = tar_out->ops->last_errno(tar_out);
 
 						switch (last_errno) {
 							case ENOSPC:
@@ -242,8 +259,8 @@ int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						format->ops->restart_file(format, filename, total_nb_write);
-						nb_write = format->ops->write(format, param.buffer, nb_read);
+						tar_out->ops->restart_file(tar_out, filename, total_nb_write);
+						nb_write = tar_out->ops->write(tar_out, param.buffer, nb_read);
 					}
 
 					while (next_read == 0 || nb_read > nb_write) {
@@ -253,10 +270,10 @@ int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						format->ops->restart_file(format, filename, total_nb_write + nb_write);
+						tar_out->ops->restart_file(tar_out, filename, total_nb_write + nb_write);
 
 						if (nb_read > nb_write) {
-							ssize_t nb_write2 = format->ops->write(format, param.buffer + nb_write, nb_read - nb_write);
+							ssize_t nb_write2 = tar_out->ops->write(tar_out, param.buffer + nb_write, nb_read - nb_write);
 
 							if (nb_write2 > 0)
 								nb_write += nb_write2;
@@ -279,7 +296,7 @@ int mtar_function_create(const struct mtar_option * option) {
 					failed = 1;
 				}
 
-				format->ops->end_of_file(format);
+				tar_out->ops->end_of_file(tar_out);
 				mtar_function_create_clean();
 				close(fd);
 			}
@@ -294,25 +311,30 @@ int mtar_function_create(const struct mtar_option * option) {
 		}
 	}
 
-	free(param.buffer);
 	mtar_hashtable_free(inode);
 
 	if (failed || !option->verify) {
-		format->ops->free(format);
+		free(param.buffer);
+		tar_out->ops->free(tar_out);
 		return failed;
 	}
 
-	struct mtar_format_in * tar_in = format->ops->reopen_for_reading(format, option);
-	format->ops->free(format);
-	if (!tar_in) {
-		mtar_verbose_printf("Error: Cannot reopen file for verify\n");
-		return 1;
+	if (param.nb_files == 1) {
+		param.tar_in = tar_out->ops->reopen_for_reading(tar_out, option);
+
+		if (!param.tar_in) {
+			mtar_verbose_printf("Error: Cannot reopen file for verify\n");
+			return 1;
+		}
+	} else {
+		failed = mtar_function_create_select_volume(&param);
 	}
+	tar_out->ops->free(tar_out);
 
 	int ok = -1;
-	while (ok < 0) {
+	while (ok < 0 && param.i_files <= param.nb_files) {
 		struct mtar_format_header header;
-		enum mtar_format_in_header_status status = tar_in->ops->get_header(tar_in, &header);
+		enum mtar_format_in_header_status status = param.tar_in->ops->get_header(param.tar_in, &header);
 
 		struct stat st;
 		switch (status) {
@@ -322,7 +344,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 				if (lstat(header.path, &st)) {
 					mtar_verbose_printf("%s: Error while getting information\n", header.path);
-					tar_in->ops->skip_file(tar_in);
+					param.tar_in->ops->skip_file(param.tar_in);
 					continue;
 				}
 
@@ -332,7 +354,7 @@ int mtar_function_create(const struct mtar_option * option) {
 					mtar_verbose_printf("%s: mode differs\n", header.path);
 
 				if (S_ISREG(st.st_mode)) {
-					if (st.st_size != header.size && !*header.link)
+					if (st.st_size != header.size + header.position && !*header.link)
 						mtar_verbose_printf("%s: size differs\n", header.path);
 				} else if (S_ISLNK(st.st_mode)) {
 					char link[256];
@@ -357,8 +379,6 @@ int mtar_function_create(const struct mtar_option * option) {
 				if (st.st_gid != header.gid)
 					mtar_verbose_printf("%s: gid differs => %03o\n", header.path, header.gid);
 
-
-				tar_in->ops->skip_file(tar_in);
 				break;
 
 			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
@@ -375,6 +395,24 @@ int mtar_function_create(const struct mtar_option * option) {
 				ok = 0;
 				continue;
 		}
+
+		status = param.tar_in->ops->skip_file(param.tar_in);
+
+		switch (status) {
+			case MTAR_FORMAT_HEADER_END_OF_TAPE:
+				failed = mtar_function_create_select_volume(&param);
+				if (failed)
+					ok = 5;
+				break;
+
+			case MTAR_FORMAT_HEADER_OK:
+				break;
+
+			default:
+				mtar_verbose_printf("Error while skipping file\n");
+				ok = 6;
+				continue;
+		}
 	}
 
 	if (!ok) {
@@ -383,6 +421,8 @@ int mtar_function_create(const struct mtar_option * option) {
 		mtar_verbose_printf("Verifying archive failed\n");
 	}
 
+	free(param.buffer);
+
 	return failed;
 }
 
@@ -390,11 +430,9 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 	static unsigned int i_volume = 1;
 	i_volume++;
 
-	static const char * last_filename = 0;
-	if (!last_filename)
-		last_filename = param->option->filename;
-
 	mtar_function_create_clean();
+
+	char * last_filename = param->files[param->nb_files - 1].filename;
 
 	for (;;) {
 		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, last_filename);
@@ -407,14 +445,15 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
-					if (last_filename != param->option->filename)
-						free((void *) last_filename);
-					last_filename = strdup(filename);
+					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(struct mtar_function_create_param_files));
+					param->files[param->nb_files].filename = filename;
+					param->files[param->nb_files].hash_filename = mtar_util_compute_hash_string(filename);
+					param->nb_files++;
 
 					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, param->option);
-					param->format->ops->new_volume(param->format, new_file);
+					param->tar_out->ops->new_volume(param->tar_out, new_file);
 
-					ssize_t block_size = param->format->ops->block_size(param->format);
+					ssize_t block_size = param->tar_out->ops->block_size(param->tar_out);
 					if (block_size != param->block_size) {
 						param->block_size = block_size;
 						param->buffer = realloc(param->buffer, block_size);
@@ -430,9 +469,14 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 			case 'y': {
 					// reuse same filename
 					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, param->option);
-					param->format->ops->new_volume(param->format, new_file);
+					param->tar_out->ops->new_volume(param->tar_out, new_file);
 
-					ssize_t block_size = param->format->ops->block_size(param->format);
+					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(struct mtar_function_create_param_files));
+					param->files[param->nb_files].filename = strdup(last_filename);
+					param->files[param->nb_files].hash_filename = param->files[param->nb_files - 1].hash_filename;
+					param->nb_files++;
+
+					ssize_t block_size = param->tar_out->ops->block_size(param->tar_out);
 					if (block_size != param->block_size) {
 						param->block_size = block_size;
 						param->buffer = realloc(param->buffer, block_size);
@@ -472,6 +516,78 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 
 void mtar_function_create_init() {
 	mtar_function_register(&mtar_function_create_functions);
+}
+
+int mtar_function_create_select_volume(struct mtar_function_create_param * param) {
+	mtar_function_create_clean();
+
+	char * selected_filename = param->files[param->i_files].filename;
+
+	for (;;) {
+		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", param->i_files + 1, selected_filename);
+		if (!line)
+			break;
+
+		switch (*line) {
+			case 'n': {
+				// new filename
+					char * filename;
+					for (filename = line + 1; *filename == ' '; filename++);
+
+				}
+				return 0;
+
+			case 'q':
+				mtar_verbose_printf("Archive is not completed verified\n");
+				_exit(1);
+
+			case '\0':
+			case 'y': {
+					// reuse same filename
+					struct mtar_io_in * next_in = mtar_filter_get_in3(selected_filename, param->option);
+
+					if (next_in && param->tar_in) {
+						param->tar_in->ops->next_volume(param->tar_in, next_in);
+						param->i_files++;
+						free(line);
+						return 0;
+					} else if (next_in) {
+						param->tar_in = mtar_format_get_in2(next_in, param->option);
+						param->i_files++;
+						free(line);
+						return 0;
+					}
+				}
+				break;
+
+			case '!': {
+					// spawn shell
+					pid_t pid = fork();
+					if (pid > 0) {
+						int status;
+						waitpid(pid, &status, 0);
+					} else if (pid == 0) {
+						int failed = execl("/bin/bash", "bash", (const char *) 0);
+						_exit(failed);
+					} else {
+						mtar_verbose_printf("Failed to spawn shell because %m\n");
+					}
+				}
+				break;
+
+			case '?':
+				mtar_verbose_printf(" n name        Give a new file name for the next (and subsequent) volume(s)\n");
+				mtar_verbose_printf(" q             Abort mtar\n");
+				mtar_verbose_printf(" y or newline  Continue operation\n");
+				mtar_verbose_printf(" !             Spawn a subshell\n");
+				mtar_verbose_printf(" ?             Print this list\n");
+				break;
+		}
+
+		free(line);
+	}
+
+	return 1;
 }
 
 void mtar_function_create_show_description() {

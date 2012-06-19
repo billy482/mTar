@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 13:04:12 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 10:00:51 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -64,15 +64,17 @@ static uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header)
 static void mtar_format_ustar_in_free(struct mtar_format_in * f);
 static enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
 static int mtar_format_ustar_in_last_errno(struct mtar_format_in * f);
+static void mtar_format_ustar_in_next_volume(struct mtar_format_in * f, struct mtar_io_in * next_volume);
 static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
-static int mtar_format_ustar_in_skip_file(struct mtar_format_in * f);
+static enum mtar_format_in_header_status mtar_format_ustar_in_skip_file(struct mtar_format_in * f);
 
 static struct mtar_format_in_ops mtar_format_ustar_in_ops = {
-	.free       = mtar_format_ustar_in_free,
-	.get_header = mtar_format_ustar_in_get_header,
-	.last_errno = mtar_format_ustar_in_last_errno,
-	.read       = mtar_format_ustar_in_read,
-	.skip_file  = mtar_format_ustar_in_skip_file,
+	.free        = mtar_format_ustar_in_free,
+	.get_header  = mtar_format_ustar_in_get_header,
+	.last_errno  = mtar_format_ustar_in_last_errno,
+	.next_volume = mtar_format_ustar_in_next_volume,
+	.read        = mtar_format_ustar_in_read,
+	.skip_file   = mtar_format_ustar_in_skip_file,
 };
 
 
@@ -310,6 +312,15 @@ int mtar_format_ustar_in_last_errno(struct mtar_format_in * f) {
 	return self->io->ops->last_errno(self->io);
 }
 
+void mtar_format_ustar_in_next_volume(struct mtar_format_in * f, struct mtar_io_in * next_volume) {
+	struct mtar_format_ustar_in * self = f->data;
+
+	if (self->io)
+		self->io->ops->free(self->io);
+
+	self->io = next_volume;
+}
+
 ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length) {
 	struct mtar_format_ustar_in * self = f->data;
 
@@ -329,23 +340,26 @@ ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_
 	return nb_read;
 }
 
-int mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
+enum mtar_format_in_header_status mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
 	struct mtar_format_ustar_in * self = f->data;
 
 	if (self->skip_size == 0)
-		return 0;
+		return MTAR_FORMAT_HEADER_OK;
 
 	if (self->skip_size > 0) {
 		off_t next_pos = self->io->ops->position(self->io) + self->skip_size;
 		off_t new_pos = self->io->ops->forward(self->io, self->skip_size);
 		if (new_pos == (off_t) -1)
-			return 1;
+			return MTAR_FORMAT_HEADER_ERROR;
+
+		if (next_pos > new_pos)
+			return MTAR_FORMAT_HEADER_END_OF_TAPE;
+
 		self->position += self->skip_size;
 		self->file_size = self->skip_size = 0;
-		return new_pos != next_pos;
 	}
 
-	return 0;
+	return MTAR_FORMAT_HEADER_OK;
 }
 
 struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 15 Jun 2012 21:13:46 +0200                           *
+*  Last modified: Sat, 16 Jun 2012 16:58:47 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -225,7 +225,7 @@ enum mtar_format_out_status mtar_format_ustar_out_add_file(struct mtar_format_ou
 	mtar_format_ustar_out_copy(format, h_out, header, &sfile);
 
 	format->position = 0;
-	format->size = sfile.st_size;
+	format->size = S_ISREG(sfile.st_mode) ? sfile.st_size : 0;
 
 	return mtar_format_ustar_out_write_header(format, header, block_size);
 }
