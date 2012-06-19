@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 12:32:01 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 16:53:28 +0200                           *
 \***************************************************************************/
 
 #include <mtar-function-list.chcksum>
@@ -128,7 +128,7 @@ void mtar_function_list_show_help() {
 }
 
 void mtar_function_list_show_version() {
-	mtar_verbose_printf("  list : List files from tar archive (version: " MTAR_VERSION ")\n");
-	mtar_verbose_printf("         SHA1 of source files: " MTAR_FUNCTION_LIST_SRCSUM "\n");
+	mtar_verbose_printf("  list: List files from tar archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("        SHA1 of source files: " MTAR_FUNCTION_LIST_SRCSUM "\n");
 }
 

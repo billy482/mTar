@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:41:26 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 16:54:05 +0200                           *
 \***************************************************************************/
 
 // zlibVersion
@@ -66,7 +66,7 @@ void mtar_filter_gzip_show_description() {
 }
 
 void mtar_filter_gzip_show_version() {
-	mtar_verbose_printf("  gzip : filter from/to compressed data (version: " MTAR_VERSION ") (using zlib: v%s)\n", zlibVersion());
-	mtar_verbose_printf("         SHA1 of source files: " MTAR_FILTER_GZIP_SRCSUM "\n");
+	mtar_verbose_printf("  gzip: filter from/to compressed data (version: " MTAR_VERSION ") (using zlib: v%s)\n", zlibVersion());
+	mtar_verbose_printf("        SHA1 of source files: " MTAR_FILTER_GZIP_SRCSUM "\n");
 }
 
