@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 09:58:28 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 16:49:41 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -74,10 +74,7 @@ struct mtar_function_create_param {
 	struct mtar_format_in * tar_in;
 	struct mtar_format_out * tar_out;
 
-	struct mtar_function_create_param_files {
-		char * filename;
-		unsigned long long int hash_filename;
-	} * files;
+	char ** files;
 	unsigned int nb_files;
 	unsigned int i_files;
 };
@@ -120,13 +117,12 @@ int mtar_function_create(const struct mtar_option * option) {
 		.tar_in = 0,
 		.tar_out = tar_out,
 
-		.files = malloc(sizeof(struct mtar_function_create_param_files)),
+		.files = malloc(sizeof(char *)),
 		.nb_files = 1,
 		.i_files = 0,
 	};
 
-	param.files->filename = strdup(option->filename);
-	param.files->hash_filename = mtar_util_compute_hash_string(option->filename);
+	param.files[0] = strdup(option->filename);
 
 	int failed = 0;
 	enum mtar_format_out_status status;
@@ -338,6 +334,27 @@ int mtar_function_create(const struct mtar_option * option) {
 
 		struct stat st;
 		switch (status) {
+			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
+				mtar_verbose_printf("Bad checksum\n");
+				ok = 3;
+				continue;
+
+			case MTAR_FORMAT_HEADER_ERROR:
+				mtar_verbose_printf("Error while reading\n");
+				ok = 6;
+				continue;
+
+			case MTAR_FORMAT_HEADER_BAD_HEADER:
+				mtar_verbose_printf("Bad header\n");
+				ok = 4;
+				continue;
+
+			case MTAR_FORMAT_HEADER_END_OF_TAPE:
+				failed = mtar_function_create_select_volume(&param);
+				if (failed)
+					ok = 5;
+				break;
+
 			case MTAR_FORMAT_HEADER_OK:
 				if (header.is_label)
 					break;
@@ -381,16 +398,6 @@ int mtar_function_create(const struct mtar_option * option) {
 
 				break;
 
-			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
-				mtar_verbose_printf("Bad checksum\n");
-				ok = 3;
-				continue;
-
-			case MTAR_FORMAT_HEADER_BAD_HEADER:
-				mtar_verbose_printf("Bad header\n");
-				ok = 4;
-				continue;
-
 			case MTAR_FORMAT_HEADER_NOT_FOUND:
 				ok = 0;
 				continue;
@@ -427,15 +434,12 @@ int mtar_function_create(const struct mtar_option * option) {
 }
 
 int mtar_function_create_change_volume(struct mtar_function_create_param * param) {
-	static unsigned int i_volume = 1;
-	i_volume++;
-
 	mtar_function_create_clean();
 
-	char * last_filename = param->files[param->nb_files - 1].filename;
+	char * last_filename = param->files[param->nb_files - 1];
 
 	for (;;) {
-		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", i_volume, last_filename);
+		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", param->nb_files, last_filename);
 		if (!line)
 			break;
 
@@ -445,9 +449,8 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
-					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(struct mtar_function_create_param_files));
-					param->files[param->nb_files].filename = filename;
-					param->files[param->nb_files].hash_filename = mtar_util_compute_hash_string(filename);
+					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(char *));
+					param->files[param->nb_files] = filename;
 					param->nb_files++;
 
 					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, param->option);
@@ -471,9 +474,8 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, param->option);
 					param->tar_out->ops->new_volume(param->tar_out, new_file);
 
-					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(struct mtar_function_create_param_files));
-					param->files[param->nb_files].filename = strdup(last_filename);
-					param->files[param->nb_files].hash_filename = param->files[param->nb_files - 1].hash_filename;
+					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(char *));
+					param->files[param->nb_files] = strdup(last_filename);
 					param->nb_files++;
 
 					ssize_t block_size = param->tar_out->ops->block_size(param->tar_out);
@@ -521,10 +523,10 @@ void mtar_function_create_init() {
 int mtar_function_create_select_volume(struct mtar_function_create_param * param) {
 	mtar_function_create_clean();
 
-	char * selected_filename = param->files[param->i_files].filename;
+	char * selected_filename = param->files[param->i_files];
 
 	for (;;) {
-		char * line = mtar_verbose_prompt("Prepare volume #%u for `%s' and hit return: ", param->i_files + 1, selected_filename);
+		char * line = mtar_verbose_prompt("Select volume #%u for `%s' and hit return: ", param->i_files + 1, selected_filename);
 		if (!line)
 			break;
 
@@ -534,11 +536,24 @@ int mtar_function_create_select_volume(struct mtar_function_create_param * param
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
+					struct mtar_io_in * next_in = mtar_filter_get_in3(filename, param->option);
+
+					if (next_in && param->tar_in) {
+						param->tar_in->ops->next_volume(param->tar_in, next_in);
+						param->i_files++;
+						free(line);
+						return 0;
+					} else if (next_in) {
+						param->tar_in = mtar_format_get_in2(next_in, param->option);
+						param->i_files++;
+						free(line);
+						return 0;
+					}
 				}
 				return 0;
 
 			case 'q':
-				mtar_verbose_printf("Archive is not completed verified\n");
+				mtar_verbose_printf("Archive is not fully verified\n");
 				_exit(1);
 
 			case '\0':

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 18 Jun 2012 22:46:27 +0200                           *
+*  Last modified: Tue, 19 Jun 2012 16:34:32 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -114,10 +114,12 @@ struct mtar_format_header {
 };
 
 enum mtar_format_in_header_status {
-	MTAR_FORMAT_HEADER_OK,
-	MTAR_FORMAT_HEADER_NOT_FOUND,
-	MTAR_FORMAT_HEADER_BAD_HEADER,
 	MTAR_FORMAT_HEADER_BAD_CHECKSUM,
+	MTAR_FORMAT_HEADER_BAD_HEADER,
+	MTAR_FORMAT_HEADER_END_OF_TAPE,
+	MTAR_FORMAT_HEADER_ERROR,
+	MTAR_FORMAT_HEADER_NOT_FOUND,
+	MTAR_FORMAT_HEADER_OK,
 };
 
 enum mtar_format_out_status {
