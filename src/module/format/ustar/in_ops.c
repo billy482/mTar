@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 10:00:51 +0200                           *
+*  Last modified: Wed, 27 Jun 2012 22:15:46 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -113,7 +113,7 @@ ssize_t mtar_format_ustar_in_convert_size(const char * size) {
 		ssize_t result = 0;
 		for (i = 1; i < 12; i++) {
 			result <<= 8;
-			result |= size[i];
+			result |= (unsigned) size[i];
 		}
 		return result;
 	} else {
