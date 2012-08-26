@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 16 Jun 2012 16:58:47 +0200                           *
+*  Last modified: Sun, 26 Aug 2012 22:52:10 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -477,49 +477,6 @@ int mtar_format_ustar_out_restart_file(struct mtar_format_out * f, const char * 
 	ssize_t block_size = 512;
 	struct mtar_format_ustar * header = malloc(block_size);
 	struct mtar_format_ustar * current_header = header;
-
-	int filename_length = strlen(filename);
-	if (S_ISLNK(sfile.st_mode)) {
-		char link[257];
-		ssize_t link_length = readlink(filename, link, 256);
-		link[link_length] = '\0';
-
-		if (filename_length > 100 && link_length > 100) {
-			block_size += 2048 + filename_length - filename_length % 512 + link_length - link_length % 512;
-			current_header = header = realloc(header, block_size);
-
-			bzero(current_header, block_size - 512);
-			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'K', &sfile);
-			mtar_format_ustar_out_compute_link(current_header + 2, (char *) (current_header + 3), link, link_length, 'L', &sfile);
-
-			current_header += 4;
-		} else if (filename_length > 100) {
-			block_size += 1024 + filename_length - filename_length % 512;
-			current_header = header = realloc(header, block_size);
-
-			bzero(current_header, block_size - 512);
-			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
-
-			current_header += 2;
-		} else if (link_length > 100) {
-			block_size += 1024 + link_length - link_length % 512;
-			current_header = header = realloc(header, block_size);
-
-			bzero(current_header, block_size - 512);
-			mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), link, link_length, 'L', &sfile);
-
-			current_header += 2;
-		}
-	} else if (filename_length > 100) {
-		block_size += 1024 + filename_length - filename_length % 512;
-		current_header = header = realloc(header, block_size);
-
-		bzero(current_header, 1024);
-		mtar_format_ustar_out_compute_link(current_header, (char *) (current_header + 1), filename, filename_length, 'L', &sfile);
-
-		current_header += 2;
-	}
-
 	bzero(current_header, 512);
 	strncpy(current_header->filename, mtar_format_ustar_out_skip_leading_slash(filename), 100);
 	mtar_format_ustar_out_compute_size(current_header->size, sfile.st_size - position);
