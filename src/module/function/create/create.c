@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 16:49:41 +0200                           *
+*  Last modified: Sun, 26 Aug 2012 23:03:51 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -356,7 +356,7 @@ int mtar_function_create(const struct mtar_option * option) {
 				break;
 
 			case MTAR_FORMAT_HEADER_OK:
-				if (header.is_label)
+				if (header.is_label || header.position > 0)
 					break;
 
 				if (lstat(header.path, &st)) {
