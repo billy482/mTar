@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:10:18 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:39:42 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -146,7 +146,7 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 }
 
 void mtar_format_register(struct mtar_format * f) {
-	if (f == NULL || mtar_plugin_check(&f->api_level))
+	if (f == NULL || !mtar_plugin_check(&f->api_level))
 		return;
 
 	/**

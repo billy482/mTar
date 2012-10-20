@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 27 Jun 2012 22:15:46 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:32:40 +0200                           *
 \***************************************************************************/
 
 // sscanf, snprintf
@@ -43,8 +43,8 @@
 
 #include "ustar.h"
 
-struct mtar_format_ustar_in {
-	struct mtar_io_in * io;
+struct mtar_format_ustar_reader {
+	struct mtar_io_reader * io;
 	off_t position;
 
 	char * buffer;
@@ -55,30 +55,30 @@ struct mtar_format_ustar_in {
 };
 
 
-static int mtar_format_ustar_in_check_header(struct mtar_format_ustar * header);
-static dev_t mtar_format_ustar_in_convert_dev(struct mtar_format_ustar * header);
-static gid_t mtar_format_ustar_in_convert_gid(struct mtar_format_ustar * header);
-static ssize_t mtar_format_ustar_in_convert_size(const char * size);
-static time_t mtar_format_ustar_in_convert_time(struct mtar_format_ustar * header);
-static uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header);
-static void mtar_format_ustar_in_free(struct mtar_format_in * f);
-static enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header);
-static int mtar_format_ustar_in_last_errno(struct mtar_format_in * f);
-static void mtar_format_ustar_in_next_volume(struct mtar_format_in * f, struct mtar_io_in * next_volume);
-static ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length);
-static enum mtar_format_in_header_status mtar_format_ustar_in_skip_file(struct mtar_format_in * f);
+static int mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header);
+static dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header);
+static gid_t mtar_format_ustar_reader_convert_gid(struct mtar_format_ustar * header);
+static ssize_t mtar_format_ustar_reader_convert_size(const char * size);
+static time_t mtar_format_ustar_reader_convert_time(struct mtar_format_ustar * header);
+static uid_t mtar_format_ustar_reader_convert_uid(struct mtar_format_ustar * header);
+static void mtar_format_ustar_reader_free(struct mtar_format_reader * f);
+static enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header);
+static int mtar_format_ustar_reader_last_errno(struct mtar_format_reader * f);
+static void mtar_format_ustar_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume);
+static ssize_t mtar_format_ustar_reader_read(struct mtar_format_reader * f, void * data, ssize_t length);
+static enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(struct mtar_format_reader * f);
 
-static struct mtar_format_in_ops mtar_format_ustar_in_ops = {
-	.free        = mtar_format_ustar_in_free,
-	.get_header  = mtar_format_ustar_in_get_header,
-	.last_errno  = mtar_format_ustar_in_last_errno,
-	.next_volume = mtar_format_ustar_in_next_volume,
-	.read        = mtar_format_ustar_in_read,
-	.skip_file   = mtar_format_ustar_in_skip_file,
+static struct mtar_format_reader_ops mtar_format_ustar_reader_ops = {
+	.free        = mtar_format_ustar_reader_free,
+	.get_header  = mtar_format_ustar_reader_get_header,
+	.last_errno  = mtar_format_ustar_reader_last_errno,
+	.next_volume = mtar_format_ustar_reader_next_volume,
+	.read        = mtar_format_ustar_reader_read,
+	.skip_file   = mtar_format_ustar_reader_skip_file,
 };
 
 
-int mtar_format_ustar_in_check_header(struct mtar_format_ustar * header) {
+int mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header) {
 	char checksum[8];
 	strncpy(checksum, header->checksum, 8);
 	memset(header->checksum, ' ', 8);
@@ -92,7 +92,7 @@ int mtar_format_ustar_in_check_header(struct mtar_format_ustar * header) {
 	return strncmp(checksum, header->checksum, 8);
 }
 
-dev_t mtar_format_ustar_in_convert_dev(struct mtar_format_ustar * header) {
+dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header) {
 	unsigned int major = 0, minor = 0;
 
 	sscanf(header->devmajor, "%o", &major);
@@ -101,13 +101,13 @@ dev_t mtar_format_ustar_in_convert_dev(struct mtar_format_ustar * header) {
 	return (major << 8 ) | minor;
 }
 
-gid_t mtar_format_ustar_in_convert_gid(struct mtar_format_ustar * header) {
+gid_t mtar_format_ustar_reader_convert_gid(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->gid, "%o", &result);
 	return result;
 }
 
-ssize_t mtar_format_ustar_in_convert_size(const char * size) {
+ssize_t mtar_format_ustar_reader_convert_size(const char * size) {
 	if (size[0] == (char) 0x80) {
 		short i;
 		ssize_t result = 0;
@@ -124,20 +124,20 @@ ssize_t mtar_format_ustar_in_convert_size(const char * size) {
 	return 0;
 }
 
-time_t mtar_format_ustar_in_convert_time(struct mtar_format_ustar * header) {
+time_t mtar_format_ustar_reader_convert_time(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->mtime, "%o", &result);
 	return result;
 }
 
-uid_t mtar_format_ustar_in_convert_uid(struct mtar_format_ustar * header) {
+uid_t mtar_format_ustar_reader_convert_uid(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->uid, "%o", &result);
 	return result;
 }
 
-void mtar_format_ustar_in_free(struct mtar_format_in * f) {
-	struct mtar_format_ustar_in * self = f->data;
+void mtar_format_ustar_reader_free(struct mtar_format_reader * f) {
+	struct mtar_format_ustar_reader * self = f->data;
 
 	if (self->io)
 		self->io->ops->free(self->io);
@@ -150,22 +150,22 @@ void mtar_format_ustar_in_free(struct mtar_format_in * f) {
 	free(f);
 }
 
-enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_format_in * f, struct mtar_format_header * header) {
-	struct mtar_format_ustar_in * self = f->data;
+enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header) {
+	struct mtar_format_ustar_reader * self = f->data;
 
 	ssize_t nb_read = self->io->ops->read(self->io, self->buffer, 512);
 	if (nb_read == 0)
-		return MTAR_FORMAT_HEADER_NOT_FOUND;
+		return mtar_format_header_not_found;
 	if (nb_read < 0)
-		return MTAR_FORMAT_HEADER_BAD_HEADER;
+		return mtar_format_header_bad_header;
 
 	struct mtar_format_ustar * raw_header = (struct mtar_format_ustar *) self->buffer;
 
 	if (raw_header->filename[0] == '\0')
-		return MTAR_FORMAT_HEADER_NOT_FOUND;
+		return mtar_format_header_not_found;
 
-	if (mtar_format_ustar_in_check_header(raw_header))
-		return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
+	if (mtar_format_ustar_reader_check_header(raw_header))
+		return mtar_format_header_bad_checksum;
 
 	mtar_format_init_header(header);
 
@@ -173,7 +173,7 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 		ssize_t next_read;
 		switch (raw_header->flag) {
 			case 'L':
-				next_read = 512 + mtar_format_ustar_in_convert_size(raw_header->size);
+				next_read = 512 + mtar_format_ustar_reader_convert_size(raw_header->size);
 				if (next_read % 512)
 					next_read -= next_read % 512;
 
@@ -183,23 +183,23 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 				nb_read = self->io->ops->read(self->io, self->buffer, next_read);
 				if (nb_read < next_read) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_HEADER;
+					return mtar_format_header_bad_header;
 				}
 				header->path = strdup(self->buffer);
 
 				nb_read = self->io->ops->read(self->io, self->buffer, 512);
 				if (nb_read < 512) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_HEADER;
+					return mtar_format_header_bad_header;
 				}
-				if (mtar_format_ustar_in_check_header(raw_header)) {
+				if (mtar_format_ustar_reader_check_header(raw_header)) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
+					return mtar_format_header_bad_checksum;
 				}
 				continue;
 
 			case 'K':
-				next_read = 512 + mtar_format_ustar_in_convert_size(raw_header->size);
+				next_read = 512 + mtar_format_ustar_reader_convert_size(raw_header->size);
 				if (next_read % 512)
 					next_read -= next_read % 512;
 
@@ -209,23 +209,23 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 				nb_read = self->io->ops->read(self->io, self->buffer, next_read);
 				if (nb_read < next_read) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_HEADER;
+					return mtar_format_header_bad_header;
 				}
 				header->link = strdup(self->buffer);
 
 				nb_read = self->io->ops->read(self->io, self->buffer, 512);
 				if (nb_read < 512) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_HEADER;
+					return mtar_format_header_bad_header;
 				}
-				if (mtar_format_ustar_in_check_header(raw_header)) {
+				if (mtar_format_ustar_reader_check_header(raw_header)) {
 					mtar_format_free_header(header);
-					return MTAR_FORMAT_HEADER_BAD_CHECKSUM;
+					return mtar_format_header_bad_checksum;
 				}
 				continue;
 
 			case 'M':
-				header->position = mtar_format_ustar_in_convert_size(raw_header->position);
+				header->position = mtar_format_ustar_reader_convert_size(raw_header->position);
 				break;
 
 			case '1':
@@ -243,7 +243,7 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 
 			case '3':
 			case '4':
-				header->dev = mtar_format_ustar_in_convert_dev(raw_header);
+				header->dev = mtar_format_ustar_reader_convert_dev(raw_header);
 				break;
 
 			case 'V':
@@ -260,12 +260,12 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 				header->path = strdup(raw_header->filename);
 			}
 		}
-		header->size = mtar_format_ustar_in_convert_size(raw_header->size);
+		header->size = mtar_format_ustar_reader_convert_size(raw_header->size);
 		sscanf(raw_header->filemode, "%o", &header->mode);
-		header->mtime = mtar_format_ustar_in_convert_time(raw_header);
-		header->uid = mtar_format_ustar_in_convert_uid(raw_header);
+		header->mtime = mtar_format_ustar_reader_convert_time(raw_header);
+		header->uid = mtar_format_ustar_reader_convert_uid(raw_header);
 		strcpy(header->uname, raw_header->uname);
-		header->gid = mtar_format_ustar_in_convert_gid(raw_header);
+		header->gid = mtar_format_ustar_reader_convert_gid(raw_header);
 		strcpy(header->gname, raw_header->gname);
 
 		switch (raw_header->flag) {
@@ -304,16 +304,16 @@ enum mtar_format_in_header_status mtar_format_ustar_in_get_header(struct mtar_fo
 	if (header->size > 0 && header->size % 512)
 		self->skip_size = 512 + header->size - header->size % 512;
 
-	return MTAR_FORMAT_HEADER_OK;
+	return mtar_format_header_ok;
 }
 
-int mtar_format_ustar_in_last_errno(struct mtar_format_in * f) {
-	struct mtar_format_ustar_in * self = f->data;
+int mtar_format_ustar_reader_last_errno(struct mtar_format_reader * f) {
+	struct mtar_format_ustar_reader * self = f->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-void mtar_format_ustar_in_next_volume(struct mtar_format_in * f, struct mtar_io_in * next_volume) {
-	struct mtar_format_ustar_in * self = f->data;
+void mtar_format_ustar_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
+	struct mtar_format_ustar_reader * self = f->data;
 
 	if (self->io)
 		self->io->ops->free(self->io);
@@ -321,8 +321,8 @@ void mtar_format_ustar_in_next_volume(struct mtar_format_in * f, struct mtar_io_
 	self->io = next_volume;
 }
 
-ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_t length) {
-	struct mtar_format_ustar_in * self = f->data;
+ssize_t mtar_format_ustar_reader_read(struct mtar_format_reader * f, void * data, ssize_t length) {
+	struct mtar_format_ustar_reader * self = f->data;
 
 	if (length > self->file_size)
 		length = self->file_size;
@@ -335,38 +335,38 @@ ssize_t mtar_format_ustar_in_read(struct mtar_format_in * f, void * data, ssize_
 	}
 
 	if (self->file_size == 0 && self->skip_size > 0)
-		mtar_format_ustar_in_skip_file(f);
+		mtar_format_ustar_reader_skip_file(f);
 
 	return nb_read;
 }
 
-enum mtar_format_in_header_status mtar_format_ustar_in_skip_file(struct mtar_format_in * f) {
-	struct mtar_format_ustar_in * self = f->data;
+enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(struct mtar_format_reader * f) {
+	struct mtar_format_ustar_reader * self = f->data;
 
 	if (self->skip_size == 0)
-		return MTAR_FORMAT_HEADER_OK;
+		return mtar_format_header_ok;
 
 	if (self->skip_size > 0) {
 		off_t next_pos = self->io->ops->position(self->io) + self->skip_size;
 		off_t new_pos = self->io->ops->forward(self->io, self->skip_size);
 		if (new_pos == (off_t) -1)
-			return MTAR_FORMAT_HEADER_ERROR;
+			return mtar_format_header_error;
 
 		if (next_pos > new_pos)
-			return MTAR_FORMAT_HEADER_END_OF_TAPE;
+			return mtar_format_header_end_of_tape;
 
 		self->position += self->skip_size;
 		self->file_size = self->skip_size = 0;
 	}
 
-	return MTAR_FORMAT_HEADER_OK;
+	return mtar_format_header_ok;
 }
 
-struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_format_reader * mtar_format_ustar_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
 	if (!io)
 		return 0;
 
-	struct mtar_format_ustar_in * self = malloc(sizeof(struct mtar_format_ustar_in));
+	struct mtar_format_ustar_reader * self = malloc(sizeof(struct mtar_format_ustar_reader));
 	self->io = io;
 	self->position = 0;
 
@@ -376,8 +376,8 @@ struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const s
 	self->file_size = 0;
 	self->skip_size = 0;
 
-	struct mtar_format_in * f = malloc(sizeof(struct mtar_format_in));
-	f->ops = &mtar_format_ustar_in_ops;
+	struct mtar_format_reader * f = malloc(sizeof(struct mtar_format_reader));
+	f->ops = &mtar_format_ustar_reader_ops;
 	f->data = self;
 
 	return f;

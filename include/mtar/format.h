@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:08:06 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:34:31 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -177,7 +177,7 @@ struct mtar_format_writer {
 		ssize_t (*next_prefered_size)(struct mtar_format_writer * f);
 		void (*new_volume)(struct mtar_format_writer * f, struct mtar_io_writer * file);
 		off_t (*position)(struct mtar_format_writer * io);
-		struct mtar_format_in * (*reopen_for_reading)(struct mtar_format_writer * f, const struct mtar_option * option);
+		struct mtar_format_reader * (*reopen_for_reading)(struct mtar_format_writer * f, const struct mtar_option * option);
 		int (*restart_file)(struct mtar_format_writer * f, const char * filename, ssize_t position);
 		ssize_t (*write)(struct mtar_format_writer * f, const void * data, ssize_t length);
 	} * ops;

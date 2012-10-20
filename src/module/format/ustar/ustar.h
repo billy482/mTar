@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 13 May 2012 13:13:09 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:25:51 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_USTAR_H__
@@ -55,8 +55,8 @@ struct mtar_format_ustar {
 	char padding2[131];
 };
 
-struct mtar_format_in * mtar_format_ustar_new_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_format_out * mtar_format_ustar_new_out(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_format_reader * mtar_format_ustar_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_format_writer * mtar_format_ustar_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);
 
 #endif
 
