@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:11:02 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:02:18 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -160,7 +160,7 @@ struct mtar_io_writer * mtar_io_writer_get_file(const char * filename, int flags
 }
 
 void mtar_io_register(struct mtar_io * io) {
-	if (io == NULL || mtar_plugin_check(&io->api_level))
+	if (io == NULL || !mtar_plugin_check(&io->api_level))
 		return;
 
 	unsigned int i;

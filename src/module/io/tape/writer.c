@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 25 May 2012 10:10:40 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:08:58 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -47,7 +47,7 @@
 
 #include "tape.h"
 
-struct mtar_io_tape_out {
+struct mtar_io_tape_writer {
 	int fd;
 	off_t position;
 	ssize_t total_free_space;
@@ -58,43 +58,43 @@ struct mtar_io_tape_out {
 	ssize_t buffer_used;
 };
 
-static ssize_t mtar_io_tape_out_available_space(struct mtar_io_out * io);
-static ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io);
-static int mtar_io_tape_out_close(struct mtar_io_out * io);
-static int mtar_io_tape_out_flush(struct mtar_io_out * io);
-static void mtar_io_tape_out_free(struct mtar_io_out * io);
-static int mtar_io_tape_out_last_errno(struct mtar_io_out * io);
-static ssize_t mtar_io_tape_out_next_prefered_size(struct mtar_io_out * io);
-static off_t mtar_io_tape_out_position(struct mtar_io_out * io);
-static struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option);
-static ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length);
+static ssize_t mtar_io_tape_writer_available_space(struct mtar_io_writer * io);
+static ssize_t mtar_io_tape_writer_block_size(struct mtar_io_writer * io);
+static int mtar_io_tape_writer_close(struct mtar_io_writer * io);
+static int mtar_io_tape_writer_flush(struct mtar_io_writer * io);
+static void mtar_io_tape_writer_free(struct mtar_io_writer * io);
+static int mtar_io_tape_writer_last_errno(struct mtar_io_writer * io);
+static ssize_t mtar_io_tape_writer_next_prefered_size(struct mtar_io_writer * io);
+static off_t mtar_io_tape_writer_position(struct mtar_io_writer * io);
+static struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option);
+static ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length);
 
-static struct mtar_io_out_ops mtar_io_tape_out_ops = {
-	.available_space    = mtar_io_tape_out_available_space,
-	.block_size         = mtar_io_tape_out_block_size,
-	.close              = mtar_io_tape_out_close,
-	.flush              = mtar_io_tape_out_flush,
-	.free               = mtar_io_tape_out_free,
-	.last_errno         = mtar_io_tape_out_last_errno,
-	.next_prefered_size = mtar_io_tape_out_next_prefered_size,
-	.position           = mtar_io_tape_out_position,
-	.reopen_for_reading = mtar_io_tape_out_reopen_for_reading,
-	.write              = mtar_io_tape_out_write,
+static struct mtar_io_writer_ops mtar_io_tape_writer_ops = {
+	.available_space    = mtar_io_tape_writer_available_space,
+	.block_size         = mtar_io_tape_writer_block_size,
+	.close              = mtar_io_tape_writer_close,
+	.flush              = mtar_io_tape_writer_flush,
+	.free               = mtar_io_tape_writer_free,
+	.last_errno         = mtar_io_tape_writer_last_errno,
+	.next_prefered_size = mtar_io_tape_writer_next_prefered_size,
+	.position           = mtar_io_tape_writer_position,
+	.reopen_for_reading = mtar_io_tape_writer_reopen_for_reading,
+	.write              = mtar_io_tape_writer_write,
 };
 
 
-ssize_t mtar_io_tape_out_available_space(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+ssize_t mtar_io_tape_writer_available_space(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	return self->total_free_space ? self->total_free_space - self->position : -1 ;
 }
 
-ssize_t mtar_io_tape_out_block_size(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+ssize_t mtar_io_tape_writer_block_size(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	return self->buffer_size;
 }
 
-int mtar_io_tape_out_close(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+int mtar_io_tape_writer_close(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 
 	if (self->buffer_used > 0) {
 		bzero(self->buffer + self->buffer_used, self->buffer_size - self->buffer_used);
@@ -119,39 +119,39 @@ int mtar_io_tape_out_close(struct mtar_io_out * io) {
 	return failed;
 }
 
-int mtar_io_tape_out_flush(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+int mtar_io_tape_writer_flush(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	self->last_errno = 0;
 	return 0;
 }
 
-void mtar_io_tape_out_free(struct mtar_io_out * io) {
-	mtar_io_tape_out_close(io);
+void mtar_io_tape_writer_free(struct mtar_io_writer * io) {
+	mtar_io_tape_writer_close(io);
 
-	struct mtar_io_tape_out * self = io->data;
+	struct mtar_io_tape_writer * self = io->data;
 	free(self->buffer);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_tape_out_last_errno(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+int mtar_io_tape_writer_last_errno(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	return self->last_errno;
 }
 
-ssize_t mtar_io_tape_out_next_prefered_size(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+ssize_t mtar_io_tape_writer_next_prefered_size(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	return self->buffer_size - self->buffer_used;
 }
 
-off_t mtar_io_tape_out_position(struct mtar_io_out * io) {
-	struct mtar_io_tape_out * self = io->data;
+off_t mtar_io_tape_writer_position(struct mtar_io_writer * io) {
+	struct mtar_io_tape_writer * self = io->data;
 	return self->position;
 }
 
-struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io, const struct mtar_option * option) {
-	struct mtar_io_tape_out * self = io->data;
+struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
+	struct mtar_io_tape_writer * self = io->data;
 
 	if (self->fd < 0)
 		return 0;
@@ -189,15 +189,15 @@ struct mtar_io_in * mtar_io_tape_out_reopen_for_reading(struct mtar_io_out * io,
 	if (failed)
 		return 0;
 
-	struct mtar_io_in * in = mtar_io_tape_new_in(self->fd, 0, option);
+	struct mtar_io_reader * in = mtar_io_tape_new_reader(self->fd, 0, option);
 	if (in)
 		self->fd = -1;
 
 	return in;
 }
 
-ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize_t length) {
-	struct mtar_io_tape_out * self = io->data;
+ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
+	struct mtar_io_tape_writer * self = io->data;
 
 	if (length < 1)
 		return 0;
@@ -248,8 +248,8 @@ ssize_t mtar_io_tape_out_write(struct mtar_io_out * io, const void * data, ssize
 	return length;
 }
 
-struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
-	struct mtar_io_tape_out * data = malloc(sizeof(struct mtar_io_tape_out));
+struct mtar_io_writer * mtar_io_tape_new_writer(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
+	struct mtar_io_tape_writer * data = malloc(sizeof(struct mtar_io_tape_writer));
 	data->fd = fd;
 	data->position = 0;
 	data->total_free_space = 0;
@@ -271,8 +271,8 @@ struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags __attribute__((unuse
 			data->total_free_space = tape_size - tape_position * data->buffer_size;
 	}
 
-	struct mtar_io_out * io = malloc(sizeof(struct mtar_io_out));
-	io->ops = &mtar_io_tape_out_ops;
+	struct mtar_io_writer * io = malloc(sizeof(struct mtar_io_writer));
+	io->ops = &mtar_io_tape_writer_ops;
 	io->data = data;
 
 	return io;

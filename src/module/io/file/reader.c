@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 09:07:50 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:01:10 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -42,34 +42,34 @@
 
 #include "file.h"
 
-static ssize_t mtar_io_file_in_block_size(struct mtar_io_in * io);
-static int mtar_io_file_in_close(struct mtar_io_in * io);
-static off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset);
-static void mtar_io_file_in_free(struct mtar_io_in * io);
-static int mtar_io_file_in_last_errno(struct mtar_io_in * io);
-static off_t mtar_io_file_in_position(struct mtar_io_in * io);
-static ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length);
+static ssize_t mtar_io_file_reader_block_size(struct mtar_io_reader * io);
+static int mtar_io_file_reader_close(struct mtar_io_reader * io);
+static off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset);
+static void mtar_io_file_reader_free(struct mtar_io_reader * io);
+static int mtar_io_file_reader_last_errno(struct mtar_io_reader * io);
+static off_t mtar_io_file_reader_position(struct mtar_io_reader * io);
+static ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data, ssize_t length);
 
-static struct mtar_io_in_ops mtar_io_file_in_ops = {
-	.block_size = mtar_io_file_in_block_size,
-	.close      = mtar_io_file_in_close,
-	.forward    = mtar_io_file_in_forward,
-	.free       = mtar_io_file_in_free,
-	.last_errno = mtar_io_file_in_last_errno,
-	.position   = mtar_io_file_in_position,
-	.read       = mtar_io_file_in_read,
+static struct mtar_io_reader_ops mtar_io_file_reader_ops = {
+	.block_size = mtar_io_file_reader_block_size,
+	.close      = mtar_io_file_reader_close,
+	.forward    = mtar_io_file_reader_forward,
+	.free       = mtar_io_file_reader_free,
+	.last_errno = mtar_io_file_reader_last_errno,
+	.position   = mtar_io_file_reader_position,
+	.read       = mtar_io_file_reader_read,
 };
 
 
-ssize_t mtar_io_file_in_block_size(struct mtar_io_in * io) {
+ssize_t mtar_io_file_reader_block_size(struct mtar_io_reader * io) {
 	return mtar_io_file_common_block_size(io->data);
 }
 
-int mtar_io_file_in_close(struct mtar_io_in * io) {
+int mtar_io_file_reader_close(struct mtar_io_reader * io) {
 	return mtar_io_file_common_close(io->data);
 }
 
-off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
+off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_io_file * self = io->data;
 
 	if (self->position + offset > self->volume_size && self->volume_size > 0)
@@ -85,24 +85,24 @@ off_t mtar_io_file_in_forward(struct mtar_io_in * io, off_t offset) {
 	return ok;
 }
 
-void mtar_io_file_in_free(struct mtar_io_in * io) {
+void mtar_io_file_reader_free(struct mtar_io_reader * io) {
 	mtar_io_file_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_file_in_last_errno(struct mtar_io_in * io) {
+int mtar_io_file_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_io_file * self = io->data;
 	return self->last_errno;
 }
 
-off_t mtar_io_file_in_position(struct mtar_io_in * io) {
+off_t mtar_io_file_reader_position(struct mtar_io_reader * io) {
 	struct mtar_io_file * self = io->data;
 	return self->position;
 }
 
-ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
+ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_io_file * self = io->data;
 
 	ssize_t nb_read = read(self->fd, data, length);
@@ -115,7 +115,7 @@ ssize_t mtar_io_file_in_read(struct mtar_io_in * io, void * data, ssize_t length
 	return nb_read;
 }
 
-struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_reader * mtar_io_file_new_reader(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
 	self->fd = fd;
 	self->position = 0;
@@ -130,8 +130,8 @@ struct mtar_io_in * mtar_io_file_new_in(int fd, int flags __attribute__((unused)
 			mtar_verbose_printf("Warning: discard parameter '-M' because parameter '-L' is not specified\n");
 	}
 
-	struct mtar_io_in * io = malloc(sizeof(struct mtar_io_in));
-	io->ops = &mtar_io_file_in_ops;
+	struct mtar_io_reader * io = malloc(sizeof(struct mtar_io_reader));
+	io->ops = &mtar_io_file_reader_ops;
 	io->data = self;
 
 	return io;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 21:59:29 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:10:06 +0200                           *
 \***************************************************************************/
 
 // be*toh, htobe*
@@ -86,7 +86,7 @@ static int mtar_io_tape_scsi_open(int fd);
 static struct mtar_io_tape_scsi_device {
 	int dev_minor;
 	char * scsi_device;
-} * mtar_io_tape_scsi_devices = 0;
+} * mtar_io_tape_scsi_devices = NULL;
 static unsigned int mtar_io_tape_scsi_nb_devices = 0;
 
 void mtar_io_tape_scsi_init() {

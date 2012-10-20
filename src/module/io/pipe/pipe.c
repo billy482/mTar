@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:42:48 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:04:16 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-pipe.chcksum>
@@ -44,13 +44,19 @@ static void mtar_io_pipe_version(void);
 static struct mtar_io mtar_io_pipe = {
 	.name             = "pipe",
 
-	.new_in           = mtar_io_pipe_new_in,
-	.new_out          = mtar_io_pipe_new_out,
+	.new_reader       = mtar_io_pipe_new_reader,
+	.new_writer       = mtar_io_pipe_new_writer,
 
 	.show_description = mtar_io_pipe_show_description,
 	.show_version     = mtar_io_pipe_version,
 
-	.api_version      = MTAR_IO_API_VERSION,
+	.api_level        = {
+		.filter   = 0,
+		.format   = 0,
+		.function = 0,
+		.io       = MTAR_IO_API_LEVEL,
+		.pattern  = 0,
+	},
 };
 
 

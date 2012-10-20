@@ -38,8 +38,8 @@
 
 #include <mtar/io.h>
 
-struct mtar_io_in * mtar_io_tape_new_in(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_out * mtar_io_tape_new_out(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_reader * mtar_io_tape_new_reader(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_writer * mtar_io_tape_new_writer(int fd, int flags, const struct mtar_option * option);
 int mtar_io_tape_scsi_read_capacity(int fd, ssize_t * total_free, ssize_t * total);
 int mtar_io_tape_scsi_read_position(int fd, off_t * position);
 

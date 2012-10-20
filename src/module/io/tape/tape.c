@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 17 May 2012 12:42:56 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:08:01 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-tape.chcksum>
@@ -44,13 +44,19 @@ static void mtar_io_tape_show_version(void);
 static struct mtar_io mtar_io_tape = {
 	.name             = "tape",
 
-	.new_in           = mtar_io_tape_new_in,
-	.new_out          = mtar_io_tape_new_out,
+	.new_reader       = mtar_io_tape_new_reader,
+	.new_writer       = mtar_io_tape_new_writer,
 
 	.show_description = mtar_io_tape_show_description,
 	.show_version     = mtar_io_tape_show_version,
 
-	.api_version      = MTAR_IO_API_VERSION,
+	.api_level        = {
+		.filter   = 0,
+		.format   = 0,
+		.function = 0,
+		.io       = MTAR_IO_API_LEVEL,
+		.pattern  = 0,
+	},
 };
 
 
