@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 26 Aug 2012 23:03:51 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:51:29 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -71,8 +71,8 @@ struct mtar_function_create_param {
 	char * buffer;
 	ssize_t block_size;
 
-	struct mtar_format_in * tar_in;
-	struct mtar_format_out * tar_out;
+	struct mtar_format_reader * tar_reader;
+	struct mtar_format_writer * tar_writer;
 
 	char ** files;
 	unsigned int nb_files;
@@ -96,7 +96,13 @@ static struct mtar_function mtar_function_create_functions = {
 	.show_help        = mtar_function_create_show_help,
 	.show_version     = mtar_function_create_show_version,
 
-	.api_version      = MTAR_FUNCTION_API_VERSION,
+	.api_level        = {
+		.filter   = MTAR_FILTER_API_LEVEL,
+		.format   = MTAR_FORMAT_API_LEVEL,
+		.function = MTAR_FUNCTION_API_LEVEL,
+		.io       = MTAR_IO_API_LEVEL,
+		.pattern  = MTAR_PATTERN_API_LEVEL,
+	},
 };
 
 
@@ -106,16 +112,16 @@ int mtar_function_create(const struct mtar_option * option) {
 	char * filename = 0;
 	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
-	struct mtar_format_out * tar_out = mtar_format_get_out(option);
-	ssize_t block_size = tar_out->ops->block_size(tar_out);
+	struct mtar_format_writer * tar_writer = mtar_format_get_writer(option);
+	ssize_t block_size = tar_writer->ops->block_size(tar_writer);
 	struct mtar_function_create_param param = {
 		.option = option,
 
 		.buffer = malloc(block_size),
 		.block_size = block_size,
 
-		.tar_in = 0,
-		.tar_out = tar_out,
+		.tar_reader = 0,
+		.tar_writer = tar_writer,
 
 		.files = malloc(sizeof(char *)),
 		.nb_files = 1,
@@ -125,7 +131,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	param.files[0] = strdup(option->filename);
 
 	int failed = 0;
-	enum mtar_format_out_status status;
+	enum mtar_format_writer_status status;
 
 	if (option->working_directory && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
@@ -134,18 +140,18 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	if (!failed && option->label) {
 		mtar_function_create_display_label(option->label);
-		status = tar_out->ops->add_label(tar_out, option->label);
+		status = tar_writer->ops->add_label(tar_writer, option->label);
 
 		switch (status) {
-			case MTAR_FORMAT_OUT_ERROR:
+			case mtar_format_writer_error:
 				failed = 1;
 				break;
 
-			case MTAR_FORMAT_OUT_END_OF_TAPE:
+			case mtar_format_writer_end_of_tape:
 				failed = mtar_function_create_change_volume(&param);
 				break;
 
-			case MTAR_FORMAT_OUT_OK:
+			case mtar_format_writer_ok:
 				break;
 		}
 	}
@@ -173,19 +179,19 @@ int mtar_function_create(const struct mtar_option * option) {
 				if (!strcmp(target, filename))
 					continue;
 
-				status = tar_out->ops->add_link(tar_out, filename, target, &header);
+				status = tar_writer->ops->add_link(tar_writer, filename, target, &header);
 				mtar_function_create_display(&header, target, 0);
 
 				switch (status) {
-					case MTAR_FORMAT_OUT_ERROR:
+					case mtar_format_writer_error:
 						failed = 1;
 						break;
 
-					case MTAR_FORMAT_OUT_END_OF_TAPE:
+					case mtar_format_writer_end_of_tape:
 						failed = mtar_function_create_change_volume(&param);
 						break;
 
-					case MTAR_FORMAT_OUT_OK:
+					case mtar_format_writer_ok:
 						continue;
 				}
 
@@ -196,19 +202,19 @@ int mtar_function_create(const struct mtar_option * option) {
 
 			mtar_hashtable_put(inode, strdup(key), filename);
 
-			status = tar_out->ops->add_file(tar_out, filename, &header);
+			status = tar_writer->ops->add_file(tar_writer, filename, &header);
 			mtar_function_create_display(&header, 0, 0);
 
 			switch (status) {
-				case MTAR_FORMAT_OUT_ERROR:
+				case mtar_format_writer_error:
 					failed = 1;
 					break;
 
-				case MTAR_FORMAT_OUT_END_OF_TAPE:
+				case mtar_format_writer_end_of_tape:
 					failed = mtar_function_create_change_volume(&param);
 					break;
 
-				case MTAR_FORMAT_OUT_OK:
+				case mtar_format_writer_ok:
 					break;
 			}
 
@@ -220,7 +226,7 @@ int mtar_function_create(const struct mtar_option * option) {
 
 				ssize_t nb_read, total_nb_write = 0;
 				while (!failed) {
-					ssize_t next_read = tar_out->ops->next_prefered_size(tar_out);
+					ssize_t next_read = tar_writer->ops->next_prefered_size(tar_writer);
 
 					nb_read = 0;
 					if (next_read > 0)
@@ -237,10 +243,10 @@ int mtar_function_create(const struct mtar_option * option) {
 
 					ssize_t nb_write = 0;
 					if (nb_read > 0)
-						nb_write = tar_out->ops->write(tar_out, param.buffer, nb_read);
+						nb_write = tar_writer->ops->write(tar_writer, param.buffer, nb_read);
 
 					while (nb_write < 0) {
-						int last_errno = tar_out->ops->last_errno(tar_out);
+						int last_errno = tar_writer->ops->last_errno(tar_writer);
 
 						switch (last_errno) {
 							case ENOSPC:
@@ -255,8 +261,8 @@ int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						tar_out->ops->restart_file(tar_out, filename, total_nb_write);
-						nb_write = tar_out->ops->write(tar_out, param.buffer, nb_read);
+						tar_writer->ops->restart_file(tar_writer, filename, total_nb_write);
+						nb_write = tar_writer->ops->write(tar_writer, param.buffer, nb_read);
 					}
 
 					while (next_read == 0 || nb_read > nb_write) {
@@ -266,10 +272,10 @@ int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						tar_out->ops->restart_file(tar_out, filename, total_nb_write + nb_write);
+						tar_writer->ops->restart_file(tar_writer, filename, total_nb_write + nb_write);
 
 						if (nb_read > nb_write) {
-							ssize_t nb_write2 = tar_out->ops->write(tar_out, param.buffer + nb_write, nb_read - nb_write);
+							ssize_t nb_write2 = tar_writer->ops->write(tar_writer, param.buffer + nb_write, nb_read - nb_write);
 
 							if (nb_write2 > 0)
 								nb_write += nb_write2;
@@ -292,12 +298,12 @@ int mtar_function_create(const struct mtar_option * option) {
 					failed = 1;
 				}
 
-				tar_out->ops->end_of_file(tar_out);
+				tar_writer->ops->end_of_file(tar_writer);
 				mtar_function_create_clean();
 				close(fd);
 			}
 
-			if (option->atime_preserve == MTAR_OPTION_ATIME_REPLACE) {
+			if (option->atime_preserve == mtar_option_atime_replace) {
 				struct utimbuf buf = {
 					.actime  = st.st_atime,
 					.modtime = st.st_mtime,
@@ -311,57 +317,57 @@ int mtar_function_create(const struct mtar_option * option) {
 
 	if (failed || !option->verify) {
 		free(param.buffer);
-		tar_out->ops->free(tar_out);
+		tar_writer->ops->free(tar_writer);
 		return failed;
 	}
 
 	if (param.nb_files == 1) {
-		param.tar_in = tar_out->ops->reopen_for_reading(tar_out, option);
+		param.tar_reader = tar_writer->ops->reopen_for_reading(tar_writer, option);
 
-		if (!param.tar_in) {
+		if (!param.tar_reader) {
 			mtar_verbose_printf("Error: Cannot reopen file for verify\n");
 			return 1;
 		}
 	} else {
 		failed = mtar_function_create_select_volume(&param);
 	}
-	tar_out->ops->free(tar_out);
+	tar_writer->ops->free(tar_writer);
 
 	int ok = -1;
 	while (ok < 0 && param.i_files <= param.nb_files) {
 		struct mtar_format_header header;
-		enum mtar_format_in_header_status status = param.tar_in->ops->get_header(param.tar_in, &header);
+		enum mtar_format_reader_header_status status = param.tar_reader->ops->get_header(param.tar_reader, &header);
 
 		struct stat st;
 		switch (status) {
-			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
+			case mtar_format_header_bad_checksum:
 				mtar_verbose_printf("Bad checksum\n");
 				ok = 3;
 				continue;
 
-			case MTAR_FORMAT_HEADER_ERROR:
+			case mtar_format_header_error:
 				mtar_verbose_printf("Error while reading\n");
 				ok = 6;
 				continue;
 
-			case MTAR_FORMAT_HEADER_BAD_HEADER:
+			case mtar_format_header_bad_header:
 				mtar_verbose_printf("Bad header\n");
 				ok = 4;
 				continue;
 
-			case MTAR_FORMAT_HEADER_END_OF_TAPE:
+			case mtar_format_header_end_of_tape:
 				failed = mtar_function_create_select_volume(&param);
 				if (failed)
 					ok = 5;
 				break;
 
-			case MTAR_FORMAT_HEADER_OK:
+			case mtar_format_header_ok:
 				if (header.is_label || header.position > 0)
 					break;
 
 				if (lstat(header.path, &st)) {
 					mtar_verbose_printf("%s: Error while getting information\n", header.path);
-					param.tar_in->ops->skip_file(param.tar_in);
+					param.tar_reader->ops->skip_file(param.tar_reader);
 					continue;
 				}
 
@@ -398,21 +404,21 @@ int mtar_function_create(const struct mtar_option * option) {
 
 				break;
 
-			case MTAR_FORMAT_HEADER_NOT_FOUND:
+			case mtar_format_header_not_found:
 				ok = 0;
 				continue;
 		}
 
-		status = param.tar_in->ops->skip_file(param.tar_in);
+		status = param.tar_reader->ops->skip_file(param.tar_reader);
 
 		switch (status) {
-			case MTAR_FORMAT_HEADER_END_OF_TAPE:
+			case mtar_format_header_end_of_tape:
 				failed = mtar_function_create_select_volume(&param);
 				if (failed)
 					ok = 5;
 				break;
 
-			case MTAR_FORMAT_HEADER_OK:
+			case mtar_format_header_ok:
 				break;
 
 			default:
@@ -453,10 +459,10 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 					param->files[param->nb_files] = filename;
 					param->nb_files++;
 
-					struct mtar_io_out * new_file = mtar_filter_get_out3(filename, param->option);
-					param->tar_out->ops->new_volume(param->tar_out, new_file);
+					struct mtar_io_writer * new_file = mtar_filter_get_writer3(filename, param->option);
+					param->tar_writer->ops->new_volume(param->tar_writer, new_file);
 
-					ssize_t block_size = param->tar_out->ops->block_size(param->tar_out);
+					ssize_t block_size = param->tar_writer->ops->block_size(param->tar_writer);
 					if (block_size != param->block_size) {
 						param->block_size = block_size;
 						param->buffer = realloc(param->buffer, block_size);
@@ -471,14 +477,14 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 			case '\0':
 			case 'y': {
 					// reuse same filename
-					struct mtar_io_out * new_file = mtar_filter_get_out3(last_filename, param->option);
-					param->tar_out->ops->new_volume(param->tar_out, new_file);
+					struct mtar_io_writer * new_file = mtar_filter_get_writer3(last_filename, param->option);
+					param->tar_writer->ops->new_volume(param->tar_writer, new_file);
 
 					param->files = realloc(param->files, (param->nb_files + 1) * sizeof(char *));
 					param->files[param->nb_files] = strdup(last_filename);
 					param->nb_files++;
 
-					ssize_t block_size = param->tar_out->ops->block_size(param->tar_out);
+					ssize_t block_size = param->tar_writer->ops->block_size(param->tar_writer);
 					if (block_size != param->block_size) {
 						param->block_size = block_size;
 						param->buffer = realloc(param->buffer, block_size);
@@ -536,15 +542,15 @@ int mtar_function_create_select_volume(struct mtar_function_create_param * param
 					char * filename;
 					for (filename = line + 1; *filename == ' '; filename++);
 
-					struct mtar_io_in * next_in = mtar_filter_get_in3(filename, param->option);
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(filename, param->option);
 
-					if (next_in && param->tar_in) {
-						param->tar_in->ops->next_volume(param->tar_in, next_in);
+					if (next_reader && param->tar_reader) {
+						param->tar_reader->ops->next_volume(param->tar_reader, next_reader);
 						param->i_files++;
 						free(line);
 						return 0;
-					} else if (next_in) {
-						param->tar_in = mtar_format_get_in2(next_in, param->option);
+					} else if (next_reader) {
+						param->tar_reader = mtar_format_get_reader2(next_reader, param->option);
 						param->i_files++;
 						free(line);
 						return 0;
@@ -559,15 +565,15 @@ int mtar_function_create_select_volume(struct mtar_function_create_param * param
 			case '\0':
 			case 'y': {
 					// reuse same filename
-					struct mtar_io_in * next_in = mtar_filter_get_in3(selected_filename, param->option);
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(selected_filename, param->option);
 
-					if (next_in && param->tar_in) {
-						param->tar_in->ops->next_volume(param->tar_in, next_in);
+					if (next_reader && param->tar_reader) {
+						param->tar_reader->ops->next_volume(param->tar_reader, next_reader);
 						param->i_files++;
 						free(line);
 						return 0;
-					} else if (next_in) {
-						param->tar_in = mtar_format_get_in2(next_in, param->option);
+					} else if (next_reader) {
+						param->tar_reader = mtar_format_get_reader2(next_reader, param->option);
 						param->i_files++;
 						free(line);
 						return 0;

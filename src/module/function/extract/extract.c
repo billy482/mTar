@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 16:53:03 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:55:29 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -65,12 +65,18 @@ static struct mtar_function mtar_function_extract_functions = {
 	.show_help        = mtar_function_extract_show_help,
 	.show_version     = mtar_function_extract_show_version,
 
-	.api_version      = MTAR_FUNCTION_API_VERSION,
+	.api_level        = {
+		.filter   = 0,
+		.format   = MTAR_FORMAT_API_LEVEL,
+		.function = MTAR_FUNCTION_API_LEVEL,
+		.io       = MTAR_IO_API_LEVEL,
+		.pattern  = MTAR_PATTERN_API_LEVEL,
+	},
 };
 
 
 int mtar_function_extract(const struct mtar_option * option) {
-	struct mtar_format_in * format = mtar_format_get_in(option);
+	struct mtar_format_reader * format = mtar_format_get_reader(option);
 	if (!format)
 		return 1;
 
@@ -85,10 +91,10 @@ int mtar_function_extract(const struct mtar_option * option) {
 
 	int ok = -1;
 	while (ok < 0) {
-		enum mtar_format_in_header_status status = format->ops->get_header(format, &header);
+		enum mtar_format_reader_header_status status = format->ops->get_header(format, &header);
 
 		switch (status) {
-			case MTAR_FORMAT_HEADER_OK:
+			case mtar_format_header_ok:
 				if (mtar_pattern_match(option, header.path)) {
 					format->ops->skip_file(format);
 					continue;
@@ -130,17 +136,22 @@ int mtar_function_extract(const struct mtar_option * option) {
 
 				break;
 
-			case MTAR_FORMAT_HEADER_BAD_CHECKSUM:
+			case mtar_format_header_bad_checksum:
 				mtar_verbose_printf("Bad checksum\n");
 				ok = 3;
 				continue;
 
-			case MTAR_FORMAT_HEADER_BAD_HEADER:
+			case mtar_format_header_bad_header:
 				mtar_verbose_printf("Bad header\n");
 				ok = 4;
 				continue;
 
-			case MTAR_FORMAT_HEADER_NOT_FOUND:
+			case mtar_format_header_error:
+				mtar_verbose_printf("Error while reader header\n");
+				ok = 5;
+				continue;
+
+			case mtar_format_header_not_found:
 				ok = 0;
 				continue;
 		}
