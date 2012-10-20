@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 14 May 2012 20:53:50 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 15:08:19 +0200                           *
 \***************************************************************************/
 
 // pcre_compile, pcre_exec, pcre_free
@@ -56,7 +56,7 @@ struct mtar_pattern_pcre_include {
 };
 
 static void mtar_pattern_pcre_include_free(struct mtar_pattern_include * pattern);
-static int mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+static bool mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
 static void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern, char ** filename);
 
 static struct mtar_pattern_include_ops mtar_pattern_pcre_include_ops = {
@@ -94,11 +94,11 @@ void mtar_pattern_pcre_include_free(struct mtar_pattern_include * pattern) {
 	free(pattern);
 }
 
-int mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option) {
+bool mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option) {
 	struct mtar_pattern_pcre_include * self = pattern->data;
 
 	if (self->next_dir || self->next_file)
-		return 1;
+		return true;
 
 	while (self->path_gen->ops->has_next(self->path_gen, option)) {
 		char * path = 0;
@@ -140,19 +140,16 @@ int mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, co
 		}
 	}
 
-	if (self->current_dir)
-		free(self->current_dir);
-	self->current_dir = 0;
+	free(self->current_dir);
+	self->current_dir = NULL;
 
-	if (self->next_dir)
-		free(self->next_dir);
-	self->next_dir = 0;
+	free(self->next_dir);
+	self->next_dir = NULL;
 
-	if (self->next_file)
-		free(self->next_file);
-	self->next_file = 0;
+	free(self->next_file);
+	self->next_file = NULL;
 
-	return 0;
+	return false;
 }
 
 void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern, char ** filename) {
@@ -202,9 +199,9 @@ struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern
 	int erroroffset = 0;
 
 	int pcre_option = 0;
-	if (option & MTAR_PATTERN_OPTION_ANCHORED)
+	if (option & mtar_pattern_option_anchored)
 		pcre_option |= PCRE_ANCHORED;
-	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
+	if (option & mtar_pattern_option_ignore_case)
 		pcre_option |= PCRE_CASELESS;
 
 	struct mtar_pattern_pcre_include * self = malloc(sizeof(struct mtar_pattern_pcre_include));
@@ -232,10 +229,10 @@ struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern
 		self->path_gen = mtar_pattern_get_include(0, ".", option);
 	}
 
-	self->current_dir = 0;
-	self->next_dir = 0;
+	self->current_dir = NULL;
+	self->next_dir = NULL;
 	self->next_dir_length = 0;
-	self->next_file = 0;
+	self->next_file = NULL;
 
 	struct mtar_pattern_include * ex = malloc(sizeof(struct mtar_pattern_include));
 	ex->ops = &mtar_pattern_pcre_include_ops;

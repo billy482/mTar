@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 14 May 2012 20:38:13 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:14:10 +0200                           *
 \***************************************************************************/
 
 // fnmatch
@@ -46,7 +46,7 @@ struct mtar_pattern_fnmatch_exclude {
 };
 
 static void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex);
-static int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
+static bool mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
 
 static struct mtar_pattern_exclude_ops mtar_pattern_fnmatch_exclude_ops = {
 	.free  = mtar_pattern_fnmatch_exclude_free,
@@ -62,14 +62,14 @@ void mtar_pattern_fnmatch_exclude_free(struct mtar_pattern_exclude * ex) {
 	free(ex);
 }
 
-int mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
+bool mtar_pattern_fnmatch_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
 	struct mtar_pattern_fnmatch_exclude * self = ex->data;
 
-	if (self->option & MTAR_PATTERN_OPTION_ANCHORED)
+	if (self->option & mtar_pattern_option_anchored)
 		return fnmatch(self->pattern, filename, self->fnmatch_flags);
 
 	const char * ptr = filename;
-	int not_matched = 0;
+	bool not_matched = false;
 	while (ptr && (not_matched = fnmatch(self->pattern, ptr, self->fnmatch_flags))) {
 		ptr = strchr(ptr, '/');
 		if (ptr)
@@ -85,7 +85,7 @@ struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * patt
 	self->fnmatch_flags = FNM_PERIOD;
 	self->option = option;
 
-	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
+	if (option & mtar_pattern_option_ignore_case)
 		self->fnmatch_flags |= FNM_CASEFOLD;
 
 	struct mtar_pattern_exclude * ex = malloc(sizeof(struct mtar_pattern_exclude));

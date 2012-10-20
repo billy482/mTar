@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 16:54:33 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:13:01 +0200                           *
 \***************************************************************************/
 
 #include <mtar-pattern-fnmatch.chcksum>
@@ -50,7 +50,13 @@ static struct mtar_pattern_driver mtar_pattern_fnmatch_driver = {
 	.show_description = mtar_pattern_fnmatch_show_description,
 	.show_version     = mtar_pattern_fnmatch_show_version,
 
-	.api_version      = MTAR_PATTERN_API_VERSION,
+	.api_level        = {
+		.filter   = 0,
+		.format   = 0,
+		.function = 0,
+		.io       = 0,
+		.pattern  = MTAR_PATTERN_API_LEVEL,
+	},
 };
 
 

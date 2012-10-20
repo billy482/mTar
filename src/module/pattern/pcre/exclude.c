@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 14 May 2012 20:40:27 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 15:06:50 +0200                           *
 \***************************************************************************/
 
 // pcre_compile, pcre_exec, pcre_free
@@ -42,7 +42,7 @@ struct mtar_pattern_pcre_exclude {
 };
 
 static void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex);
-static int mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
+static bool mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename);
 
 static struct mtar_pattern_exclude_ops mtar_pattern_pcre_exclude_ops = {
 	.free  = mtar_pattern_pcre_exclude_free,
@@ -60,7 +60,7 @@ void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex) {
 	free(ex);
 }
 
-int mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
+bool mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
 	struct mtar_pattern_pcre_exclude * self = ex->data;
 	int cap[2];
 	return pcre_exec(self->pattern, 0, filename, strlen(filename), 0, 0, cap, 2) > 0;
@@ -71,9 +71,9 @@ struct mtar_pattern_exclude * mtar_pattern_pcre_new_exclude(const char * pattern
 	int erroroffset = 0;
 
 	int pcre_option = 0;
-	if (option & MTAR_PATTERN_OPTION_ANCHORED)
+	if (option & mtar_pattern_option_anchored)
 		pcre_option |= PCRE_ANCHORED;
-	if (option & MTAR_PATTERN_OPTION_IGNORE_CASE)
+	if (option & mtar_pattern_option_ignore_case)
 		pcre_option |= PCRE_CASELESS;
 
 	struct mtar_pattern_pcre_exclude * self = malloc(sizeof(struct mtar_pattern_pcre_exclude));

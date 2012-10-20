@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:12:50 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 14:15:19 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -518,7 +518,7 @@ bool mtar_pattern_match(const struct mtar_option * option, const char * filename
 }
 
 void mtar_pattern_register(struct mtar_pattern_driver * driver) {
-	if (driver == NULL || mtar_plugin_check(&driver->api_level))
+	if (driver == NULL || !mtar_plugin_check(&driver->api_level))
 		return;
 
 	unsigned int i;
