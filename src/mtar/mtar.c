@@ -27,11 +27,10 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 19:48:14 +0200                           *
+*  Last modified: Fri, 19 Oct 2012 23:52:08 +0200                           *
 \***************************************************************************/
 
 #include "option.h"
-#include "plugin.h"
 
 int main(int argc, char ** argv) {
 	static struct mtar_option option;
@@ -44,9 +43,6 @@ int main(int argc, char ** argv) {
 	failed = mtar_option_check(&option);
 	if (failed)
 		return failed;
-
-	if (option.nb_plugins > 0)
-		mtar_plugin_load(&option);
 
 	failed = option.do_work(&option);
 

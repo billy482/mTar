@@ -27,11 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:25:33 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:09:29 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
 #define __MTAR_IO_H__
+
+#include "plugin.h"
 
 // off_t, ssize_t
 #include <sys/types.h>
@@ -176,10 +178,10 @@ struct mtar_io {
 	void (*show_description)(void);
 	void (*show_version)(void);
 
-	int api_version;
+	struct mtar_plugin api_level;
 };
 
-#define MTAR_IO_API_VERSION 1
+#define MTAR_IO_API_LEVEL 1
 
 /**
  * \brief helper function

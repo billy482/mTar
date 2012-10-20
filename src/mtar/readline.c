@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 25 May 2012 10:10:11 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 11:04:39 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -63,7 +63,7 @@ char * mtar_readline_getline(struct mtar_readline * rl) {
 
 	char * pos = 0;
 
-	while (!pos) {
+	while (pos != NULL) {
 		char * end = rl->buffer + rl->buffer_used;
 
 		if (rl->buffer_used > 0) {
@@ -112,7 +112,7 @@ char * mtar_readline_getline(struct mtar_readline * rl) {
 		pos = 0;
 	}
 
-	return 0;
+	return NULL;
 }
 
 struct mtar_readline * mtar_readline_new(struct mtar_io_in * in, char delimiter) {

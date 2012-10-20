@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 04 Jun 2012 23:31:53 +0200                           *
+*  Last modified: Fri, 19 Oct 2012 23:04:00 +0200                           *
 \***************************************************************************/
 
 // open
@@ -55,10 +55,10 @@ static void mtar_file_lookup(const char * filename, char * name, ssize_t namelen
 static void mtar_file_rlookup(const char * filename, const char * name, char * id, ssize_t namelength);
 static void mtar_file_init(void) __attribute__((constructor));
 
-static struct mtar_hashtable * mtar_file_gidCached = 0;
-static struct mtar_hashtable * mtar_file_groupCached = 0;
-static struct mtar_hashtable * mtar_file_uidCached = 0;
-static struct mtar_hashtable * mtar_file_userCached = 0;
+static struct mtar_hashtable * mtar_file_gidCached = NULL;
+static struct mtar_hashtable * mtar_file_groupCached = NULL;
+static struct mtar_hashtable * mtar_file_uidCached = NULL;
+static struct mtar_hashtable * mtar_file_userCached = NULL;
 
 
 void mtar_file_convert_mode(char * buffer, mode_t mode) {
@@ -171,7 +171,7 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 	snprintf(cid, l, ":%s:", id);
 
 	char * ptr = strstr(buffer, cid);
-	if (ptr) {
+	if (ptr != NULL) {
 		char * rptr = ptr;
 		while (rptr > buffer && rptr[-1] != '\n')
 			rptr--;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:54:32 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:17:02 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -51,7 +51,7 @@
 #include "io.h"
 #include "loader.h"
 
-static struct mtar_io ** mtar_io_ios = 0;
+static struct mtar_io ** mtar_io_ios = NULL;
 static unsigned int mtar_io_nbIos = 0;
 
 static void mtar_io_exit(void) __attribute__((destructor));
@@ -62,7 +62,7 @@ int mtar_io_open(const char * filename, int flags);
 void mtar_io_exit() {
 	if (mtar_io_nbIos > 0)
 		free(mtar_io_ios);
-	mtar_io_ios = 0;
+	mtar_io_ios = NULL;
 }
 
 struct mtar_io * mtar_io_get(int fd) {
@@ -85,26 +85,29 @@ struct mtar_io * mtar_io_get(int fd) {
 	for (i = 0; i < mtar_io_nbIos; i++)
 		if (!strcmp(module, mtar_io_ios[i]->name))
 			return mtar_io_ios[i];
+
 	if (mtar_loader_load("io", module))
-		return 0;
+		return NULL;
+
 	for (i = 0; i < mtar_io_nbIos; i++)
 		if (!strcmp(module, mtar_io_ios[i]->name))
 			return mtar_io_ios[i];
-	return 0;
+
+	return NULL;
 }
 
 struct mtar_io_in * mtar_io_in_get_fd(int fd, int flags, const struct mtar_option * option) {
 	struct mtar_io * io = mtar_io_get(fd);
-	if (io)
+	if (io != NULL)
 		return io->new_in(fd, flags, option);
 
-	return 0;
+	return NULL;
 }
 
 struct mtar_io_in * mtar_io_in_get_file(const char * filename, int flags, const struct mtar_option * option) {
 	int fd = mtar_io_open(filename, flags);
 	if (fd < 0)
-		return 0;
+		return NULL;
 
 	return mtar_io_in_get_fd(fd, flags, option);
 }
@@ -142,22 +145,22 @@ int mtar_io_open(const char * filename, int flags) {
 
 struct mtar_io_out * mtar_io_out_get_fd(int fd, int flags, const struct mtar_option * option) {
 	struct mtar_io * io = mtar_io_get(fd);
-	if (io)
+	if (io != NULL)
 		return io->new_out(fd, flags, option);
 
-	return 0;
+	return NULL;
 }
 
 struct mtar_io_out * mtar_io_out_get_file(const char * filename, int flags, const struct mtar_option * option) {
 	int fd = mtar_io_open(filename, flags);
 	if (fd < 0)
-		return 0;
+		return NULL;
 
 	return mtar_io_out_get_fd(fd, flags, option);
 }
 
 void mtar_io_register(struct mtar_io * io) {
-	if (!io || io->api_version != MTAR_IO_API_VERSION)
+	if (io == NULL || mtar_plugin_check(&io->api_level))
 		return;
 
 	unsigned int i;

@@ -27,13 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 18 May 2012 22:55:26 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:25:28 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
 #define __MTAR_OPTION_H__
 
-// mode_t
+// bool
+#include <stdbool.h>
+// blksize_t, mode_t
 #include <sys/types.h>
 
 #include "function.h"
@@ -47,13 +49,13 @@ struct mtar_option {
 	mtar_function_f do_work;
 
 	// overwrite control
-	char verify;
+	bool verify;
 
 	// handling of file attributes
 	enum mtar_option_atime {
-		MTAR_OPTION_ATIME_NONE,
-		MTAR_OPTION_ATIME_REPLACE,
-		MTAR_OPTION_ATIME_SYSTEM,
+		mtar_option_atime_none,
+		mtar_option_atime_replace,
+		mtar_option_atime_system,
 	} atime_preserve;
 	const char * group;
 	mode_t mode;
@@ -62,10 +64,10 @@ struct mtar_option {
 	// device selection and switching
 	const char * filename;
 	ssize_t tape_length; // size in kilo bytes
-	unsigned char multi_volume;
+	bool multi_volume;
 
 	// device blocking
-	int block_factor;
+	blksize_t block_factor;
 
 	// archive format selection
 	const char * format;
@@ -73,7 +75,7 @@ struct mtar_option {
 
 	// compression options
 	const char * compress_module;
-	short compress_level;
+	unsigned short compress_level;
 
 	// local file selections
 	struct mtar_pattern_include ** files;
@@ -82,20 +84,16 @@ struct mtar_option {
 	struct mtar_pattern_exclude ** excludes;
 	unsigned int nb_excludes;
 	enum mtar_exclude_option {
-		MTAR_EXCLUDE_OPTION_DEFAULT = 0x0,
-		MTAR_EXCLUDE_OPTION_BACKUP  = 0x1,
-		MTAR_EXCLUDE_OPTION_VCS     = 0x2,
+		mtar_exclude_option_default = 0x0,
+		mtar_exclude_option_backup  = 0x1,
+		mtar_exclude_option_vcs     = 0x2,
 	} exclude_option;
 	struct mtar_pattern_tag * exclude_tags;
 	unsigned int nb_exclude_tags;
 	char delimiter;
 
 	// informative output
-	int verbose;
-
-	// mtar specific option
-	const char ** plugins;
-	unsigned int nb_plugins;
+	unsigned short verbose;
 };
 
 #endif

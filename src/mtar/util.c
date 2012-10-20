@@ -38,14 +38,14 @@
 #include <mtar/util.h>
 
 void mtar_util_basic_free(void * key, void * value) {
-	if (key)
-		free(key);
-	if (value)
+	free(key);
+	if (value != NULL && key != value)
 		free(value);
 }
 
 /**
  * sdbm function
+ * http://www.cse.yorku.ca/~oz/hash.html
  **/
 unsigned long long mtar_util_compute_hash_string(const void * key) {
 	const char * cstr = key;
@@ -60,13 +60,13 @@ void mtar_util_string_delete_double_char(char * str, char delete_char) {
 	char double_char[3] = { delete_char, delete_char, '\0' };
 
 	char * ptr = strstr(str, double_char);
-	while (ptr) {
+	while (ptr != NULL) {
 		ptr++;
 
 		size_t length = strlen(ptr);
 		size_t delete_length = strspn(ptr, double_char + 1);
 
-		memmove(ptr, ptr + delete_length, length - delete_length);
+		memmove(ptr, ptr + delete_length, length - delete_length + 1);
 
 		ptr = strstr(ptr, double_char);
 	}
@@ -79,7 +79,7 @@ char ** mtar_util_string_justified(const char * str, unsigned int width, unsigne
 	unsigned int nb_words = 0;
 
 	char * ptr = strtok(str_dup, " ");
-	while (ptr) {
+	while (ptr != NULL) {
 		words = realloc(words, (nb_words + 1) * sizeof(char *));
 		words[nb_words] = ptr;
 		nb_words++;

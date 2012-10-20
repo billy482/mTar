@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 06 May 2012 10:29:37 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:38:54 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_P_H__
@@ -38,9 +38,9 @@
 struct mtar_option;
 
 enum mtar_pattern_tag_option {
-	MTAR_PATTERN_TAG,
-	MTAR_PATTERN_TAG_ALL,
-	MTAR_PATTERN_TAG_UNDER,
+	mtar_pattern_tag,
+	mtar_pattern_tag_all,
+	mtar_pattern_tag_under,
 };
 
 struct mtar_pattern_tag {

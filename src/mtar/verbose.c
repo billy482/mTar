@@ -63,7 +63,7 @@ static struct mtar_verbose_print_help {
 
 	char * right;
 	size_t right_length;
-} * lines = 0;
+} * lines = NULL;
 static unsigned int nb_lines = 0;
 static unsigned int max_left_width = 0;
 static struct timeval mtar_verbose_progress_begin;

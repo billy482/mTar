@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 19 Jun 2012 16:34:32 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:07:27 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -35,6 +35,8 @@
 
 // dev_t, mode_t, ssize_t, time_t
 #include <sys/types.h>
+
+#include "plugin.h"
 
 struct mtar_io_in;
 struct mtar_io_out;
@@ -114,18 +116,18 @@ struct mtar_format_header {
 };
 
 enum mtar_format_in_header_status {
-	MTAR_FORMAT_HEADER_BAD_CHECKSUM,
-	MTAR_FORMAT_HEADER_BAD_HEADER,
-	MTAR_FORMAT_HEADER_END_OF_TAPE,
-	MTAR_FORMAT_HEADER_ERROR,
-	MTAR_FORMAT_HEADER_NOT_FOUND,
-	MTAR_FORMAT_HEADER_OK,
+	mtar_format_header_bad_checksum,
+	mtar_format_header_bad_header,
+	mtar_format_header_end_of_tape,
+	mtar_format_header_error,
+	mtar_format_header_not_found,
+	mtar_format_header_ok,
 };
 
 enum mtar_format_out_status {
-	MTAR_FORMAT_OUT_END_OF_TAPE,
-	MTAR_FORMAT_OUT_ERROR,
-	MTAR_FORMAT_OUT_OK,
+	mtar_format_out_end_of_tape,
+	mtar_format_out_error,
+	mtar_format_out_ok,
 };
 
 /**
@@ -191,10 +193,10 @@ struct mtar_format {
 	void (*show_description)(void);
 	void (*show_version)(void);
 
-	int api_version;
+	struct mtar_plugin api_level;
 };
 
-#define MTAR_FORMAT_API_VERSION 1
+#define MTAR_FORMAT_API_LEVEL 1
 
 struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option);
 struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option);

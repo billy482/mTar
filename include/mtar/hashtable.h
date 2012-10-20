@@ -27,11 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 04 Jun 2012 23:30:23 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:00:52 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_HASHTABLE_H__
 #define __MTAR_HASHTABLE_H__
+
+#include <stdbool.h>
 
 typedef unsigned long long (*mtar_hashtable_compupte_hash_f)(const void * key);
 typedef void (*mtar_hashtable_free_f)(void * key, void * value);
@@ -46,7 +48,7 @@ struct mtar_hashtable {
 	unsigned int nb_elements;
 	unsigned int size_node;
 
-	unsigned char allow_rehash;
+	bool allow_rehash;
 
 	mtar_hashtable_compupte_hash_f compupte_hash;
 	mtar_hashtable_free_f release_key_value;
@@ -55,7 +57,7 @@ struct mtar_hashtable {
 struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_compupte_hash_f compupte_hash);
 struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_compupte_hash_f compupte_hash, mtar_hashtable_free_f release_key_value);
 void mtar_hashtable_free(struct mtar_hashtable * hashtable);
-short mtar_hashtable_has_key(struct mtar_hashtable * hashtable, const void * key);
+bool mtar_hashtable_has_key(struct mtar_hashtable * hashtable, const void * key);
 const void ** mtar_hashtable_keys(struct mtar_hashtable * hashtable);
 void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * value);
 void * mtar_hashtable_remove(struct mtar_hashtable * hashtable, const void * key);

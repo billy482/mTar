@@ -27,11 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 18:29:24 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:07:41 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FUNTION_H__
 #define __MTAR_FUNTION_H__
+
+#include "plugin.h"
 
 struct mtar_option;
 
@@ -46,10 +48,10 @@ struct mtar_function {
 	void (*show_help)(void);
 	void (*show_version)(void);
 
-	int api_version;
+	struct mtar_plugin api_level;
 };
 
-#define MTAR_FUNCTION_API_VERSION 1
+#define MTAR_FUNCTION_API_LEVEL 1
 
 void mtar_function_register(struct mtar_function * f);
 

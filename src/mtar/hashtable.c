@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 04 Jun 2012 23:38:00 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:03:36 +0200                           *
 \***************************************************************************/
 
 // calloc, free, malloc
@@ -40,13 +40,13 @@ void mtar_hashtable_rehash(struct mtar_hashtable * hashtable);
 
 
 void mtar_hashtable_free(struct mtar_hashtable * hashtable) {
-	if (!hashtable)
+	if (hashtable == NULL)
 		return;
 
 	unsigned int i;
 	for (i = 0; i < hashtable->size_node; i++) {
 		struct mtar_hashtable_node * ptr = hashtable->nodes[i];
-		while (ptr != 0) {
+		while (ptr != NULL) {
 			struct mtar_hashtable_node * tmp = ptr;
 			ptr = ptr->next;
 			if (hashtable->release_key_value)
@@ -62,32 +62,33 @@ void mtar_hashtable_free(struct mtar_hashtable * hashtable) {
 	free(hashtable);
 }
 
-short mtar_hashtable_has_key(struct mtar_hashtable * hashtable, const void * key) {
-	if (!hashtable || !key)
-		return 0;
+bool mtar_hashtable_has_key(struct mtar_hashtable * hashtable, const void * key) {
+	if (hashtable == NULL || key == NULL)
+		return false;
 
 	unsigned long long hash = hashtable->compupte_hash(key);
 	unsigned int index = hash % hashtable->size_node;
 
 	const struct mtar_hashtable_node * node = hashtable->nodes[index];
-	while (node) {
+	while (node != NULL) {
 		if (node->hash == hash)
-			return 1;
+			return true;
+
 		node = node->next;
 	}
 
-	return 0;
+	return false;
 }
 
 const void ** mtar_hashtable_keys(struct mtar_hashtable * hashtable) {
-	if (!hashtable)
-		return 0;
+	if (hashtable == NULL)
+		return NULL;
 
 	const void ** keys = calloc(sizeof(void *), hashtable->nb_elements + 1);
 	unsigned int iNode = 0, index = 0;
 	while (iNode < hashtable->size_node) {
 		struct mtar_hashtable_node * node = hashtable->nodes[iNode];
-		while (node) {
+		while (node != NULL) {
 			keys[index] = node->key;
 			index++;
 			node = node->next;
@@ -104,15 +105,15 @@ struct mtar_hashtable * mtar_hashtable_new(mtar_hashtable_compupte_hash_f compup
 }
 
 struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_compupte_hash_f compupte_hash, mtar_hashtable_free_f release_key_value) {
-	if (!compupte_hash)
-		return 0;
+	if (compupte_hash == NULL)
+		return NULL;
 
 	struct mtar_hashtable * l_hash = malloc(sizeof(struct mtar_hashtable));
 
 	l_hash->nodes = calloc(sizeof(struct mtar_hashtable_node *), 16);
 	l_hash->nb_elements = 0;
 	l_hash->size_node = 16;
-	l_hash->allow_rehash = 1;
+	l_hash->allow_rehash = true;
 	l_hash->compupte_hash = compupte_hash;
 	l_hash->release_key_value = release_key_value;
 
@@ -120,7 +121,7 @@ struct mtar_hashtable * mtar_hashtable_new2(mtar_hashtable_compupte_hash_f compu
 }
 
 void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * value) {
-	if (!hashtable || !key || !value)
+	if (hashtable == NULL || key == NULL || value == NULL)
 		return;
 
 	unsigned long long hash = hashtable->compupte_hash(key);
@@ -130,7 +131,7 @@ void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * va
 	new_node->hash = hash;
 	new_node->key = key;
 	new_node->value = value;
-	new_node->next = 0;
+	new_node->next = NULL;
 
 	mtar_hashtable_put2(hashtable, index, new_node);
 	hashtable->nb_elements++;
@@ -138,21 +139,24 @@ void mtar_hashtable_put(struct mtar_hashtable * hashtable, void * key, void * va
 
 void mtar_hashtable_put2(struct mtar_hashtable * hashtable, unsigned int index, struct mtar_hashtable_node * new_node) {
 	struct mtar_hashtable_node * node = hashtable->nodes[index];
-	if (node) {
+	if (node != NULL) {
 		if (node->hash == new_node->hash) {
 			if (hashtable->release_key_value && node->key != new_node->key && node->value != new_node->value)
 				hashtable->release_key_value(node->key, node->value);
+
 			hashtable->nodes[index] = new_node;
 			new_node->next = node->next;
 			free(node);
 			hashtable->nb_elements--;
 		} else {
 			short nbElement = 1;
-			while (node->next) {
+			while (node->next != NULL) {
 				if (node->next->hash == new_node->hash) {
 					struct mtar_hashtable_node * next = node->next;
+
 					if (hashtable->release_key_value && next->key != new_node->key && next->value != new_node->value)
 						hashtable->release_key_value(next->key, next->value);
+
 					new_node->next = next->next;
 					node->next = new_node;
 					free(next);
@@ -184,7 +188,7 @@ void mtar_hashtable_rehash(struct mtar_hashtable * hashtable) {
 	unsigned int i;
 	for (i = 0; i < old_size_node; i++) {
 		struct mtar_hashtable_node * node = old_nodes[i];
-		while (node) {
+		while (node != NULL) {
 			struct mtar_hashtable_node * current_node = node;
 			node = node->next;
 			current_node->next = 0;
@@ -199,21 +203,22 @@ void mtar_hashtable_rehash(struct mtar_hashtable * hashtable) {
 }
 
 void * mtar_hashtable_remove(struct mtar_hashtable * hashtable, const void * key) {
-	if (!hashtable || !key)
-		return 0;
+	if (hashtable == NULL || key == NULL)
+		return NULL;
 
 	unsigned long long hash = hashtable->compupte_hash(key);
 	unsigned int index = hash % hashtable->size_node;
 
 	struct mtar_hashtable_node * node = hashtable->nodes[index];
-	if (node && node->hash == hash) {
+	if (node != NULL && node->hash == hash) {
 		hashtable->nodes[index] = node->next;
 		void * value = node->value;
 		free(node);
 		hashtable->nb_elements--;
 		return value;
 	}
-	while (node && node->next) {
+
+	while (node != NULL && node->next) {
 		if (node->next->hash == hash) {
 			struct mtar_hashtable_node * current_node = node->next;
 			node->next = current_node->next;
@@ -226,35 +231,35 @@ void * mtar_hashtable_remove(struct mtar_hashtable * hashtable, const void * key
 		node->next = node->next->next;
 	}
 
-	return 0;
+	return NULL;
 }
 
 void * mtar_hashtable_value(struct mtar_hashtable * hashtable, const void * key) {
-	if (!hashtable || !key)
-		return 0;
+	if (hashtable == NULL || key == NULL)
+		return NULL;
 
 	unsigned long long hash = hashtable->compupte_hash(key);
 	unsigned int index = hash % hashtable->size_node;
 
 	struct mtar_hashtable_node * node = hashtable->nodes[index];
-	while (node) {
+	while (node != NULL) {
 		if (node->hash == hash)
 			return node->value;
 		node = node->next;
 	}
 
-	return 0;
+	return NULL;
 }
 
 void ** mtar_hashtable_values(struct mtar_hashtable * hashtable) {
 	if (!hashtable)
-		return 0;
+		return NULL;
 
 	void ** values = calloc(sizeof(void *), hashtable->nb_elements + 1);
 	unsigned int iNode = 0, index = 0;
 	while (iNode < hashtable->size_node) {
 		struct mtar_hashtable_node * node = hashtable->nodes[iNode];
-		while (node) {
+		while (node != NULL) {
 			values[index] = node->value;
 			index++;
 			node = node->next;

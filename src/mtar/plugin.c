@@ -27,89 +27,39 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 11:02:50 +0200                           *
 \***************************************************************************/
 
-// strcmp
-#include <string.h>
-// calloc, free, realloc
-#include <stdlib.h>
+// NULL
+#include <stddef.h>
 
-#include <mtar/option.h>
-
-#include "loader.h"
-#include "plugin.h"
-
-static void mtar_plugin_exit(void) __attribute__((destructor));
-
-static struct plugin {
-	const char * name;
-	mtar_plugin_f plugin;
-} * mtar_plugin_plugin_handlers = 0;
-static unsigned int mtar_plugin_nb_plugin_handlers = 0;
-
-static struct mtar_plugin ** mtar_plugin_plugins = 0;
-static unsigned int mtar_plugin_nb_plugins = 0;
-
-static struct mtar_plugin * mtar_plugin_get(const char * name, const struct mtar_option * option);
+#include <mtar/filter.h>
+#include <mtar/format.h>
+#include <mtar/function.h>
+#include <mtar/io.h>
+#include <mtar/pattern.h>
+#include <mtar/plugin.h>
 
 
-void mtar_plugin_exit() {
-	if (mtar_plugin_nb_plugin_handlers > 0)
-		free(mtar_plugin_plugin_handlers);
-	mtar_plugin_plugin_handlers = 0;
-}
+bool mtar_plugin_check(const struct mtar_plugin * plugin) {
+	if (plugin == NULL)
+		return false;
 
-struct mtar_plugin * mtar_plugin_get(const char * name, const struct mtar_option * option) {
-	unsigned int i;
-	for (i = 0; i < mtar_plugin_nb_plugin_handlers; i++)
-		if (!strcmp(name, mtar_plugin_plugin_handlers[i].name))
-			return mtar_plugin_plugin_handlers[i].plugin(option);
-	if (mtar_loader_load("plugin", name))
-		return 0;
-	for (i = 0; i < mtar_plugin_nb_plugin_handlers; i++)
-		if (!strcmp(name, mtar_plugin_plugin_handlers[i].name))
-			return mtar_plugin_plugin_handlers[i].plugin(option);
-	return 0;
-}
+	if (plugin->filter > 0 && plugin->filter != MTAR_FILTER_API_LEVEL)
+		return false;
 
-void mtar_plugin_load(const struct mtar_option * option) {
-	if (!option || option->nb_plugins == 0)
-		return;
+	if (plugin->format > 0 && plugin->format != MTAR_FORMAT_API_LEVEL)
+		return false;
 
-	mtar_plugin_plugins = calloc(sizeof(struct mtar_plugin *), option->nb_plugins);
-	mtar_plugin_nb_plugins = option->nb_plugins;
+	if (plugin->function > 0 && plugin->function != MTAR_FUNCTION_API_LEVEL)
+		return false;
 
-	unsigned int i;
-	for (i = 0; i < option->nb_plugins; i++)
-		mtar_plugin_plugins[i] = mtar_plugin_get(option->plugins[i], option);
-}
+	if (plugin->io > 0 && plugin->io != MTAR_IO_API_LEVEL)
+		return false;
 
-void mtar_plugin_register(const char * name, mtar_plugin_f f) {
-	mtar_plugin_plugin_handlers = realloc(mtar_plugin_plugin_handlers, (mtar_plugin_nb_plugin_handlers + 1) * (sizeof(struct plugin)));
-	mtar_plugin_plugin_handlers[mtar_plugin_nb_plugin_handlers].name = name;
-	mtar_plugin_plugin_handlers[mtar_plugin_nb_plugin_handlers].plugin = f;
-	mtar_plugin_nb_plugin_handlers++;
+	if (plugin->pattern > 0 && plugin->pattern != MTAR_PATTERN_API_LEVEL)
+		return false;
 
-	mtar_loader_register_ok();
-}
-
-
-void mtar_plugin_add_file(const char * filename) {
-	unsigned int i;
-	for (i = 0; i < mtar_plugin_nb_plugins; i++)
-		mtar_plugin_plugins[i]->ops->add_file(mtar_plugin_plugins[i], filename);
-}
-
-void mtar_plugin_end_of_file() {
-	unsigned int i;
-	for (i = 0; i < mtar_plugin_nb_plugins; i++)
-		mtar_plugin_plugins[i]->ops->end_of_file(mtar_plugin_plugins[i]);
-}
-
-void mtar_plugin_write(const void * data, ssize_t length) {
-	unsigned int i;
-	for (i = 0; i < mtar_plugin_nb_plugins; i++)
-		mtar_plugin_plugins[i]->ops->write(mtar_plugin_plugins[i], data, length);
+	return true;
 }
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 07:46:25 +0200                           *
+*  Last modified: Fri, 19 Oct 2012 22:58:25 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILE_H__
@@ -54,6 +54,11 @@ void mtar_file_convert_mode(char * buffer, mode_t mode);
  */
 void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
 
+/**
+ * \brief Convert a group's name to gid
+ * \param[in] group : group's name
+ * \return gid of <a>group's name</a> or -1
+ */
 gid_t mtar_file_group2gid(const char * group);
 
 /**
@@ -65,6 +70,11 @@ gid_t mtar_file_group2gid(const char * group);
  */
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid);
 
+/**
+ * \brief Convert a user's name to uid
+ * \param[in] user : user's name
+ * \return uid of <a>users's name</a>
+ */
 uid_t mtar_file_user2uid(const char * user);
 
 #endif

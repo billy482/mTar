@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 17:14:58 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:39:55 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -93,97 +93,89 @@ void mtar_option_show_full_version() {
 
 void mtar_option_free(struct mtar_option * option) {
 	// main operation mode
-	option->do_work = 0;
+	option->do_work = NULL;
 
 	// overwrite control
-	option->verify = 0;
+	option->verify = false;
 
 	// device selection and switching
-	option->filename = 0;
+	option->filename = NULL;
 
 	// archive format selection
-	option->format = 0;
-	option->label = 0;
+	option->format = NULL;
+	option->label = NULL;
 
 	// compression options
-	option->compress_module = 0;
+	option->compress_module = NULL;
 
 	// local file selections
 	if (option->nb_files > 0) {
 		free(option->files);
-		option->files = 0;
+		option->files = NULL;
 		option->nb_files = 0;
 	}
-	option->working_directory = 0;
+
+	option->working_directory = NULL;
+
 	if (option->nb_excludes > 0) {
 		free(option->excludes);
-		option->excludes = 0;
+		option->excludes = NULL;
 		option->nb_excludes = 0;
 	}
+
 	if (option->nb_exclude_tags > 0) {
 		free(option->exclude_tags);
-		option->exclude_tags = 0;
+		option->exclude_tags = NULL;
 		option->nb_exclude_tags = 0;
-	}
-
-	// mtar specific option
-	if (option->nb_plugins > 0) {
-		free(option->plugins);
-		option->plugins = 0;
-		option->nb_plugins = 0;
 	}
 }
 
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	// main operation mode
-	option->do_work = 0;
+	option->do_work = NULL;
 
 	// overwrite control
-	option->verify = 0;
+	option->verify = false;
 
 	// handling of file attributes
-	option->atime_preserve = MTAR_OPTION_ATIME_NONE;
-	option->group = 0;
+	option->atime_preserve = mtar_option_atime_none;
+	option->group = NULL;
 	option->mode = 0;
-	option->owner = 0;
+	option->owner = NULL;
 
 	// device selection and switching
-	option->filename = 0;
+	option->filename = NULL;
 	option->tape_length = 0;
-	option->multi_volume = 0;
+	option->multi_volume = false;
 
 	// device blocking
 	option->block_factor = 10;
 
 	// archive format selection
 	option->format = "ustar";
-	option->label = 0;
+	option->label = NULL;
 
 	// compression options
-	option->compress_module = 0;
+	option->compress_module = NULL;
 	option->compress_level = 6;
 
 	// local file selections
-	option->files = 0;
+	option->files = NULL;
 	option->nb_files = 0;
-	option->working_directory = 0;
-	option->excludes = 0;
+	option->working_directory = NULL;
+	option->excludes = NULL;
 	option->nb_excludes = 0;
-	option->exclude_option = MTAR_EXCLUDE_OPTION_DEFAULT;
-	option->exclude_tags = 0;
+	option->exclude_option = mtar_exclude_option_default;
+	option->exclude_tags = NULL;
 	option->nb_exclude_tags = 0;
 	option->delimiter = '\n';
 
 	char * pattern_engine = "fnmatch";
-	enum mtar_pattern_option include_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_INCLUDE;
-	enum mtar_pattern_option exclude_pattern_option = MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE;
+	enum mtar_pattern_option include_pattern_option = mtar_pattern_option_default_include;
+	enum mtar_pattern_option exclude_pattern_option = mtar_pattern_option_default_exclude;
 
 	// informative output
 	option->verbose = 0;
-
-	// mtar specific option
-	option->plugins = 0;
-	option->nb_plugins = 0;
 
 	if (argc < 2) {
 		mtar_option_show_help();
@@ -216,7 +208,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'f':
-					if (option->filename) {
+					if (option->filename != NULL) {
 						mtar_verbose_printf("File is already defined (%s)\n", option->filename);
 						mtar_option_show_help();
 						return 2;
@@ -286,107 +278,105 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	enum {
-		OPT_BLOCKING_FACTOR = 'b',
-		OPT_BZIP2           = 'j',
-		OPT_CREATE          = 'c',
-		OPT_DIRECTORY       = 'C',
-		OPT_EXCLUDE_FROM    = 'X',
-		OPT_EXTRACT         = 'x',
-		OPT_FILE            = 'f',
-		OPT_FILES_FROM      = 'T',
-		OPT_FORMAT          = 'H',
-		OPT_GZIP            = 'z',
-		OPT_HELP            = '?',
-		OPT_LABEL           = 'V',
-		OPT_LIST            = 't',
-		OPT_MULTI_VOLUME    = 'M',
-		OPT_TAPE_LENGTH     = 'L',
-		OPT_VERBOSE         = 'v',
-		OPT_VERIFY          = 'W',
+		opt_blocking_factor = 'b',
+		opt_bzip2           = 'j',
+		opt_create          = 'c',
+		opt_directory       = 'C',
+		opt_exclude_from    = 'X',
+		opt_extract         = 'x',
+		opt_file            = 'f',
+		opt_files_from      = 'T',
+		opt_format          = 'H',
+		opt_gzip            = 'z',
+		opt_help            = '?',
+		opt_label           = 'V',
+		opt_list            = 't',
+		opt_multi_volume    = 'M',
+		opt_tape_length     = 'L',
+		opt_verbose         = 'v',
+		opt_verify          = 'W',
 
-		OPT_ADD_FILE = 256,
-		OPT_ANCHORED,
-		OPT_ATIME_PRESERVE,
-		OPT_COMPRESSION_LEVEL,
-		OPT_EXCLUDE,
-		OPT_EXCLUDE_BACKUPS,
-		OPT_EXCLUDE_CACHES,
-		OPT_EXCLUDE_CACHES_ALL,
-		OPT_EXCLUDE_CACHES_UNDER,
-		OPT_EXCLUDE_TAG,
-		OPT_EXCLUDE_TAG_ALL,
-		OPT_EXCLUDE_TAG_UNDER,
-		OPT_EXCLUDE_VCS,
-		OPT_FULL_VERSION,
-		OPT_FUNCTION,
-		OPT_GROUP,
-		OPT_LIST_FILTERS,
-		OPT_LIST_FORMATS,
-		OPT_LIST_FUNCTINOS,
-		OPT_LIST_IOS,
-		OPT_MODE,
-		OPT_NO_ANCHORED,
-		OPT_NO_NULL,
-		OPT_NO_RECURSION,
-		OPT_NULL,
-		OPT_OWNER,
-		OPT_PATTERN_ENGINE,
-		OPT_PLUGIN,
-		OPT_RECURSION,
-		OPT_VERSION,
+		opt_add_file = 256,
+		opt_anchored,
+		opt_atime_preserve,
+		opt_compression_level,
+		opt_exclude,
+		opt_exclude_backups,
+		opt_exclude_caches,
+		opt_exclude_caches_all,
+		opt_exclude_caches_under,
+		opt_exclude_tag,
+		opt_exclude_tag_all,
+		opt_exclude_tag_under,
+		opt_exclude_vcs,
+		opt_full_version,
+		opt_function,
+		opt_group,
+		opt_list_filters,
+		opt_list_formats,
+		opt_list_functinos,
+		opt_list_ios,
+		opt_mode,
+		opt_no_anchored,
+		opt_no_null,
+		opt_no_recursion,
+		opt_null,
+		opt_owner,
+		opt_pattern_engine,
+		opt_recursion,
+		opt_version,
 	};
 
 	static struct option long_options[] = {
-		{ "add-file",             1, 0, OPT_ADD_FILE },
-		{ "anchored",             0, 0, OPT_ANCHORED },
-		{ "atime-preserve",       2, 0, OPT_ATIME_PRESERVE },
-		{ "blocking-factor",      1, 0, OPT_BLOCKING_FACTOR },
-		{ "bzip2",                0, 0, OPT_BZIP2 },
-		{ "compression-level",    1, 0, OPT_COMPRESSION_LEVEL },
-		{ "create",               0, 0, OPT_CREATE },
-		{ "directory",            1, 0, OPT_DIRECTORY },
-		{ "exclude",              1, 0, OPT_EXCLUDE },
-		{ "exclude-backups",      0, 0, OPT_EXCLUDE_BACKUPS },
-		{ "exclude-caches",       0, 0, OPT_EXCLUDE_CACHES },
-		{ "exclude-caches-all",   0, 0, OPT_EXCLUDE_CACHES_ALL },
-		{ "exclude-caches-under", 0, 0, OPT_EXCLUDE_CACHES_UNDER },
-		{ "exclude-from",         1, 0, OPT_EXCLUDE_FROM },
-		{ "exclude-tag",          1, 0, OPT_EXCLUDE_TAG },
-		{ "exclude-tag-all",      1, 0, OPT_EXCLUDE_TAG_ALL },
-		{ "exclude-tag-under",    1, 0, OPT_EXCLUDE_TAG_UNDER },
-		{ "exclude-vcs",          0, 0, OPT_EXCLUDE_VCS },
-		{ "extract",              0, 0, OPT_EXTRACT },
-		{ "file",                 1, 0, OPT_FILE },
-		{ "files-from",           1, 0, OPT_FILES_FROM },
-		{ "format",               1, 0, OPT_FORMAT },
-		{ "full-version",         0, 0, OPT_FULL_VERSION },
-		{ "function",             1, 0, OPT_FUNCTION },
-		{ "get",                  0, 0, OPT_EXTRACT },
-		{ "group",                1, 0, OPT_GROUP },
-		{ "gunzip",               0, 0, OPT_GZIP },
-		{ "gzip",                 0, 0, OPT_GZIP },
-		{ "help",                 0, 0, OPT_HELP },
-		{ "label",                1, 0, OPT_LABEL },
-		{ "list",                 0, 0, OPT_LIST },
-		{ "list-filters",         0, 0, OPT_LIST_FILTERS },
-		{ "list-formats",         0, 0, OPT_LIST_FORMATS },
-		{ "list-functions",       0, 0, OPT_LIST_FUNCTINOS },
-		{ "list-ios",             0, 0, OPT_LIST_IOS },
-		{ "mode",                 1, 0, OPT_MODE },
-		{ "multi-volume",         0, 0, OPT_MULTI_VOLUME },
-		{ "no-anchored",          0, 0, OPT_NO_ANCHORED },
-		{ "no-null",              0, 0, OPT_NO_NULL },
-		{ "no-recursion",         0, 0, OPT_NO_RECURSION },
-		{ "null",                 0, 0, OPT_NULL },
-		{ "owner",                1, 0, OPT_OWNER },
-		{ "pattern-engine",       1, 0, OPT_PATTERN_ENGINE },
-		{ "plugin",               1, 0, OPT_PLUGIN },
-		{ "recursion",            0, 0, OPT_RECURSION },
-		{ "tape-length",          1, 0, OPT_TAPE_LENGTH },
-		{ "ungzip",               0, 0, OPT_GZIP },
-		{ "verbose",              0, 0, OPT_VERBOSE },
-		{ "verify",               0, 0, OPT_VERIFY },
-		{ "version",              0, 0, OPT_VERSION },
+		{ "add-file",             1, 0, opt_add_file },
+		{ "anchored",             0, 0, opt_anchored },
+		{ "atime-preserve",       2, 0, opt_atime_preserve },
+		{ "blocking-factor",      1, 0, opt_blocking_factor },
+		{ "bzip2",                0, 0, opt_bzip2 },
+		{ "compression-level",    1, 0, opt_compression_level },
+		{ "create",               0, 0, opt_create },
+		{ "directory",            1, 0, opt_directory },
+		{ "exclude",              1, 0, opt_exclude },
+		{ "exclude-backups",      0, 0, opt_exclude_backups },
+		{ "exclude-caches",       0, 0, opt_exclude_caches },
+		{ "exclude-caches-all",   0, 0, opt_exclude_caches_all },
+		{ "exclude-caches-under", 0, 0, opt_exclude_caches_under },
+		{ "exclude-from",         1, 0, opt_exclude_from },
+		{ "exclude-tag",          1, 0, opt_exclude_tag },
+		{ "exclude-tag-all",      1, 0, opt_exclude_tag_all },
+		{ "exclude-tag-under",    1, 0, opt_exclude_tag_under },
+		{ "exclude-vcs",          0, 0, opt_exclude_vcs },
+		{ "extract",              0, 0, opt_extract },
+		{ "file",                 1, 0, opt_file },
+		{ "files-from",           1, 0, opt_files_from },
+		{ "format",               1, 0, opt_format },
+		{ "full-version",         0, 0, opt_full_version },
+		{ "function",             1, 0, opt_function },
+		{ "get",                  0, 0, opt_extract },
+		{ "group",                1, 0, opt_group },
+		{ "gunzip",               0, 0, opt_gzip },
+		{ "gzip",                 0, 0, opt_gzip },
+		{ "help",                 0, 0, opt_help },
+		{ "label",                1, 0, opt_label },
+		{ "list",                 0, 0, opt_list },
+		{ "list-filters",         0, 0, opt_list_filters },
+		{ "list-formats",         0, 0, opt_list_formats },
+		{ "list-functions",       0, 0, opt_list_functinos },
+		{ "list-ios",             0, 0, opt_list_ios },
+		{ "mode",                 1, 0, opt_mode },
+		{ "multi-volume",         0, 0, opt_multi_volume },
+		{ "no-anchored",          0, 0, opt_no_anchored },
+		{ "no-null",              0, 0, opt_no_null },
+		{ "no-recursion",         0, 0, opt_no_recursion },
+		{ "null",                 0, 0, opt_null },
+		{ "owner",                1, 0, opt_owner },
+		{ "pattern-engine",       1, 0, opt_pattern_engine },
+		{ "recursion",            0, 0, opt_recursion },
+		{ "tape-length",          1, 0, opt_tape_length },
+		{ "ungzip",               0, 0, opt_gzip },
+		{ "verbose",              0, 0, opt_verbose },
+		{ "verify",               0, 0, opt_verify },
+		{ "version",              0, 0, opt_version },
 
 		{ 0, 0, 0, 0 },
 	};
@@ -404,84 +394,84 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			break;
 
 		switch (c) {
-			case OPT_ADD_FILE:
+			case opt_add_file:
 				option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, optarg, include_pattern_option);
 				break;
 
-			case OPT_ANCHORED:
-				exclude_pattern_option |= MTAR_PATTERN_OPTION_ANCHORED;
+			case opt_anchored:
+				exclude_pattern_option |= mtar_pattern_option_anchored;
 				break;
 
-			case OPT_ATIME_PRESERVE:
-				option->atime_preserve = MTAR_OPTION_ATIME_REPLACE;
+			case opt_atime_preserve:
+				option->atime_preserve = mtar_option_atime_replace;
 				break;
 
-			case OPT_BLOCKING_FACTOR:
+			case opt_blocking_factor:
 				option->block_factor = atoi(optarg);
 				break;
 
-			case OPT_BZIP2:
+			case opt_bzip2:
 				option->compress_module = "bzip2";
 				break;
 
-			case OPT_COMPRESSION_LEVEL:
+			case opt_compression_level:
 				option->compress_level = atoi(optarg);
 				break;
 
-			case OPT_CREATE:
+			case opt_create:
 				option->do_work = mtar_function_get("create");
 				break;
 
-			case OPT_DIRECTORY:
+			case opt_directory:
 				option->working_directory = optarg;
 				break;
 
-			case OPT_EXCLUDE:
+			case opt_exclude:
 				option->excludes = mtar_pattern_add_exclude(option->excludes, &option->nb_excludes, pattern_engine, optarg, exclude_pattern_option);
 				break;
 
-			case OPT_EXCLUDE_BACKUPS:
-				option->exclude_option |= MTAR_EXCLUDE_OPTION_BACKUP;
+			case opt_exclude_backups:
+				option->exclude_option |= mtar_exclude_option_backup;
 				break;
 
-			case OPT_EXCLUDE_CACHES:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG);
+			case opt_exclude_caches:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", mtar_pattern_tag);
 				break;
 
-			case OPT_EXCLUDE_CACHES_ALL:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG_ALL);
+			case opt_exclude_caches_all:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", mtar_pattern_tag_all);
 				break;
 
-			case OPT_EXCLUDE_CACHES_UNDER:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", MTAR_PATTERN_TAG_UNDER);
+			case opt_exclude_caches_under:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, "CACHEDIR.TAG", mtar_pattern_tag_under);
 				break;
 
-			case OPT_EXCLUDE_FROM:
+			case opt_exclude_from:
 				//option->files = mtar_file_add_from_file(argv[optind++], option->files, &option->nbFiles, option);
 				break;
 
-			case OPT_EXCLUDE_TAG:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG);
+			case opt_exclude_tag:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, mtar_pattern_tag);
 				break;
 
-			case OPT_EXCLUDE_TAG_ALL:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG_ALL);
+			case opt_exclude_tag_all:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, mtar_pattern_tag_all);
 				break;
 
-			case OPT_EXCLUDE_TAG_UNDER:
-				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, MTAR_PATTERN_TAG_UNDER);
+			case opt_exclude_tag_under:
+				option->exclude_tags = mtar_pattern_add_tag(option->exclude_tags, &option->nb_exclude_tags, optarg, mtar_pattern_tag_under);
 				break;
 
-			case OPT_EXCLUDE_VCS:
-				option->exclude_option |= MTAR_EXCLUDE_OPTION_VCS;
+			case opt_exclude_vcs:
+				option->exclude_option |= mtar_exclude_option_vcs;
 				break;
 
-			case OPT_EXTRACT:
+			case opt_extract:
 				option->do_work = mtar_function_get("extract");
 				break;
 
-			case OPT_FILE:
-				if (option->filename) {
+			case opt_file:
+				if (option->filename != NULL) {
 					mtar_verbose_printf("File is already defined (%s)\n", option->filename);
 					mtar_option_show_help();
 					return 2;
@@ -489,19 +479,19 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				option->filename = optarg;
 				break;
 
-			case OPT_FILES_FROM:
+			case opt_files_from:
 				option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, include_pattern_option, optarg, option);
 				break;
 
-			case OPT_FORMAT:
+			case opt_format:
 				option->format = optarg;
 				break;
 
-			case OPT_FULL_VERSION:
+			case opt_full_version:
 				mtar_option_show_full_version();
 				return 1;
 
-			case OPT_FUNCTION:
+			case opt_function:
 				if (!strncmp(optarg, "help=", 5)) {
 					mtar_option_show_version();
 					mtar_function_show_help(optarg + 5);
@@ -511,104 +501,98 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				}
 				break;
 
-			case OPT_GROUP:
+			case opt_group:
 				option->group = optarg;
 				break;
 
-			case OPT_GZIP:
+			case opt_gzip:
 				option->compress_module = "gzip";
 				break;
 
-			case OPT_HELP:
+			case opt_help:
 				mtar_option_show_help();
 				return 1;
 
-			case OPT_LABEL:
+			case opt_label:
 				option->label = optarg;
 				break;
 
-			case OPT_LIST:
+			case opt_list:
 				option->do_work = mtar_function_get("list");
 				break;
 
-			case OPT_LIST_FILTERS:
+			case opt_list_filters:
 				mtar_option_show_version();
 				mtar_filter_show_description();
 				return 1;
 
-			case OPT_LIST_FORMATS:
+			case opt_list_formats:
 				mtar_option_show_version();
 				mtar_format_show_description();
 				return 1;
 
-			case OPT_LIST_FUNCTINOS:
+			case opt_list_functinos:
 				mtar_option_show_version();
 				mtar_function_show_description();
 				return 1;
 
-			case OPT_LIST_IOS:
+			case opt_list_ios:
 				mtar_option_show_version();
 				mtar_io_show_description();
 				return 1;
 
-			case OPT_MODE:
+			case opt_mode:
 				sscanf(optarg, "%o", &option->mode);
 				break;
 
-			case OPT_MULTI_VOLUME:
+			case opt_multi_volume:
 				option->multi_volume = 1;
 				break;
 
-			case OPT_NO_NULL:
+			case opt_no_null:
 				option->delimiter = '\n';
 				break;
 
-			case OPT_NO_ANCHORED:
-				exclude_pattern_option &= ~MTAR_PATTERN_OPTION_ANCHORED;
+			case opt_no_anchored:
+				exclude_pattern_option &= ~mtar_pattern_option_anchored;
 				break;
 
-			case OPT_NO_RECURSION:
-				exclude_pattern_option &= ~MTAR_PATTERN_OPTION_RECURSION;
-				include_pattern_option &= ~MTAR_PATTERN_OPTION_RECURSION;
+			case opt_no_recursion:
+				exclude_pattern_option &= ~mtar_pattern_option_recursion;
+				include_pattern_option &= ~mtar_pattern_option_recursion;
 				break;
 
-			case OPT_NULL:
+			case opt_null:
 				option->delimiter = '\0';
 				break;
 
-			case OPT_OWNER:
+			case opt_owner:
 				option->owner = optarg;
 				break;
 
-			case OPT_PATTERN_ENGINE:
+			case opt_pattern_engine:
 				pattern_engine = optarg;
 				break;
 
-			case OPT_PLUGIN:
-				option->plugins = realloc(option->plugins, (option->nb_plugins + 1) * sizeof(char *));
-				option->plugins[option->nb_plugins] = optarg;
-				option->nb_plugins++;
+			case opt_recursion:
+				exclude_pattern_option |= mtar_pattern_option_recursion;
+				include_pattern_option |= mtar_pattern_option_recursion;
 				break;
 
-			case OPT_RECURSION:
-				exclude_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
-				include_pattern_option |= MTAR_PATTERN_OPTION_RECURSION;
-				break;
-
-			case OPT_TAPE_LENGTH:
+			case opt_tape_length:
 				sscanf(optarg, "%zd", &option->tape_length);
 				break;
 
-			case OPT_VERBOSE:
+			case opt_verbose:
 				if (option->verbose < 2)
 					option->verbose++;
 				break;
 
-			case OPT_VERIFY:
+			case opt_verify:
 				option->verify = 1;
 				break;
 
-			case OPT_VERSION:
+			case opt_version:
 				mtar_option_show_version();
 				return 1;
 		}
@@ -708,7 +692,6 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("--list-formats * : list available format");
 	mtar_verbose_print_help("--list-functions * : list available function");
 	mtar_verbose_print_help("--list-ios * : list available io backend");
-	mtar_verbose_print_help("--plugin PLUGIN * : load a plugin which will interact with a function");
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("Parameters marked with * do not exist into gnu tar\n");

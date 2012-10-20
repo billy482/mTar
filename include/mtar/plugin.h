@@ -27,38 +27,23 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:06:20 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PLUGIN_H__
 #define __MTAR_PLUGIN_H__
 
-// ssize_t
-#include <sys/types.h>
-
-struct mtar_option;
+#include <stdbool.h>
 
 struct mtar_plugin {
-	const char * name;
-	struct mtar_plugin_ops {
-		int (*add_file)(struct mtar_plugin * p, const char * filename);
-		int (*add_label)(struct mtar_plugin * p, const char * label);
-		int (*add_link)(struct mtar_plugin * p, const char * src, const char * target);
-		int (*end_of_file)(struct mtar_plugin * p);
-		void (*free)(struct mtar_plugin * p);
-		ssize_t (*read)(struct mtar_plugin * p, const void * data, ssize_t length);
-		ssize_t (*write)(struct mtar_plugin * p, const void * data, ssize_t length);
-	} * ops;
-	void * data;
+	unsigned int filter;
+	unsigned int format;
+	unsigned int function;
+	unsigned int io;
+	unsigned int pattern;
 };
 
-typedef struct mtar_plugin * (*mtar_plugin_f)(const struct mtar_option * option);
-
-void mtar_plugin_register(const char * name, mtar_plugin_f format);
-
-void mtar_plugin_add_file(const char * filename);
-void mtar_plugin_end_of_file(void);
-void mtar_plugin_write(const void * data, ssize_t length);
+bool mtar_plugin_check(const struct mtar_plugin * plugin);
 
 #endif
 

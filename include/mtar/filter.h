@@ -27,13 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 14:32:41 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 00:07:11 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_H__
 #define __MTAR_FILTER_H__
 
 #include "io.h"
+#include "plugin.h"
 
 /**
  * \brief Used by the driver of filter
@@ -65,12 +66,20 @@ struct mtar_filter {
 	 * This function is called by \b mtar when argument is --list-filters
 	 */
 	void (*show_description)(void);
+	/**
+	 * \brief print extented version about driver
+	 *
+	 * This function is called by \b mtar when argument is --full-version
+	 */
 	void (*show_version)(void);
 
-	int api_version;
+	/**
+	 * \brief Requirement of filter's plugin
+	 */
+	const struct mtar_plugin api_level;
 };
 
-#define MTAR_FILTER_API_VERSION MTAR_IO_API_VERSION
+#define MTAR_FILTER_API_LEVEL MTAR_IO_API_LEVEL
 
 /**
  * \brief Get an instance of filter or io based on \a option parameter

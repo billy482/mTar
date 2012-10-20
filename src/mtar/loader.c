@@ -27,13 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 18:26:59 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:19:01 +0200                           *
 \***************************************************************************/
 
 // dlclose, dlopen
 #include <dlfcn.h>
 // glob, globfree
 #include <glob.h>
+// bool
+#include <stdbool.h>
 // snprintf
 #include <stdio.h>
 // access
@@ -46,11 +48,11 @@
 
 static int mtar_loader_load_file(const char * filename);
 
-static short mtar_loader_loaded = 0;
+static bool mtar_loader_loaded = false;
 
 
 int mtar_loader_load(const char * module, const char * name) {
-	if (!module || !name)
+	if (module == NULL || name == NULL)
 		return 1;
 
 	char path[256];
@@ -82,10 +84,10 @@ int mtar_loader_load_file(const char * filename) {
 	if (access(filename, R_OK | X_OK))
 		return 2;
 
-	mtar_loader_loaded = 0;
+	mtar_loader_loaded = false;
 
 	void * cookie = dlopen(filename, RTLD_NOW);
-	if (!cookie) {
+	if (cookie != NULL) {
 		mtar_verbose_printf("Error while loading file (%s) => %s\n", filename, dlerror());
 		return 3;
 	} else if (!mtar_loader_loaded) {
@@ -97,6 +99,6 @@ int mtar_loader_load_file(const char * filename) {
 }
 
 void mtar_loader_register_ok() {
-	mtar_loader_loaded = 1;
+	mtar_loader_loaded = true;
 }
 

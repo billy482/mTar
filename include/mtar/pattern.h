@@ -27,23 +27,27 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 May 2012 22:11:00 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 10:43:05 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_H__
 #define __MTAR_PATTERN_H__
 
+// bool
+#include <stdbool.h>
 // size_t
 #include <stddef.h>
 
-#define MTAR_PATTERN_API_VERSION 1
+#include "plugin.h"
+
+#define MTAR_PATTERN_API_LEVEL 1
 
 struct mtar_option;
 
 struct mtar_pattern_exclude {
 	struct mtar_pattern_exclude_ops {
 		void (*free)(struct mtar_pattern_exclude * pattern);
-		int (*match)(struct mtar_pattern_exclude * pattern, const char * filename);
+		bool (*match)(struct mtar_pattern_exclude * pattern, const char * filename);
 	} * ops;
 	void * data;
 };
@@ -51,19 +55,19 @@ struct mtar_pattern_exclude {
 struct mtar_pattern_include {
 	struct mtar_pattern_include_ops {
 		void (*free)(struct mtar_pattern_include * pattern);
-		int (*has_next)(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+		bool (*has_next)(struct mtar_pattern_include * pattern, const struct mtar_option * option);
 		void (*next)(struct mtar_pattern_include * pattern, char ** filename);
 	} * ops;
 	void * data;
 };
 
 enum mtar_pattern_option {
-	MTAR_PATTERN_OPTION_ANCHORED    = 0x1,
-	MTAR_PATTERN_OPTION_IGNORE_CASE = 0x2,
-	MTAR_PATTERN_OPTION_RECURSION   = 0x4,
+	mtar_pattern_option_anchored    = 0x1,
+	mtar_pattern_option_ignore_case = 0x2,
+	mtar_pattern_option_recursion   = 0x4,
 
-	MTAR_PATTERN_OPTION_DEFAULT_EXCLUDE = 0x0,
-	MTAR_PATTERN_OPTION_DEFAULT_INCLUDE = MTAR_PATTERN_OPTION_RECURSION,
+	mtar_pattern_option_default_exclude = 0x0,
+	mtar_pattern_option_default_include = mtar_pattern_option_recursion,
 };
 
 struct mtar_pattern_driver {
@@ -75,12 +79,12 @@ struct mtar_pattern_driver {
 	void (*show_description)(void);
 	void (*show_version)(void);
 
-	int api_version;
+	struct mtar_plugin api_level;
 };
 
 struct mtar_pattern_exclude * mtar_pattern_get_exclude(const char * engine, const char * pattern, enum mtar_pattern_option option);
 struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * pattern, enum mtar_pattern_option option);
-int mtar_pattern_match(const struct mtar_option * option, const char * filename);
+bool mtar_pattern_match(const struct mtar_option * option, const char * filename);
 void mtar_pattern_register(struct mtar_pattern_driver * driver);
 
 #endif
