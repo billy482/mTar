@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 10:19:01 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 11:17:16 +0200                           *
 \***************************************************************************/
 
 // dlclose, dlopen
@@ -87,7 +87,7 @@ int mtar_loader_load_file(const char * filename) {
 	mtar_loader_loaded = false;
 
 	void * cookie = dlopen(filename, RTLD_NOW);
-	if (cookie != NULL) {
+	if (cookie == NULL) {
 		mtar_verbose_printf("Error while loading file (%s) => %s\n", filename, dlerror());
 		return 3;
 	} else if (!mtar_loader_loaded) {

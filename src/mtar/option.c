@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 10:39:55 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 12:51:38 +0200                           *
 \***************************************************************************/
 
 // getopt_long
@@ -183,7 +183,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-bcCfHjLMtTvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-bcCfHjJLMtTvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -225,16 +225,20 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					option->format = argv[optind++];
 					break;
 
+				case 'j':
+					option->compress_module = "bzip2";
+					break;
+
+				case 'J':
+					option->compress_module = "xz";
+					break;
+
 				case 'L':
 					option->tape_length = atol(argv[optind++]);
 					break;
 
 				case 'M':
 					option->multi_volume = 1;
-					break;
-
-				case 'j':
-					option->compress_module = "bzip2";
 					break;
 
 				case 't':
@@ -295,6 +299,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_tape_length     = 'L',
 		opt_verbose         = 'v',
 		opt_verify          = 'W',
+		opt_xz              = 'J',
 
 		opt_add_file = 256,
 		opt_anchored,
@@ -377,6 +382,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "verbose",              0, 0, opt_verbose },
 		{ "verify",               0, 0, opt_verify },
 		{ "version",              0, 0, opt_version },
+		{ "xz",                   0, 0, opt_xz },
 
 		{ 0, 0, 0, 0 },
 	};
@@ -595,6 +601,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case opt_version:
 				mtar_option_show_version();
 				return 1;
+
+			case opt_xz:
+				option->compress_module = "xz";
+				break;
 		}
 	}
 
@@ -652,6 +662,7 @@ void mtar_option_show_help() {
 
 	mtar_verbose_printf("  Compression options:\n");
 	mtar_verbose_print_help("-j, --bzip2 : filter the archive through bzip2");
+	mtar_verbose_print_help("-J, --xz : filter the archive through xz");
 	mtar_verbose_print_help("-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
 	mtar_verbose_print_help("--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
 	mtar_verbose_print_flush(4, 1);

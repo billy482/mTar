@@ -1,0 +1,9 @@
+MTAR_FILTER_XZ_SRC_DIR		:= src/module/filter/xz
+
+MTAR_FILTER_XZ_BIN			:= lib/libfilter-xz.so
+MTAR_FILTER_XZ_CFLAG		:= -fPIC -fvisibility=hidden
+MTAR_FILTER_XZ_LD			:= -shared -llzma
+
+MTAR_FILTER_XZ_CHCKSUM_FILE	:= mtar-filter-xz.chcksum
+
+BIN_SYMS					+= MTAR_FILTER_XZ

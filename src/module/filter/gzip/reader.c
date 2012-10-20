@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 25 May 2012 10:09:24 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 12:43:33 +0200                           *
 \***************************************************************************/
 
 // free, malloc
@@ -37,7 +37,7 @@
 
 #include "gzip.h"
 
-struct mtar_filter_gzip_in {
+struct mtar_filter_gzip_reader {
 	z_stream gz_stream;
 	struct mtar_io_in * io;
 	short closed;
@@ -45,32 +45,32 @@ struct mtar_filter_gzip_in {
 	char bufferIn[1024];
 };
 
-static ssize_t mtar_filter_gzip_in_block_size(struct mtar_io_in * io);
-static int mtar_filter_gzip_in_close(struct mtar_io_in * io);
-static off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset);
-static void mtar_filter_gzip_in_free(struct mtar_io_in * io);
-static int mtar_filter_gzip_in_last_errno(struct mtar_io_in * io);
-static off_t mtar_filter_gzip_in_position(struct mtar_io_in * io);
-static ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t length);
+static ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_in * io);
+static int mtar_filter_gzip_reader_close(struct mtar_io_in * io);
+static off_t mtar_filter_gzip_reader_forward(struct mtar_io_in * io, off_t offset);
+static void mtar_filter_gzip_reader_free(struct mtar_io_in * io);
+static int mtar_filter_gzip_reader_last_errno(struct mtar_io_in * io);
+static off_t mtar_filter_gzip_reader_position(struct mtar_io_in * io);
+static ssize_t mtar_filter_gzip_reader_read(struct mtar_io_in * io, void * data, ssize_t length);
 
-static struct mtar_io_in_ops mtar_filter_gzip_in_ops = {
-	.block_size = mtar_filter_gzip_in_block_size,
-	.close      = mtar_filter_gzip_in_close,
-	.forward    = mtar_filter_gzip_in_forward,
-	.free       = mtar_filter_gzip_in_free,
-	.last_errno = mtar_filter_gzip_in_last_errno,
-	.position   = mtar_filter_gzip_in_position,
-	.read       = mtar_filter_gzip_in_read,
+static struct mtar_io_in_ops mtar_filter_gzip_reader_ops = {
+	.block_size = mtar_filter_gzip_reader_block_size,
+	.close      = mtar_filter_gzip_reader_close,
+	.forward    = mtar_filter_gzip_reader_forward,
+	.free       = mtar_filter_gzip_reader_free,
+	.last_errno = mtar_filter_gzip_reader_last_errno,
+	.position   = mtar_filter_gzip_reader_position,
+	.read       = mtar_filter_gzip_reader_read,
 };
 
 
-ssize_t mtar_filter_gzip_in_block_size(struct mtar_io_in * io) {
-	struct mtar_filter_gzip_in * self = io->data;
+ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_reader * self = io->data;
 	return self->io->ops->block_size(self->io);
 }
 
-int mtar_filter_gzip_in_close(struct mtar_io_in * io) {
-	struct mtar_filter_gzip_in * self = io->data;
+int mtar_filter_gzip_reader_close(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_reader * self = io->data;
 	if (self->closed)
 		return 0;
 
@@ -83,8 +83,8 @@ int mtar_filter_gzip_in_close(struct mtar_io_in * io) {
 	return 0;
 }
 
-off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
-	struct mtar_filter_gzip_in * self = io->data;
+off_t mtar_filter_gzip_reader_forward(struct mtar_io_in * io, off_t offset) {
+	struct mtar_filter_gzip_reader * self = io->data;
 
 	unsigned char buffer[1024];
 	self->gz_stream.next_out = buffer;
@@ -119,28 +119,28 @@ off_t mtar_filter_gzip_in_forward(struct mtar_io_in * io, off_t offset) {
 	return self->gz_stream.total_out;
 }
 
-void mtar_filter_gzip_in_free(struct mtar_io_in * io) {
-	struct mtar_filter_gzip_in * self = io->data;
+void mtar_filter_gzip_reader_free(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_reader * self = io->data;
 	if (!self->closed)
-		mtar_filter_gzip_in_close(io);
+		mtar_filter_gzip_reader_close(io);
 
 	self->io->ops->free(self->io);
 	free(self);
 	free(io);
 }
 
-int mtar_filter_gzip_in_last_errno(struct mtar_io_in * io) {
-	struct mtar_filter_gzip_in * self = io->data;
+int mtar_filter_gzip_reader_last_errno(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_reader * self = io->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-off_t mtar_filter_gzip_in_position(struct mtar_io_in * io) {
-	struct mtar_filter_gzip_in * self = io->data;
+off_t mtar_filter_gzip_reader_position(struct mtar_io_in * io) {
+	struct mtar_filter_gzip_reader * self = io->data;
 	return self->gz_stream.total_out;
 }
 
-ssize_t mtar_filter_gzip_in_read(struct mtar_io_in * io, void * data, ssize_t length) {
-	struct mtar_filter_gzip_in * self = io->data;
+ssize_t mtar_filter_gzip_reader_read(struct mtar_io_in * io, void * data, ssize_t length) {
+	struct mtar_filter_gzip_reader * self = io->data;
 
 	self->gz_stream.next_out = data;
 	self->gz_stream.avail_out = length;
@@ -201,7 +201,7 @@ struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct
 	if (header.flag & gzip_flag_header_crc16)
 		io->ops->forward(io, 2);
 
-	struct mtar_filter_gzip_in * self = malloc(sizeof(struct mtar_filter_gzip_in));
+	struct mtar_filter_gzip_reader * self = malloc(sizeof(struct mtar_filter_gzip_reader));
 	self->io = io;
 	self->closed = 0;
 
@@ -223,7 +223,7 @@ struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct
 	}
 
 	struct mtar_io_in * io2 = malloc(sizeof(struct mtar_io_in));
-	io2->ops = &mtar_filter_gzip_in_ops;
+	io2->ops = &mtar_filter_gzip_reader_ops;
 	io2->data = self;
 
 	return io2;

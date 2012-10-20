@@ -27,52 +27,16 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:13:12 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 11:33:49 +0200                           *
 \***************************************************************************/
 
-// BZ2_bzlibVersion
-#include <bzlib.h>
+#ifndef __MTAR_FILTER_XZ_H__
+#define __MTAR_FILTER_XZ_H__
 
-#include <mtar-filter-bzip2.chcksum>
-#include <mtar.version>
+#include <mtar/filter.h>
 
-#include <mtar/verbose.h>
+struct mtar_io_in * mtar_filter_xz_new_in(struct mtar_io_in * io, const struct mtar_option * option);
+struct mtar_io_out * mtar_filter_xz_new_out(struct mtar_io_out * io, const struct mtar_option * option);
 
-#include "bzip2.h"
-
-static void mtar_filter_bzip2_init(void) __attribute__((constructor));
-static void mtar_filter_bzip2_show_description(void);
-static void mtar_filter_bzip2_show_version(void);
-
-static struct mtar_filter mtar_filter_bzip2 = {
-	.name             = "bzip2",
-
-	.new_in           = mtar_filter_bzip2_new_in,
-	.new_out          = mtar_filter_bzip2_new_out,
-
-	.show_description = mtar_filter_bzip2_show_description,
-	.show_version     = mtar_filter_bzip2_show_version,
-
-	.api_level        = {
-		.filter   = MTAR_FILTER_API_LEVEL,
-		.format   = 0,
-		.function = 0,
-		.io       = 0,
-		.pattern  = 0,
-	},
-};
-
-
-void mtar_filter_bzip2_init() {
-	mtar_filter_register(&mtar_filter_bzip2);
-}
-
-void mtar_filter_bzip2_show_description() {
-	mtar_verbose_print_help("bzip2 : filter from/to compressed data (using libbz2: v%s)", BZ2_bzlibVersion());
-}
-
-void mtar_filter_bzip2_show_version() {
-	mtar_verbose_printf("  bzip2: filter from/to compressed data (version: " MTAR_VERSION ") (using libbz2: v%s)\n", BZ2_bzlibVersion());
-	mtar_verbose_printf("         SHA1 of source files: " MTAR_FILTER_BZIP2_SRCSUM "\n");
-}
+#endif
 

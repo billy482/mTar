@@ -30,28 +30,28 @@
 *  Last modified: Sat, 20 Oct 2012 11:13:12 +0200                           *
 \***************************************************************************/
 
-// BZ2_bzlibVersion
-#include <bzlib.h>
+// lzma_version_string
+#include <lzma.h>
 
-#include <mtar-filter-bzip2.chcksum>
+#include <mtar-filter-xz.chcksum>
 #include <mtar.version>
 
 #include <mtar/verbose.h>
 
-#include "bzip2.h"
+#include "xz.h"
 
-static void mtar_filter_bzip2_init(void) __attribute__((constructor));
-static void mtar_filter_bzip2_show_description(void);
-static void mtar_filter_bzip2_show_version(void);
+static void mtar_filter_xz_init(void) __attribute__((constructor));
+static void mtar_filter_xz_show_description(void);
+static void mtar_filter_xz_show_version(void);
 
-static struct mtar_filter mtar_filter_bzip2 = {
-	.name             = "bzip2",
+static struct mtar_filter mtar_filter_xz = {
+	.name             = "xz",
 
-	.new_in           = mtar_filter_bzip2_new_in,
-	.new_out          = mtar_filter_bzip2_new_out,
+	.new_in           = mtar_filter_xz_new_in,
+	.new_out          = mtar_filter_xz_new_out,
 
-	.show_description = mtar_filter_bzip2_show_description,
-	.show_version     = mtar_filter_bzip2_show_version,
+	.show_description = mtar_filter_xz_show_description,
+	.show_version     = mtar_filter_xz_show_version,
 
 	.api_level        = {
 		.filter   = MTAR_FILTER_API_LEVEL,
@@ -63,16 +63,17 @@ static struct mtar_filter mtar_filter_bzip2 = {
 };
 
 
-void mtar_filter_bzip2_init() {
-	mtar_filter_register(&mtar_filter_bzip2);
+void mtar_filter_xz_init() {
+	mtar_filter_register(&mtar_filter_xz);
 }
 
-void mtar_filter_bzip2_show_description() {
-	mtar_verbose_print_help("bzip2 : filter from/to compressed data (using libbz2: v%s)", BZ2_bzlibVersion());
+void mtar_filter_xz_show_description() {
+	mtar_verbose_print_help("xz : filter from/to compressed data (using liblzma: v%s)", lzma_version_string());
 }
 
-void mtar_filter_bzip2_show_version() {
-	mtar_verbose_printf("  bzip2: filter from/to compressed data (version: " MTAR_VERSION ") (using libbz2: v%s)\n", BZ2_bzlibVersion());
-	mtar_verbose_printf("         SHA1 of source files: " MTAR_FILTER_BZIP2_SRCSUM "\n");
+void mtar_filter_xz_show_version() {
+	mtar_verbose_printf("  xz: filter from/to compressed data (version: " MTAR_VERSION ") (using liblzma: v%s)\n", lzma_version_string());
+	mtar_verbose_printf("         SHA1 of source files: " MTAR_FILTER_XZ_SRCSUM "\n");
 }
+
 
