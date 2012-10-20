@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:13:12 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:21:31 +0200                           *
 \***************************************************************************/
 
 // lzma_version_string
@@ -47,8 +47,8 @@ static void mtar_filter_xz_show_version(void);
 static struct mtar_filter mtar_filter_xz = {
 	.name             = "xz",
 
-	.new_in           = mtar_filter_xz_new_in,
-	.new_out          = mtar_filter_xz_new_out,
+	.new_reader       = mtar_filter_xz_new_reader,
+	.new_writer       = mtar_filter_xz_new_writer,
 
 	.show_description = mtar_filter_xz_show_description,
 	.show_version     = mtar_filter_xz_show_version,

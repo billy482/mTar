@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:14:17 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_BZIP2_H__
@@ -35,8 +35,8 @@
 
 #include <mtar/filter.h>
 
-struct mtar_io_in * mtar_filter_bzip2_new_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_bzip2_new_out(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_bzip2_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_io_writer * mtar_filter_bzip2_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);
 
 #endif
 

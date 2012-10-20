@@ -33,12 +33,12 @@
 #ifndef __MTAR_READLINE_H__
 #define __MTAR_READLINE_H__
 
-struct mtar_io_in;
+struct mtar_io_reader;
 struct mtar_readline;
 
 void mtar_readline_free(struct mtar_readline * rl);
 char * mtar_readline_getline(struct mtar_readline * rl);
-struct mtar_readline * mtar_readline_new(struct mtar_io_in * in, char delimiter);
+struct mtar_readline * mtar_readline_new(struct mtar_io_reader * in, char delimiter);
 
 #endif
 

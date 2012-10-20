@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:02:17 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:12:50 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -122,7 +122,7 @@ struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pa
 	if (nb_patterns == NULL || engine == NULL || filename == NULL)
 		return patterns;
 
-	struct mtar_io_in * file = mtar_filter_get_in3(filename, op);
+	struct mtar_io_reader * file = mtar_filter_get_reader3(filename, op);
 	if (file == NULL)
 		return patterns;
 
@@ -147,7 +147,7 @@ struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pa
 	if (nb_patterns == NULL || engine == NULL || filename == NULL)
 		return patterns;
 
-	struct mtar_io_in * file = mtar_filter_get_in3(filename, op);
+	struct mtar_io_reader * file = mtar_filter_get_reader3(filename, op);
 	if (file == NULL)
 		return patterns;
 

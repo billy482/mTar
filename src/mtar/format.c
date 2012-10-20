@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 19 Oct 2012 23:50:58 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:10:18 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -72,46 +72,46 @@ struct mtar_format * mtar_format_get(const char * name) {
 	return NULL;
 }
 
-struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option) {
+struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
 
-	struct mtar_io_in * io = mtar_filter_get_in(option);
+	struct mtar_io_reader * io = mtar_filter_get_reader(option);
 	if (io != NULL)
-		return mtar_format_get_in2(io, option);
+		return mtar_format_get_reader2(io, option);
 
 	return NULL;
 }
 
-struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
+struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option) {
 	if (option == NULL || io == NULL)
 		return NULL;
 
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format != NULL)
-		return format->new_in(io, option);
+		return format->new_reader(io, option);
 
 	return NULL;
 }
 
-struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option) {
+struct mtar_format_writer * mtar_format_get_writer(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
 
-	struct mtar_io_out * io = mtar_filter_get_out(option);
+	struct mtar_io_writer * io = mtar_filter_get_writer(option);
 	if (io != NULL)
-		return mtar_format_get_out2(io, option);
+		return mtar_format_get_writer2(io, option);
 
 	return NULL;
 }
 
-struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
+struct mtar_format_writer * mtar_format_get_writer2(struct mtar_io_writer * io, const struct mtar_option * option) {
 	if (option == NULL || io == NULL)
 		return NULL;
 
 	struct mtar_format * format = mtar_format_get(option->format);
 	if (format != NULL)
-		return format->new_out(io, option);
+		return format->new_writer(io, option);
 
 	return NULL;
 }

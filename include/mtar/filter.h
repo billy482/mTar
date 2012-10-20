@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 00:07:11 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:00:51 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -52,13 +52,13 @@ struct mtar_filter {
 	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_in
 	 */
-	struct mtar_io_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
+	struct mtar_io_reader * (*new_reader)(struct mtar_io_reader * io, const struct mtar_option * option);
 	/**
 	 * \brief get a new output handler
 	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_out
 	 */
-	struct mtar_io_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
+	struct mtar_io_writer * (*new_writer)(struct mtar_io_writer * io, const struct mtar_option * option);
 
 	/**
 	 * \brief print a short description about driver
@@ -86,18 +86,18 @@ struct mtar_filter {
  * \param[in] option : 
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
-struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_get_reader(const struct mtar_option * option);
 /**
  * \brief Get an instance of filter or io based on \a option parameter
  * \param[in] io
  * \param[in] option : 
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
-struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_get_reader3(const char * filename, const struct mtar_option * option);
+struct mtar_io_writer * mtar_filter_get_writer(const struct mtar_option * option);
+struct mtar_io_writer * mtar_filter_get_writer2(struct mtar_io_writer * io, const struct mtar_option * option);
+struct mtar_io_writer * mtar_filter_get_writer3(const char * filename, const struct mtar_option * option);
 
 /**
  * \brief Register a filter io

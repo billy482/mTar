@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 00:07:27 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:08:06 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -38,8 +38,8 @@
 
 #include "plugin.h"
 
-struct mtar_io_in;
-struct mtar_io_out;
+struct mtar_io_reader;
+struct mtar_io_writer;
 struct mtar_option;
 
 /**
@@ -52,8 +52,8 @@ struct mtar_option;
  *
  * An example :
  *   - An implementation of mtar_format : See code source of \ref src/module/format/ustar/ustar.c
- *   - An implementation of mtar_format_in : See code source of \ref module/format/ustar/in_ops.c
- *   - An implementation of mtar_format_out : See code source of \ref module/format/ustar/out_ops.c
+ *   - An implementation of mtar_format_reader : See code source of \ref module/format/ustar/in_ops.c
+ *   - An implementation of mtar_format_writer : See code source of \ref module/format/ustar/out_ops.c
  */
 
 /**
@@ -115,7 +115,7 @@ struct mtar_format_header {
 	char is_label;
 };
 
-enum mtar_format_in_header_status {
+enum mtar_format_reader_header_status {
 	mtar_format_header_bad_checksum,
 	mtar_format_header_bad_header,
 	mtar_format_header_end_of_tape,
@@ -124,39 +124,39 @@ enum mtar_format_in_header_status {
 	mtar_format_header_ok,
 };
 
-enum mtar_format_out_status {
-	mtar_format_out_end_of_tape,
-	mtar_format_out_error,
-	mtar_format_out_ok,
+enum mtar_format_writer_status {
+	mtar_format_writer_end_of_tape,
+	mtar_format_writer_error,
+	mtar_format_writer_ok,
 };
 
 /**
  * \brief Used for reading tar
  */
-struct mtar_format_in {
+struct mtar_format_reader {
 	/**
 	 * \brief This structure contains only functions pointers used as methods
 	 */
-	struct mtar_format_in_ops {
+	struct mtar_format_reader_ops {
 		/**
 		 * \brief Release memory
 		 * \param[in] f : a tar format
 		 */
-		void (*free)(struct mtar_format_in * f);
+		void (*free)(struct mtar_format_reader * f);
 		/**
 		 * \brief Parse the next header
 		 * \param[in] f : a tar format
 		 * \param[out] header : an already allocated header
 		 */
-		enum mtar_format_in_header_status (*get_header)(struct mtar_format_in * f, struct mtar_format_header * header);
+		enum mtar_format_reader_header_status (*get_header)(struct mtar_format_reader * f, struct mtar_format_header * header);
 		/**
 		 * \brief Retreive the latest error
 		 * \param[in] f : a tar format
 		 */
-		int (*last_errno)(struct mtar_format_in * f);
-		void (*next_volume)(struct mtar_format_in * f, struct mtar_io_in * new_volume);
-		ssize_t (*read)(struct mtar_format_in * f, void * data, ssize_t length);
-		enum mtar_format_in_header_status (*skip_file)(struct mtar_format_in * f);
+		int (*last_errno)(struct mtar_format_reader * f);
+		void (*next_volume)(struct mtar_format_reader * f, struct mtar_io_reader * new_volume);
+		ssize_t (*read)(struct mtar_format_reader * f, void * data, ssize_t length);
+		enum mtar_format_reader_header_status (*skip_file)(struct mtar_format_reader * f);
 	} * ops;
 	/**
 	 * \brief Private data used by io module
@@ -164,22 +164,22 @@ struct mtar_format_in {
 	void * data;
 };
 
-struct mtar_format_out {
-	struct mtar_format_out_ops {
-		enum mtar_format_out_status (*add_file)(struct mtar_format_out * f, const char * filename, struct mtar_format_header * header);
-		enum mtar_format_out_status (*add_label)(struct mtar_format_out * f, const char * label);
-		enum mtar_format_out_status (*add_link)(struct mtar_format_out * f, const char * src, const char * target, struct mtar_format_header * header);
-		ssize_t (*available_space)(struct mtar_format_out * io);
-		ssize_t (*block_size)(struct mtar_format_out * f);
-		int (*end_of_file)(struct mtar_format_out * f);
-		void (*free)(struct mtar_format_out * f);
-		int (*last_errno)(struct mtar_format_out * f);
-		ssize_t (*next_prefered_size)(struct mtar_format_out * f);
-		void (*new_volume)(struct mtar_format_out * f, struct mtar_io_out * file);
-		off_t (*position)(struct mtar_format_out * io);
-		struct mtar_format_in * (*reopen_for_reading)(struct mtar_format_out * f, const struct mtar_option * option);
-		int (*restart_file)(struct mtar_format_out * f, const char * filename, ssize_t position);
-		ssize_t (*write)(struct mtar_format_out * f, const void * data, ssize_t length);
+struct mtar_format_writer {
+	struct mtar_format_writer_ops {
+		enum mtar_format_writer_status (*add_file)(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * header);
+		enum mtar_format_writer_status (*add_label)(struct mtar_format_writer * f, const char * label);
+		enum mtar_format_writer_status (*add_link)(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * header);
+		ssize_t (*available_space)(struct mtar_format_writer * io);
+		ssize_t (*block_size)(struct mtar_format_writer * f);
+		int (*end_of_file)(struct mtar_format_writer * f);
+		void (*free)(struct mtar_format_writer * f);
+		int (*last_errno)(struct mtar_format_writer * f);
+		ssize_t (*next_prefered_size)(struct mtar_format_writer * f);
+		void (*new_volume)(struct mtar_format_writer * f, struct mtar_io_writer * file);
+		off_t (*position)(struct mtar_format_writer * io);
+		struct mtar_format_in * (*reopen_for_reading)(struct mtar_format_writer * f, const struct mtar_option * option);
+		int (*restart_file)(struct mtar_format_writer * f, const char * filename, ssize_t position);
+		ssize_t (*write)(struct mtar_format_writer * f, const void * data, ssize_t length);
 	} * ops;
 	void * data;
 };
@@ -187,8 +187,8 @@ struct mtar_format_out {
 struct mtar_format {
 	const char * name;
 
-	struct mtar_format_in * (*new_in)(struct mtar_io_in * io, const struct mtar_option * option);
-	struct mtar_format_out * (*new_out)(struct mtar_io_out * io, const struct mtar_option * option);
+	struct mtar_format_reader * (*new_reader)(struct mtar_io_reader * io, const struct mtar_option * option);
+	struct mtar_format_writer * (*new_writer)(struct mtar_io_writer * io, const struct mtar_option * option);
 
 	void (*show_description)(void);
 	void (*show_version)(void);
@@ -198,10 +198,10 @@ struct mtar_format {
 
 #define MTAR_FORMAT_API_LEVEL 1
 
-struct mtar_format_in * mtar_format_get_in(const struct mtar_option * option);
-struct mtar_format_in * mtar_format_get_in2(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_format_out * mtar_format_get_out(const struct mtar_option * option);
-struct mtar_format_out * mtar_format_get_out2(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option);
+struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_format_writer * mtar_format_get_writer(const struct mtar_option * option);
+struct mtar_format_writer * mtar_format_get_writer2(struct mtar_io_writer * io, const struct mtar_option * option);
 void mtar_format_free_header(struct mtar_format_header * h);
 void mtar_format_init_header(struct mtar_format_header * h);
 void mtar_format_register(struct mtar_format * format);

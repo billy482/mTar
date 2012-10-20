@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:04:39 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:13:19 +0200                           *
 \***************************************************************************/
 
 // free, malloc, realloc
@@ -39,7 +39,7 @@
 #include <mtar/readline.h>
 
 struct mtar_readline {
-	struct mtar_io_in * io;
+	struct mtar_io_reader * io;
 	char * buffer;
 	ssize_t buffer_length;
 	ssize_t buffer_used;
@@ -115,7 +115,7 @@ char * mtar_readline_getline(struct mtar_readline * rl) {
 	return NULL;
 }
 
-struct mtar_readline * mtar_readline_new(struct mtar_io_in * in, char delimiter) {
+struct mtar_readline * mtar_readline_new(struct mtar_io_reader * in, char delimiter) {
 	struct mtar_readline * rl = malloc(sizeof(struct mtar_readline));
 	rl->io = in;
 	rl->buffer = malloc(128);

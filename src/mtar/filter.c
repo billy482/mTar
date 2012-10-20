@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 19 Oct 2012 23:40:09 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:10:06 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -73,20 +73,20 @@ struct mtar_filter * mtar_filter_get(const char * module) {
 	return NULL;
 }
 
-struct mtar_io_in * mtar_filter_get_in(const struct mtar_option * option) {
+struct mtar_io_reader * mtar_filter_get_reader(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
 
-	struct mtar_io_in * io = NULL;
+	struct mtar_io_reader * io = NULL;
 	if (option->filename != NULL)
-		io = mtar_io_in_get_file(option->filename, O_RDONLY, option);
+		io = mtar_io_reader_get_file(option->filename, O_RDONLY, option);
 	else
-		io = mtar_io_in_get_fd(0, O_RDONLY, option);
+		io = mtar_io_reader_get_fd(0, O_RDONLY, option);
 
-	return mtar_filter_get_in2(io, option);
+	return mtar_filter_get_reader2(io, option);
 }
 
-struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mtar_option * option) {
+struct mtar_io_reader * mtar_filter_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option) {
 	if (io == NULL || option == NULL)
 		return NULL;
 
@@ -95,17 +95,17 @@ struct mtar_io_in * mtar_filter_get_in2(struct mtar_io_in * io, const struct mta
 		if (filter == NULL)
 			return NULL;
 
-		return filter->new_in(io, option);
+		return filter->new_reader(io, option);
 	}
 
 	return io;
 }
 
-struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar_option * option) {
+struct mtar_io_reader * mtar_filter_get_reader3(const char * filename, const struct mtar_option * option) {
 	if (filename == NULL || option == NULL)
 		return NULL;
 
-	struct mtar_io_in * io = mtar_io_in_get_file(filename, O_RDONLY, option);
+	struct mtar_io_reader * io = mtar_io_reader_get_file(filename, O_RDONLY, option);
 	const char * module = mtar_filter_get_module(filename);
 
 	if (module != NULL) {
@@ -113,7 +113,7 @@ struct mtar_io_in * mtar_filter_get_in3(const char * filename, const struct mtar
 		if (filter == NULL)
 			return 0;
 
-		return filter->new_in(io, option);
+		return filter->new_reader(io, option);
 	}
 
 	return io;
@@ -147,20 +147,20 @@ const char * mtar_filter_get_module(const char * filename) {
 	return NULL;
 }
 
-struct mtar_io_out * mtar_filter_get_out(const struct mtar_option * option) {
+struct mtar_io_writer * mtar_filter_get_writer(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
 
-	struct mtar_io_out * io = NULL;
+	struct mtar_io_writer * io = NULL;
 	if (option->filename != NULL)
-		io = mtar_io_out_get_file(option->filename, O_RDWR | O_TRUNC, option);
+		io = mtar_io_writer_get_file(option->filename, O_RDWR | O_TRUNC, option);
 	else
-		io = mtar_io_out_get_fd(1, O_RDWR, option);
+		io = mtar_io_writer_get_fd(1, O_RDWR, option);
 
-	return mtar_filter_get_out2(io, option);
+	return mtar_filter_get_writer2(io, option);
 }
 
-struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct mtar_option * option) {
+struct mtar_io_writer * mtar_filter_get_writer2(struct mtar_io_writer * io, const struct mtar_option * option) {
 	if (io == NULL || option == NULL)
 		return NULL;
 
@@ -169,17 +169,17 @@ struct mtar_io_out * mtar_filter_get_out2(struct mtar_io_out * io, const struct 
 		if (filter == NULL)
 			return NULL;
 
-		return filter->new_out(io, option);
+		return filter->new_writer(io, option);
 	}
 
 	return io;
 }
 
-struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mtar_option * option) {
+struct mtar_io_writer * mtar_filter_get_writer3(const char * filename, const struct mtar_option * option) {
 	if (filename == NULL || option == NULL)
 		return NULL;
 
-	struct mtar_io_out * io = mtar_io_out_get_file(filename, O_RDWR | O_TRUNC, option);
+	struct mtar_io_writer * io = mtar_io_writer_get_file(filename, O_RDWR | O_TRUNC, option);
 	const char * module = mtar_filter_get_module(filename);
 
 	if (module != NULL) {
@@ -187,7 +187,7 @@ struct mtar_io_out * mtar_filter_get_out3(const char * filename, const struct mt
 		if (filter == NULL)
 			return NULL;
 
-		return filter->new_out(io, option);
+		return filter->new_writer(io, option);
 	}
 
 	return io;

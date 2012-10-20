@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 20:01:05 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 13:17:56 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_GZIP_H__
@@ -72,8 +72,8 @@ struct gzip_header {
 	} os:8;
 } __attribute__((packed));
 
-struct mtar_io_in * mtar_filter_gzip_new_in(struct mtar_io_in * io, const struct mtar_option * option);
-struct mtar_io_out * mtar_filter_gzip_new_out(struct mtar_io_out * io, const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_gzip_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);
 
 #endif
 
