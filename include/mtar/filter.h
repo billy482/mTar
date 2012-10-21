@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:00:51 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 10:24:10 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -78,8 +78,6 @@ struct mtar_filter {
 	 */
 	const struct mtar_plugin api_level;
 };
-
-#define MTAR_FILTER_API_LEVEL MTAR_IO_API_LEVEL
 
 /**
  * \brief Get an instance of filter or io based on \a option parameter

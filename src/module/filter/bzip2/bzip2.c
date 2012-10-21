@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:14:42 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:52:11 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
@@ -58,6 +58,7 @@ static struct mtar_filter mtar_filter_bzip2 = {
 		.format   = 0,
 		.function = 0,
 		.io       = 0,
+		.mtar     = MTAR_API_LEVEL,
 		.pattern  = 0,
 	},
 };

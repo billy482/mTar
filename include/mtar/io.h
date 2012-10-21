@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:02:31 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 10:28:46 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -180,8 +180,6 @@ struct mtar_io {
 
 	struct mtar_plugin api_level;
 };
-
-#define MTAR_IO_API_LEVEL 1
 
 /**
  * \brief helper function

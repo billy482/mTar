@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:10:06 +0200                           *
+*  Last modified: Sat, 20 Oct 2012 15:32:30 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -135,6 +135,8 @@ const char * mtar_filter_get_module(const char * filename) {
 		{ ".gz",   "gzip" },
 		{ ".tgz",  "gzip" },
 		{ ".taz",  "gzip" },
+		{ ".xz",   "xz" },
+		{ ".txz",  "xz" },
 
 		{ 0, 0 },
 	};

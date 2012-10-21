@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 15:08:56 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:55:54 +0200                           *
 \***************************************************************************/
 
 // pcre_version
@@ -58,6 +58,7 @@ static struct mtar_pattern_driver mtar_pattern_pcre_driver = {
 		.format   = 0,
 		.function = 0,
 		.io       = 0,
+		.mtar     = MTAR_API_LEVEL,
 		.pattern  = MTAR_PATTERN_API_LEVEL,
 	},
 };

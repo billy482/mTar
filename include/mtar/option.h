@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 10:25:28 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:43:53 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -35,7 +35,7 @@
 
 // bool
 #include <stdbool.h>
-// blksize_t, mode_t
+// mode_t
 #include <sys/types.h>
 
 #include "function.h"
@@ -67,7 +67,7 @@ struct mtar_option {
 	bool multi_volume;
 
 	// device blocking
-	blksize_t block_factor;
+	size_t block_factor;
 
 	// archive format selection
 	const char * format;

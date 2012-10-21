@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:08:01 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:55:20 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-tape.chcksum>
@@ -55,6 +55,7 @@ static struct mtar_io mtar_io_tape = {
 		.format   = 0,
 		.function = 0,
 		.io       = MTAR_IO_API_LEVEL,
+		.mtar     = MTAR_API_LEVEL,
 		.pattern  = 0,
 	},
 };

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 15:25:58 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:54:35 +0200                           *
 \***************************************************************************/
 
 #include <mtar-function-list.chcksum>
@@ -61,6 +61,7 @@ static struct mtar_function mtar_function_list_functions = {
 		.format   = MTAR_FORMAT_API_LEVEL,
 		.function = MTAR_FUNCTION_API_LEVEL,
 		.io       = MTAR_IO_API_LEVEL,
+		.mtar     = MTAR_API_LEVEL,
 		.pattern  = MTAR_PATTERN_API_LEVEL,
 	},
 };

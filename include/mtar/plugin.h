@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 00:06:20 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:49:47 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PLUGIN_H__
@@ -40,10 +40,18 @@ struct mtar_plugin {
 	unsigned int format;
 	unsigned int function;
 	unsigned int io;
+	unsigned int mtar;
 	unsigned int pattern;
 };
 
 bool mtar_plugin_check(const struct mtar_plugin * plugin);
+
+#define MTAR_FILTER_API_LEVEL MTAR_IO_API_LEVEL
+#define MTAR_FORMAT_API_LEVEL 1
+#define MTAR_FUNCTION_API_LEVEL 1
+#define MTAR_IO_API_LEVEL 1
+#define MTAR_API_LEVEL 1
+#define MTAR_PATTERN_API_LEVEL 1
 
 #endif
 

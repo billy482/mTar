@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:34:31 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 10:26:41 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -195,8 +195,6 @@ struct mtar_format {
 
 	struct mtar_plugin api_level;
 };
-
-#define MTAR_FORMAT_API_LEVEL 1
 
 struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option);
 struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option);

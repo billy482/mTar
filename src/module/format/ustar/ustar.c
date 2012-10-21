@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:26:18 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:53:15 +0200                           *
 \***************************************************************************/
 
 #include <mtar-format-ustar.chcksum>
@@ -55,6 +55,7 @@ static struct mtar_format mtar_format_ustar = {
 		.format   = MTAR_FORMAT_API_LEVEL,
 		.function = 0,
 		.io       = 0,
+		.mtar     = MTAR_API_LEVEL,
 		.pattern  = 0,
 	},
 };

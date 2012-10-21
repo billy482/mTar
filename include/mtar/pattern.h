@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 10:43:05 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 10:29:59 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_H__
@@ -39,8 +39,6 @@
 #include <stddef.h>
 
 #include "plugin.h"
-
-#define MTAR_PATTERN_API_LEVEL 1
 
 struct mtar_option;
 

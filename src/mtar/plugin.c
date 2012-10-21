@@ -27,17 +27,12 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:02:50 +0200                           *
+*  Last modified: Sun, 21 Oct 2012 22:51:18 +0200                           *
 \***************************************************************************/
 
 // NULL
 #include <stddef.h>
 
-#include <mtar/filter.h>
-#include <mtar/format.h>
-#include <mtar/function.h>
-#include <mtar/io.h>
-#include <mtar/pattern.h>
 #include <mtar/plugin.h>
 
 
@@ -55,6 +50,9 @@ bool mtar_plugin_check(const struct mtar_plugin * plugin) {
 		return false;
 
 	if (plugin->io > 0 && plugin->io != MTAR_IO_API_LEVEL)
+		return false;
+
+	if (plugin->mtar > 0 && plugin->mtar != MTAR_API_LEVEL)
 		return false;
 
 	if (plugin->pattern > 0 && plugin->pattern != MTAR_PATTERN_API_LEVEL)
