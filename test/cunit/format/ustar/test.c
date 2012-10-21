@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 05 Jun 2012 10:06:46 +0200                           *
+*  Last modified: Sat, 09 Jun 2012 13:32:23 +0200                           *
 \***************************************************************************/
 
 // CU_add_suite, CU_cleanup_registry, CU_cleanup_registry
@@ -129,7 +129,7 @@ void test_format_ustar_addfile_0() {
 	CU_ASSERT_EQUAL(header.is_label, 0);
 	mtar_format_free_header(&header);
 
-	int tar_status = system("tar tf /tmp/test.tar > /dev/null");
+	int tar_status = system("tar tf /tmp/test.tar 2>&1 > /dev/null");
 	CU_ASSERT_EQUAL(tar_status, 0);
 }
 
