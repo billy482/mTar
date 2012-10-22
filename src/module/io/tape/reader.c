@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:08:42 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:17:07 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -112,18 +112,28 @@ off_t mtar_io_tape_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	}
 
 	if (offset - nb_total_read >= self->block_size) {
-		int nb_records = (offset - nb_total_read) / self->block_size;
+		long nb_records = (offset - nb_total_read) / self->block_size;
 
-		struct mtop forward = { MTFSR, nb_records };
-		int failed = ioctl(self->fd, MTIOCTOP, &forward);
+		/**
+		 * There is a limitation with scsi command 'space' used by linux driver st.
+		 * With this command block_number is specified into 3 bytes so 8388607 is the
+		 * maximum that we can forward each time.
+		 */
+		while (nb_records > 0) {
+			int next_forward = nb_records > 8388607 ? 8388607 : nb_records;
 
-		if (failed) {
-			self->last_errno = errno;
-			return failed;
+			struct mtop forward = { MTFSR, next_forward };
+			int failed = ioctl(self->fd, MTIOCTOP, &forward);
+			if (failed) {
+				self->last_errno = errno;
+				return failed;
+			}
+
+			nb_records -= next_forward;
+
+			self->position += next_forward * self->block_size;
+			nb_total_read += next_forward * self->block_size;
 		}
-
-		self->position += nb_records * self->block_size;
-		nb_total_read += nb_records * self->block_size;
 	}
 
 	if (nb_total_read == offset)
