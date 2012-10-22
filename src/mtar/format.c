@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:39:42 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:33:47 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -158,7 +158,13 @@ void mtar_format_register(struct mtar_format * f) {
 		if (mtar_format_formats[i] == f || !strcmp(f->name, mtar_format_formats[i]->name))
 			return;
 
-	mtar_format_formats = realloc(mtar_format_formats, (mtar_format_nb_formats + 1) * (sizeof(struct mtar_format *)));
+	void * new_addr = realloc(mtar_format_formats, (mtar_format_nb_formats + 1) * (sizeof(struct mtar_format *)));
+	if (new_addr == NULL) {
+		mtar_verbose_printf("Failed to register '%s'", f->name);
+		return;
+	}
+
+	mtar_format_formats = new_addr;
 	mtar_format_formats[mtar_format_nb_formats] = f;
 	mtar_format_nb_formats++;
 

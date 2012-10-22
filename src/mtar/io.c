@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:02:18 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:35:38 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -163,12 +163,22 @@ void mtar_io_register(struct mtar_io * io) {
 	if (io == NULL || !mtar_plugin_check(&io->api_level))
 		return;
 
+	/**
+	 * check if module has been preciously loaded
+	 * or another module has the same name
+	 */
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)
 		if (!strcmp(io->name, mtar_io_ios[i]->name))
 			return;
 
-	mtar_io_ios = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
+	void * new_addr = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
+	if (new_addr == NULL) {
+		mtar_verbose_printf("Failed to register '%s'", io->name);
+		return;
+	}
+
+	mtar_io_ios = new_addr;
 	mtar_io_ios[mtar_io_nbIos] = io;
 	mtar_io_nbIos++;
 

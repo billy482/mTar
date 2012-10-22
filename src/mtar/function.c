@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:51:59 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:34:43 +0200                           *
 \***************************************************************************/
 
 // free, realloc
@@ -72,12 +72,22 @@ void mtar_function_register(struct mtar_function * f) {
 	if (f == NULL || !mtar_plugin_check(&f->api_level))
 		return;
 
+	/**
+	 * check if module has been preciously loaded
+	 * or another module has the same name
+	 */
 	unsigned int i;
 	for (i = 0; i < mtar_function_nb_functions; i++)
 		if (!strcmp(f->name, mtar_function_functions[i]->name))
 			return;
 
-	mtar_function_functions = realloc(mtar_function_functions, (mtar_function_nb_functions + 1) * sizeof(struct mtar_function *));
+	void * new_addr = realloc(mtar_function_functions, (mtar_function_nb_functions + 1) * sizeof(struct mtar_function *));
+	if (new_addr == NULL) {
+		mtar_verbose_printf("Failed to register '%s'", f->name);
+		return;
+	}
+
+	mtar_function_functions = new_addr;
 	mtar_function_functions[mtar_function_nb_functions] = f;
 	mtar_function_nb_functions++;
 

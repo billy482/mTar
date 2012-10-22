@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 15:32:30 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:32:11 +0200                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -199,12 +199,22 @@ void mtar_filter_register(struct mtar_filter * filter) {
 	if (filter == NULL || !mtar_plugin_check(&filter->api_level))
 		return;
 
+	/**
+	 * check if module has been preciously loaded
+	 * or another module has the same name
+	 */
 	unsigned int i;
 	for (i = 0; i < mtar_filter_nb_filters; i++)
 		if (!strcmp(filter->name, mtar_filter_filters[i]->name))
 			return;
 
-	mtar_filter_filters = realloc(mtar_filter_filters, (mtar_filter_nb_filters + 1) * sizeof(struct mtar_filter *));
+	void * new_addr = realloc(mtar_filter_filters, (mtar_filter_nb_filters + 1) * sizeof(struct mtar_filter *));
+	if (new_addr == NULL) {
+		mtar_verbose_printf("Failed to register '%s'", filter->name);
+		return;
+	}
+
+	mtar_filter_filters = new_addr;
 	mtar_filter_filters[mtar_filter_nb_filters] = filter;
 	mtar_filter_nb_filters++;
 

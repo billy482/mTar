@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:15:19 +0200                           *
+*  Last modified: Mon, 22 Oct 2012 22:36:23 +0200                           *
 \***************************************************************************/
 
 // versionsort
@@ -521,12 +521,22 @@ void mtar_pattern_register(struct mtar_pattern_driver * driver) {
 	if (driver == NULL || !mtar_plugin_check(&driver->api_level))
 		return;
 
+	/**
+	 * check if module has been preciously loaded
+	 * or another module has the same name
+	 */
 	unsigned int i;
 	for (i = 0; i < mtar_pattern_nb_drivers; i++)
 		if (!strcmp(driver->name, mtar_pattern_drivers[i]->name))
 			return;
 
-	mtar_pattern_drivers = realloc(mtar_pattern_drivers, (mtar_pattern_nb_drivers + 1) * sizeof(struct mtar_pattern_driver *));
+	void * new_addr = realloc(mtar_pattern_drivers, (mtar_pattern_nb_drivers + 1) * sizeof(struct mtar_pattern_driver *));
+	if (new_addr == NULL) {
+		mtar_verbose_printf("Failed to register '%s'", driver->name);
+		return;
+	}
+
+	mtar_pattern_drivers = new_addr;
 	mtar_pattern_drivers[mtar_pattern_nb_drivers] = driver;
 	mtar_pattern_nb_drivers++;
 
