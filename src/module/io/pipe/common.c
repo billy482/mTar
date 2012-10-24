@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:38:31 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:57:13 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -49,7 +49,8 @@ ssize_t mtar_io_pipe_common_block_size(struct mtar_io_pipe * self) {
 		return self->block_size;
 
 	struct stat st;
-	fstat(self->fd, &st);
+	if (fstat(self->fd, &st))
+		return -1;
 
 	return self->block_size = st.st_blksize;
 }

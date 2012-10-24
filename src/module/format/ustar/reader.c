@@ -27,9 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:32:40 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 21:57:41 +0200                           *
 \***************************************************************************/
 
+// bool
+#include <stdbool.h>
 // sscanf, snprintf
 #include <stdio.h>
 // free, malloc, realloc
@@ -55,7 +57,7 @@ struct mtar_format_ustar_reader {
 };
 
 
-static int mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header);
+static bool mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header);
 static dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header);
 static gid_t mtar_format_ustar_reader_convert_gid(struct mtar_format_ustar * header);
 static ssize_t mtar_format_ustar_reader_convert_size(const char * size);
@@ -78,7 +80,7 @@ static struct mtar_format_reader_ops mtar_format_ustar_reader_ops = {
 };
 
 
-int mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header) {
+static bool mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header) {
 	char checksum[8];
 	strncpy(checksum, header->checksum, 8);
 	memset(header->checksum, ' ', 8);
@@ -89,10 +91,10 @@ int mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header) {
 		sum += ptr[i];
 	snprintf(header->checksum, 7, "%06o", sum);
 
-	return strncmp(checksum, header->checksum, 8);
+	return !strncmp(checksum, header->checksum, 8);
 }
 
-dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header) {
+static dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header) {
 	unsigned int major = 0, minor = 0;
 
 	sscanf(header->devmajor, "%o", &major);
@@ -101,19 +103,20 @@ dev_t mtar_format_ustar_reader_convert_dev(struct mtar_format_ustar * header) {
 	return (major << 8 ) | minor;
 }
 
-gid_t mtar_format_ustar_reader_convert_gid(struct mtar_format_ustar * header) {
+static gid_t mtar_format_ustar_reader_convert_gid(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->gid, "%o", &result);
 	return result;
 }
 
-ssize_t mtar_format_ustar_reader_convert_size(const char * size) {
-	if (size[0] == (char) 0x80) {
+static ssize_t mtar_format_ustar_reader_convert_size(const char * size) {
+	const unsigned char * usize = (const unsigned char *) size;
+	if (usize[0] == 0x80) {
 		short i;
 		ssize_t result = 0;
 		for (i = 1; i < 12; i++) {
 			result <<= 8;
-			result |= (unsigned) size[i];
+			result |= size[i];
 		}
 		return result;
 	} else {
@@ -121,36 +124,34 @@ ssize_t mtar_format_ustar_reader_convert_size(const char * size) {
 		sscanf(size, "%llo", &result);
 		return result;
 	}
-	return 0;
 }
 
-time_t mtar_format_ustar_reader_convert_time(struct mtar_format_ustar * header) {
+static time_t mtar_format_ustar_reader_convert_time(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->mtime, "%o", &result);
 	return result;
 }
 
-uid_t mtar_format_ustar_reader_convert_uid(struct mtar_format_ustar * header) {
+static uid_t mtar_format_ustar_reader_convert_uid(struct mtar_format_ustar * header) {
 	unsigned int result;
 	sscanf(header->uid, "%o", &result);
 	return result;
 }
 
-void mtar_format_ustar_reader_free(struct mtar_format_reader * f) {
+static void mtar_format_ustar_reader_free(struct mtar_format_reader * f) {
 	struct mtar_format_ustar_reader * self = f->data;
 
 	if (self->io)
 		self->io->ops->free(self->io);
 
-	if (self->buffer)
-		free(self->buffer);
-	self->buffer = 0;
+	free(self->buffer);
+	self->buffer = NULL;
 
 	free(f->data);
 	free(f);
 }
 
-enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header) {
+static enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header) {
 	struct mtar_format_ustar_reader * self = f->data;
 
 	ssize_t nb_read = self->io->ops->read(self->io, self->buffer, 512);
@@ -164,7 +165,7 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct
 	if (raw_header->filename[0] == '\0')
 		return mtar_format_header_not_found;
 
-	if (mtar_format_ustar_reader_check_header(raw_header))
+	if (!mtar_format_ustar_reader_check_header(raw_header))
 		return mtar_format_header_bad_checksum;
 
 	mtar_format_init_header(header);
@@ -192,7 +193,7 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct
 					mtar_format_free_header(header);
 					return mtar_format_header_bad_header;
 				}
-				if (mtar_format_ustar_reader_check_header(raw_header)) {
+				if (!mtar_format_ustar_reader_check_header(raw_header)) {
 					mtar_format_free_header(header);
 					return mtar_format_header_bad_checksum;
 				}
@@ -218,7 +219,7 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct
 					mtar_format_free_header(header);
 					return mtar_format_header_bad_header;
 				}
-				if (mtar_format_ustar_reader_check_header(raw_header)) {
+				if (!mtar_format_ustar_reader_check_header(raw_header)) {
 					mtar_format_free_header(header);
 					return mtar_format_header_bad_checksum;
 				}
@@ -251,7 +252,7 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct
 				break;
 		}
 
-		if (!header->path) {
+		if (header->path == NULL) {
 			if (strlen(raw_header->filename) > 100) {
 				header->path = malloc(101);
 				strncpy(header->path, raw_header->filename, 100);
@@ -307,22 +308,28 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header(struct
 	return mtar_format_header_ok;
 }
 
-int mtar_format_ustar_reader_last_errno(struct mtar_format_reader * f) {
+static int mtar_format_ustar_reader_last_errno(struct mtar_format_reader * f) {
 	struct mtar_format_ustar_reader * self = f->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-void mtar_format_ustar_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
+static void mtar_format_ustar_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
 	struct mtar_format_ustar_reader * self = f->data;
 
-	if (self->io)
+	if (self->io != NULL)
 		self->io->ops->free(self->io);
 
 	self->io = next_volume;
 }
 
-ssize_t mtar_format_ustar_reader_read(struct mtar_format_reader * f, void * data, ssize_t length) {
+static ssize_t mtar_format_ustar_reader_read(struct mtar_format_reader * f, void * data, ssize_t length) {
+	if (f == NULL || data == NULL)
+		return -1;
+
 	struct mtar_format_ustar_reader * self = f->data;
+
+	if (self->file_size == 0)
+		return 0;
 
 	if (length > self->file_size)
 		length = self->file_size;
@@ -340,7 +347,7 @@ ssize_t mtar_format_ustar_reader_read(struct mtar_format_reader * f, void * data
 	return nb_read;
 }
 
-enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(struct mtar_format_reader * f) {
+static enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(struct mtar_format_reader * f) {
 	struct mtar_format_ustar_reader * self = f->data;
 
 	if (self->skip_size == 0)
@@ -364,7 +371,7 @@ enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(struct 
 
 struct mtar_format_reader * mtar_format_ustar_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
 	if (!io)
-		return 0;
+		return NULL;
 
 	struct mtar_format_ustar_reader * self = malloc(sizeof(struct mtar_format_ustar_reader));
 	self->io = io;

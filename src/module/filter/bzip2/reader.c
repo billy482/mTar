@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:20:10 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 09:19:48 +0200                           *
 \***************************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -36,6 +36,8 @@
 #include <stdbool.h>
 // free, malloc
 #include <stdlib.h>
+// bzero
+#include <strings.h>
 
 #include <mtar/verbose.h>
 
@@ -68,12 +70,12 @@ static struct mtar_io_reader_ops mtar_filter_bzip2_reader_ops = {
 };
 
 
-ssize_t mtar_filter_bzip2_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_filter_bzip2_reader_block_size(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	return self->io->ops->block_size(self->io);
 }
 
-int mtar_filter_bzip2_reader_close(struct mtar_io_reader * io) {
+static int mtar_filter_bzip2_reader_close(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	if (self->closed)
 		return 0;
@@ -87,8 +89,10 @@ int mtar_filter_bzip2_reader_close(struct mtar_io_reader * io) {
 	return 0;
 }
 
-off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_filter_bzip2_reader * self = io->data;
+	if (self->closed)
+		return self->strm.total_out_lo32;
 
 	char buffer[1024];
 	self->strm.next_out = buffer;
@@ -100,6 +104,7 @@ off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset)
 			int err = BZ2_bzDecompress(&self->strm);
 			if (err == BZ_STREAM_END)
 				return self->strm.total_out_lo32;
+
 			if (self->strm.avail_out == 0) {
 				unsigned int tOffset = end_pos - self->strm.total_out_lo32;
 				if (tOffset == 0)
@@ -123,7 +128,7 @@ off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset)
 	return self->strm.total_out_lo32;
 }
 
-void mtar_filter_bzip2_reader_free(struct mtar_io_reader * io) {
+static void mtar_filter_bzip2_reader_free(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	if (!self->closed)
 		mtar_filter_bzip2_reader_close(io);
@@ -133,18 +138,21 @@ void mtar_filter_bzip2_reader_free(struct mtar_io_reader * io) {
 	free(io);
 }
 
-int mtar_filter_bzip2_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_filter_bzip2_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-off_t mtar_filter_bzip2_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_filter_bzip2_reader_position(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	return self->strm.total_out_lo32;
 }
 
-ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_filter_bzip2_reader * self = io->data;
+
+	if (self->closed)
+		return -1;
 
 	self->strm.next_out = data;
 	self->strm.avail_out = length;
@@ -177,14 +185,7 @@ struct mtar_io_reader * mtar_filter_bzip2_new_reader(struct mtar_io_reader * io,
 	self->closed = false;
 
 	// init data
-	self->strm.bzalloc = 0;
-	self->strm.bzfree = 0;
-	self->strm.opaque = 0;
-	self->strm.next_in = 0;
-	self->strm.avail_in = 0;
-	self->strm.total_in_lo32 = 0;
-	self->strm.total_in_hi32 = 0;
-
+	bzero(&self->strm, sizeof(self->strm));
 	BZ2_bzDecompressInit(&self->strm, 0, 0);
 
 	struct mtar_io_reader * io2 = malloc(sizeof(struct mtar_io_reader));

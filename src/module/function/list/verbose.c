@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 13:36:42 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:48:11 +0200                           *
 \***************************************************************************/
 
 // localtime_r, strftime
@@ -54,11 +54,11 @@ void mtar_function_list_configure(const struct mtar_option * option) {
 		mtar_function_list_display = mtar_function_list_display2;
 }
 
-void mtar_function_list_display1(struct mtar_format_header * header) {
+static void mtar_function_list_display1(struct mtar_format_header * header) {
 	mtar_verbose_printf("%s\n", header->path);
 }
 
-void mtar_function_list_display2(struct mtar_format_header * header) {
+static void mtar_function_list_display2(struct mtar_format_header * header) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 

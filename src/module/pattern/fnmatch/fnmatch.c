@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:55:37 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 21:17:46 +0200                           *
 \***************************************************************************/
 
 #include <mtar-pattern-fnmatch.chcksum>
@@ -61,15 +61,15 @@ static struct mtar_pattern_driver mtar_pattern_fnmatch_driver = {
 };
 
 
-void mtar_pattern_fnmatch_init() {
+static void mtar_pattern_fnmatch_init() {
 	mtar_pattern_register(&mtar_pattern_fnmatch_driver);
 }
 
-void mtar_pattern_fnmatch_show_description() {
+static void mtar_pattern_fnmatch_show_description() {
 	mtar_verbose_print_help("fnmatch : fnmatch based pattern matching");
 }
 
-void mtar_pattern_fnmatch_show_version() {
+static void mtar_pattern_fnmatch_show_version() {
 	mtar_verbose_printf("  fnmatch: fnmatch based pattern matching (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("           SHA1 of source files: " MTAR_PATTERN_FNMATCH_SRCSUM "\n");
 }

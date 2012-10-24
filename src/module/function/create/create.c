@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:53:31 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:42:46 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -107,10 +107,10 @@ static struct mtar_function mtar_function_create_functions = {
 };
 
 
-int mtar_function_create(const struct mtar_option * option) {
+static int mtar_function_create(const struct mtar_option * option) {
 	mtar_function_create_configure(option);
 
-	char * filename = 0;
+	char * filename = NULL;
 	struct mtar_hashtable * inode = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
 	struct mtar_format_writer * tar_writer = mtar_format_get_writer(option);
@@ -134,12 +134,12 @@ int mtar_function_create(const struct mtar_option * option) {
 	int failed = 0;
 	enum mtar_format_writer_status status;
 
-	if (option->working_directory && chdir(option->working_directory)) {
+	if (option->working_directory != NULL && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
 		failed = 1;
 	}
 
-	if (!failed && option->label) {
+	if (!failed && option->label != NULL) {
 		mtar_function_create_display_label(option->label);
 		status = tar_writer->ops->add_label(tar_writer, option->label);
 
@@ -440,7 +440,7 @@ int mtar_function_create(const struct mtar_option * option) {
 	return failed;
 }
 
-int mtar_function_create_change_volume(struct mtar_function_create_param * param) {
+static int mtar_function_create_change_volume(struct mtar_function_create_param * param) {
 	mtar_function_create_clean();
 
 	char * last_filename = param->files[param->nb_files - 1];
@@ -500,7 +500,7 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 						int status;
 						waitpid(pid, &status, 0);
 					} else if (pid == 0) {
-						int failed = execl("/bin/bash", "bash", (const char *) 0);
+						int failed = execl("/bin/bash", "bash", (const char *) NULL);
 						_exit(failed);
 					} else {
 						mtar_verbose_printf("Failed to spawn shell because %m\n");
@@ -523,11 +523,11 @@ int mtar_function_create_change_volume(struct mtar_function_create_param * param
 	return 1;
 }
 
-void mtar_function_create_init() {
+static void mtar_function_create_init() {
 	mtar_function_register(&mtar_function_create_functions);
 }
 
-int mtar_function_create_select_volume(struct mtar_function_create_param * param) {
+static int mtar_function_create_select_volume(struct mtar_function_create_param * param) {
 	mtar_function_create_clean();
 
 	char * selected_filename = param->files[param->i_files];
@@ -589,7 +589,7 @@ int mtar_function_create_select_volume(struct mtar_function_create_param * param
 						int status;
 						waitpid(pid, &status, 0);
 					} else if (pid == 0) {
-						int failed = execl("/bin/bash", "bash", (const char *) 0);
+						int failed = execl("/bin/bash", "bash", (const char *) NULL);
 						_exit(failed);
 					} else {
 						mtar_verbose_printf("Failed to spawn shell because %m\n");
@@ -612,11 +612,11 @@ int mtar_function_create_select_volume(struct mtar_function_create_param * param
 	return 1;
 }
 
-void mtar_function_create_show_description() {
+static void mtar_function_create_show_description() {
 	mtar_verbose_print_help("create : Create new archive");
 }
 
-void mtar_function_create_show_help() {
+static void mtar_function_create_show_help() {
 	mtar_verbose_printf("  Create new archive\n");
 	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
 	mtar_verbose_print_help("--atime-preserve : preserve access times on dumped files");
@@ -633,7 +633,7 @@ void mtar_function_create_show_help() {
 	mtar_verbose_print_flush(4, 0);
 }
 
-void mtar_function_create_show_version() {
+static void mtar_function_create_show_version() {
 	mtar_verbose_printf("  create: create new archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("          SHA1 of source files: " MTAR_FUNCTION_CREATE_SRCSUM "\n");
 }

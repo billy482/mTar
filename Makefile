@@ -38,8 +38,8 @@ endif
 
 
 # compilation flags
-CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR})
-LDFLAGS		:=
+CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR}) -pthread
+LDFLAGS		:= -pthread
 
 CSCOPE_OPT	:= -b -R -s src -U -I include
 CTAGS_OPT	:= -R src
@@ -117,11 +117,11 @@ $$($(1)_BUILD_DIR)/%.o: $$($(1)_SRC_DIR)/%.c
 	@echo " CC       $$@"
 	@${CC} -c $${CFLAGS} $$($(1)_CFLAG) -Wp,-MD,$$($(1)_DEPEND_DIR)/$$*.d,-MT,$$@ -o $$@ $$<
 
-TEST_BINS	+= $$($(1)_BIN) $$($(1)_LIB)
-SRC_FILES	+= $$($(1)_SRC_FILES)
-HEAD_FILES	+= $$($(1)_HEAD_FILES)
-DEP_FILES	+= $$($(1)_DEP_FILES)
-OBJ_FILES	+= $$($(1)_OBJ_FILES)
+TEST_BINS		+= $$($(1)_BIN) $$($(1)_LIB)
+TEST_SRC_FILES	+= $$($(1)_SRC_FILES)
+TEST_HEAD_FILES	+= $$($(1)_HEAD_FILES)
+DEP_FILES		+= $$($(1)_DEP_FILES)
+OBJ_FILES		+= $$($(1)_OBJ_FILES)
 endef
 
 $(foreach prog,${TEST_BIN_SYMS},$(eval $(call TEST_template,${prog})))

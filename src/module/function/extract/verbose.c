@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 20 May 2012 13:37:25 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:46:31 +0200                           *
 \***************************************************************************/
 
 // gettimeofday
@@ -74,13 +74,13 @@ void mtar_function_extract_configure(const struct mtar_option * option) {
 	}
 }
 
-void mtar_function_extract_display1(struct mtar_format_header * header __attribute__((unused))) {}
+static void mtar_function_extract_display1(struct mtar_format_header * header __attribute__((unused))) {}
 
-void mtar_function_extract_display2(struct mtar_format_header * header) {
+static void mtar_function_extract_display2(struct mtar_format_header * header) {
 	mtar_verbose_printf("%s\n", header->path);
 }
 
-void mtar_function_extract_display3(struct mtar_format_header * header) {
+static void mtar_function_extract_display3(struct mtar_format_header * header) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 
@@ -124,9 +124,9 @@ void mtar_function_extract_display3(struct mtar_format_header * header) {
 	}
 }
 
-void mtar_function_extract_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
+static void mtar_function_extract_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
 
-void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
+static void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
 	static struct timeval last = {0, 0};
 

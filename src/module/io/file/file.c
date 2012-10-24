@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:54:55 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:49:01 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-file.chcksum>
@@ -61,15 +61,15 @@ static struct mtar_io mtar_io_file = {
 };
 
 
-void mtar_io_file_init() {
+static void mtar_io_file_init() {
 	mtar_io_register(&mtar_io_file);
 }
 
-void mtar_io_file_show_description() {
+static void mtar_io_file_show_description() {
 	mtar_verbose_print_help("file : used for regular file");
 }
 
-void mtar_io_file_version() {
+static void mtar_io_file_version() {
 	mtar_verbose_printf("  file: used for regular file (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("        SHA1 of source files: " MTAR_IO_FILE_SRCSUM "\n");
 }

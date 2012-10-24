@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:39:05 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:57:38 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -58,15 +58,15 @@ static struct mtar_io_reader_ops mtar_io_pipe_reader_ops = {
 };
 
 
-ssize_t mtar_io_pipe_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_io_pipe_reader_block_size(struct mtar_io_reader * io) {
 	return mtar_io_pipe_common_block_size(io->data);
 }
 
-int mtar_io_pipe_reader_close(struct mtar_io_reader * io) {
+static int mtar_io_pipe_reader_close(struct mtar_io_reader * io) {
 	return mtar_io_pipe_common_close(io->data);
 }
 
-off_t mtar_io_pipe_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_io_pipe_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	char buffer[4096];
 
 	while (offset > 0) {
@@ -88,24 +88,24 @@ off_t mtar_io_pipe_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	return self->position;
 }
 
-void mtar_io_pipe_reader_free(struct mtar_io_reader * io) {
+static void mtar_io_pipe_reader_free(struct mtar_io_reader * io) {
 	mtar_io_pipe_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_pipe_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_io_pipe_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->last_errno;
 }
 
-off_t mtar_io_pipe_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_io_pipe_reader_position(struct mtar_io_reader * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->position;
 }
 
-ssize_t mtar_io_pipe_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_io_pipe_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_io_pipe * self = io->data;
 
 	ssize_t nb_read = read(self->fd, data, length);

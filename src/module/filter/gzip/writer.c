@@ -27,9 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 12:43:24 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 21:16:29 +0200                           *
 \***************************************************************************/
 
+// bool
+#include <stdbool.h>
 // free, malloc
 #include <stdlib.h>
 // time
@@ -47,7 +49,7 @@ struct mtar_filter_gzip_writer {
 
 	struct mtar_io_writer * io;
 	uLong crc32;
-	short closed;
+	bool closed;
 
 	char * buffer;
 	ssize_t buffer_size;
@@ -57,7 +59,7 @@ struct mtar_filter_gzip_writer {
 static ssize_t mtar_filter_gzip_writer_available_space(struct mtar_io_writer * io);
 static ssize_t mtar_filter_gzip_writer_block_size(struct mtar_io_writer * io);
 static int mtar_filter_gzip_writer_close(struct mtar_io_writer * io);
-static int mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * io);
+static bool mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * io);
 static int mtar_filter_gzip_writer_flush(struct mtar_io_writer * io);
 static void mtar_filter_gzip_writer_free(struct mtar_io_writer * io);
 static int mtar_filter_gzip_writer_last_errno(struct mtar_io_writer * io);
@@ -80,18 +82,18 @@ static struct mtar_io_writer_ops mtar_filter_gzip_writer_ops = {
 };
 
 
-ssize_t mtar_filter_gzip_writer_available_space(struct mtar_io_writer * io) {
+static ssize_t mtar_filter_gzip_writer_available_space(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	ssize_t available = self->io->ops->available_space(self->io);
-	return available > self->block_size ? available : 0;
+	return available > self->block_size || available < 0 ? available : 0;
 }
 
-ssize_t mtar_filter_gzip_writer_block_size(struct mtar_io_writer * io) {
+static ssize_t mtar_filter_gzip_writer_block_size(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	return self->block_size;
 }
 
-int mtar_filter_gzip_writer_close(struct mtar_io_writer * io) {
+static int mtar_filter_gzip_writer_close(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	if (self->closed)
 		return 0;
@@ -102,7 +104,7 @@ int mtar_filter_gzip_writer_close(struct mtar_io_writer * io) {
 	return self->io->ops->close(self->io);
 }
 
-int mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * self) {
+static bool mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * self) {
 	self->gz_stream.next_in = 0;
 	self->gz_stream.avail_in = 0;
 
@@ -113,8 +115,8 @@ int mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * self) {
 		self->gz_stream.total_out = 0;
 
 		err = deflate(&self->gz_stream, Z_FINISH);
-		if (err >= 0)
-			self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
+		if (err < 0 || self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out) < 0)
+			return true;
 	} while (err == Z_OK);
 
 	self->io->ops->write(self->io, &self->crc32, 4);
@@ -122,29 +124,32 @@ int mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * self) {
 	self->io->ops->write(self->io, &length, 4);
 
 	deflateEnd(&self->gz_stream);
-	self->closed = 1;
+	self->closed = true;
 
-	return err < 0;
+	return false;
 }
 
-int mtar_filter_gzip_writer_flush(struct mtar_io_writer * io) {
+static int mtar_filter_gzip_writer_flush(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 
 	self->gz_stream.next_in = 0;
 	self->gz_stream.avail_in = 0;
 
-	self->gz_stream.next_out = (unsigned char *) self->buffer;
-	self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
-	self->gz_stream.total_out = 0;
+	int ok;
+	do {
+		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
+		self->gz_stream.total_out = 0;
 
-	deflate(&self->gz_stream, Z_FULL_FLUSH);
-
-	self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
+		ok = deflate(&self->gz_stream, Z_FULL_FLUSH);
+		if (ok < 0 || self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out) < 0)
+			return 1;
+	} while (ok > 0);
 
 	return self->io->ops->flush(self->io);
 }
 
-void mtar_filter_gzip_writer_free(struct mtar_io_writer * io) {
+static void mtar_filter_gzip_writer_free(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	if (!self->closed)
 		mtar_filter_gzip_writer_close(io);
@@ -155,42 +160,38 @@ void mtar_filter_gzip_writer_free(struct mtar_io_writer * io) {
 	free(io);
 }
 
-int mtar_filter_gzip_writer_last_errno(struct mtar_io_writer * io) {
+static int mtar_filter_gzip_writer_last_errno(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-ssize_t mtar_filter_gzip_writer_next_prefered_size(struct mtar_io_writer * io) {
+static ssize_t mtar_filter_gzip_writer_next_prefered_size(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	ssize_t next = self->io->ops->next_prefered_size(self->io);
-	if (next < self->block_size) {
-		ssize_t available = self->io->ops->available_space(self->io);
-		if (available < self->block_size)
-			return 0;
-	}
+	if (next < self->block_size && self->io->ops->available_space(self->io) < self->block_size)
+		return 0;
 	return self->block_size;
 }
 
-off_t mtar_filter_gzip_writer_position(struct mtar_io_writer * io) {
+static off_t mtar_filter_gzip_writer_position(struct mtar_io_writer * io) {
 	struct mtar_filter_gzip_writer * self = io->data;
 	return self->gz_stream.total_in;
 }
 
-struct mtar_io_reader * mtar_filter_gzip_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
+static struct mtar_io_reader * mtar_filter_gzip_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
 	struct mtar_filter_gzip_writer * self = io->data;
-	if (self->closed)
-		return 0;
 
-	if (mtar_filter_gzip_writer_finish(self))
-		return 0;
+	if (self->closed || mtar_filter_gzip_writer_finish(self))
+		return NULL;
 
 	struct mtar_io_reader * in = self->io->ops->reopen_for_reading(self->io, option);
-	if (in)
+	if (in != NULL)
 		return mtar_filter_gzip_new_reader(in, option);
-	return 0;
+
+	return NULL;
 }
 
-ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
+static ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
 	struct mtar_filter_gzip_writer * self = io->data;
 
 	self->gz_stream.next_in = (unsigned char *) data;
@@ -204,8 +205,8 @@ ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const void * d
 		self->gz_stream.total_out = 0;
 
 		int err = deflate(&self->gz_stream, Z_NO_FLUSH);
-		if (err >= 0 && self->gz_stream.total_out > 0)
-			self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out);
+		if (err >= 0 && self->gz_stream.total_out > 0 && self->io->ops->write(self->io, self->buffer, self->gz_stream.total_out) < 0)
+			return -1;
 	}
 
 	return length;

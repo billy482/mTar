@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:54:35 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:47:06 +0200                           *
 \***************************************************************************/
 
 #include <mtar-function-list.chcksum>
@@ -67,9 +67,9 @@ static struct mtar_function mtar_function_list_functions = {
 };
 
 
-int mtar_function_list(const struct mtar_option * option) {
+static int mtar_function_list(const struct mtar_option * option) {
 	struct mtar_format_reader * format = mtar_format_get_reader(option);
-	if (!format)
+	if (format != NULL)
 		return 1;
 
 	mtar_function_list_configure(option);
@@ -122,15 +122,15 @@ int mtar_function_list(const struct mtar_option * option) {
 	return 0;
 }
 
-void mtar_function_list_init() {
+static void mtar_function_list_init() {
 	mtar_function_register(&mtar_function_list_functions);
 }
 
-void mtar_function_list_show_description() {
+static void mtar_function_list_show_description() {
 	mtar_verbose_print_help("list : List files from tar archive");
 }
 
-void mtar_function_list_show_help() {
+static void mtar_function_list_show_help() {
 	mtar_verbose_printf("  List files from tar archive\n");
 	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
@@ -139,7 +139,7 @@ void mtar_function_list_show_help() {
 	mtar_verbose_printf("    -v, --verbose       : verbosely list files processed\n");
 }
 
-void mtar_function_list_show_version() {
+static void mtar_function_list_show_version() {
 	mtar_verbose_printf("  list: List files from tar archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("        SHA1 of source files: " MTAR_FUNCTION_LIST_SRCSUM "\n");
 }

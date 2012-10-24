@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 22 Oct 2012 22:17:07 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 23:05:51 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -76,12 +76,12 @@ static struct mtar_io_reader_ops mtar_io_tape_reader_ops = {
 };
 
 
-ssize_t mtar_io_tape_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_io_tape_reader_block_size(struct mtar_io_reader * io) {
 	struct mtar_io_tape_reader * self = io->data;
 	return self->block_size;
 }
 
-int mtar_io_tape_reader_close(struct mtar_io_reader * io) {
+static int mtar_io_tape_reader_close(struct mtar_io_reader * io) {
 	struct mtar_io_tape_reader * self = io->data;
 
 	if (self->fd < 0)
@@ -97,7 +97,7 @@ int mtar_io_tape_reader_close(struct mtar_io_reader * io) {
 	return failed;
 }
 
-off_t mtar_io_tape_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_io_tape_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_io_tape_reader * self = io->data;
 
 	ssize_t nb_total_read = self->block_size - (self->buffer_pos - self->buffer);
@@ -152,7 +152,7 @@ off_t mtar_io_tape_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	return self->position;
 }
 
-void mtar_io_tape_reader_free(struct mtar_io_reader * io) {
+static void mtar_io_tape_reader_free(struct mtar_io_reader * io) {
 	mtar_io_tape_reader_close(io);
 
 	struct mtar_io_tape_reader * self = io->data;
@@ -162,17 +162,17 @@ void mtar_io_tape_reader_free(struct mtar_io_reader * io) {
 	free(io);
 }
 
-int mtar_io_tape_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_io_tape_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_io_tape_reader * self = io->data;
 	return self->last_errno;
 }
 
-off_t mtar_io_tape_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_io_tape_reader_position(struct mtar_io_reader * io) {
 	struct mtar_io_tape_reader * self = io->data;
 	return self->position;
 }
 
-ssize_t mtar_io_tape_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_io_tape_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_io_tape_reader * self = io->data;
 
 	ssize_t nb_total_read = self->block_size - (self->buffer_pos - self->buffer);

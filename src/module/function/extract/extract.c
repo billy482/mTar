@@ -76,14 +76,14 @@ static struct mtar_function mtar_function_extract_functions = {
 };
 
 
-int mtar_function_extract(const struct mtar_option * option) {
+static int mtar_function_extract(const struct mtar_option * option) {
 	struct mtar_format_reader * format = mtar_format_get_reader(option);
-	if (!format)
+	if (format == NULL)
 		return 1;
 
 	mtar_function_extract_configure(option);
 
-	if (option->working_directory && chdir(option->working_directory)) {
+	if (option->working_directory != NULL && chdir(option->working_directory)) {
 		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
 		return 1;
 	}
@@ -165,15 +165,15 @@ int mtar_function_extract(const struct mtar_option * option) {
 	return 0;
 }
 
-void mtar_function_extract_init() {
+static void mtar_function_extract_init() {
 	mtar_function_register(&mtar_function_extract_functions);
 }
 
-void mtar_function_extract_show_description() {
+static void mtar_function_extract_show_description() {
 	mtar_verbose_print_help("extract : Extract files from tar archive");
 }
 
-void mtar_function_extract_show_help() {
+static void mtar_function_extract_show_help() {
 	mtar_verbose_printf("  List files from tar archive\n");
 	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
@@ -183,7 +183,7 @@ void mtar_function_extract_show_help() {
 	mtar_verbose_printf("    -v, --verbose       : verbosely extract files processed\n");
 }
 
-void mtar_function_extract_show_version() {
+static void mtar_function_extract_show_version() {
 	mtar_verbose_printf("  extract: Extract files from tar archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("           SHA1 of source files: " MTAR_FUNCTION_EXTRACT_SRCSUM "\n");
 }

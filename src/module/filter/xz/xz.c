@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:52:53 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 09:32:43 +0200                           *
 \***************************************************************************/
 
 // lzma_version_string
@@ -64,15 +64,15 @@ static struct mtar_filter mtar_filter_xz = {
 };
 
 
-void mtar_filter_xz_init() {
+static void mtar_filter_xz_init() {
 	mtar_filter_register(&mtar_filter_xz);
 }
 
-void mtar_filter_xz_show_description() {
+static void mtar_filter_xz_show_description() {
 	mtar_verbose_print_help("xz : filter from/to compressed data (using liblzma: v%s)", lzma_version_string());
 }
 
-void mtar_filter_xz_show_version() {
+static void mtar_filter_xz_show_version() {
 	mtar_verbose_printf("  xz: filter from/to compressed data (version: " MTAR_VERSION ") (using liblzma: v%s)\n", lzma_version_string());
 	mtar_verbose_printf("         SHA1 of source files: " MTAR_FILTER_XZ_SRCSUM "\n");
 }

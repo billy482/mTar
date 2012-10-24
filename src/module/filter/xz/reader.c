@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:21:57 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 09:33:26 +0200                           *
 \***************************************************************************/
 
 // lzma_code, lzma_end, lzma_stream_decoder
@@ -70,12 +70,12 @@ static struct mtar_io_reader_ops mtar_filter_xz_reader_ops = {
 };
 
 
-ssize_t mtar_filter_xz_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_filter_xz_reader_block_size(struct mtar_io_reader * io) {
 	struct mtar_filter_xz_reader * self = io->data;
 	return self->io->ops->block_size(self->io);
 }
 
-int mtar_filter_xz_reader_close(struct mtar_io_reader * io) {
+static int mtar_filter_xz_reader_close(struct mtar_io_reader * io) {
 	struct mtar_filter_xz_reader * self = io->data;
 	if (self->closed)
 		return 0;
@@ -89,8 +89,10 @@ int mtar_filter_xz_reader_close(struct mtar_io_reader * io) {
 	return 0;
 }
 
-off_t mtar_filter_xz_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_filter_xz_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_filter_xz_reader * self = io->data;
+	if (self->closed)
+		return self->strm.total_out;
 
 	uint8_t buffer[1024];
 	self->strm.next_out = buffer;
@@ -102,6 +104,7 @@ off_t mtar_filter_xz_reader_forward(struct mtar_io_reader * io, off_t offset) {
 			lzma_ret err = lzma_code(&self->strm, LZMA_RUN);
 			if (err == LZMA_STREAM_END)
 				return self->strm.total_out;
+
 			if (self->strm.avail_out == 0) {
 				uint64_t tOffset = end_pos - self->strm.total_out;
 				if (tOffset == 0)
@@ -125,7 +128,7 @@ off_t mtar_filter_xz_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	return self->strm.total_out;
 }
 
-void mtar_filter_xz_reader_free(struct mtar_io_reader * io) {
+static void mtar_filter_xz_reader_free(struct mtar_io_reader * io) {
 	struct mtar_filter_xz_reader * self = io->data;
 	if (!self->closed)
 		mtar_filter_xz_reader_close(io);
@@ -135,18 +138,21 @@ void mtar_filter_xz_reader_free(struct mtar_io_reader * io) {
 	free(io);
 }
 
-int mtar_filter_xz_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_filter_xz_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_filter_xz_reader * self = io->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-off_t mtar_filter_xz_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_filter_xz_reader_position(struct mtar_io_reader * io) {
 	struct mtar_filter_xz_reader * self = io->data;
 	return self->strm.total_out;
 }
 
-ssize_t mtar_filter_xz_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_filter_xz_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_filter_xz_reader * self = io->data;
+
+	if (self->closed)
+		return -1;
 
 	self->strm.next_out = data;
 	self->strm.avail_out = length;

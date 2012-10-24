@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 26 May 2012 20:10:18 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:44:31 +0200                           *
 \***************************************************************************/
 
 // strcat, strcpy
@@ -67,9 +67,9 @@ static struct timeval middle = { 0, 0 };
 static double current_diff = 0;
 
 
-void mtar_function_create_clean1() {}
+static void mtar_function_create_clean1() {}
 
-void mtar_function_create_clean2() {
+static void mtar_function_create_clean2() {
 	gettimeofday(&middle, 0);
 
 	double diff = difftime(middle.tv_sec, begin.tv_sec) + difftime(middle.tv_usec, begin.tv_usec) / 1000000;
@@ -103,15 +103,15 @@ void mtar_function_create_configure(const struct mtar_option * option) {
 	}
 }
 
-void mtar_function_create_display1(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify __attribute__((unused))) {}
+static void mtar_function_create_display1(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify __attribute__((unused))) {}
 
-void mtar_function_create_display2(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify) {
+static void mtar_function_create_display2(struct mtar_format_header * header __attribute__((unused)), const char * hardlink __attribute__((unused)), int verify) {
 	if (verify)
 		mtar_verbose_printf("Verify ");
 	mtar_verbose_printf("%s\n", header->path);
 }
 
-void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink, int verify) {
+static void mtar_function_create_display3(struct mtar_format_header * header, const char * hardlink, int verify) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 
@@ -147,13 +147,13 @@ void mtar_function_create_display3(struct mtar_format_header * header, const cha
 	nsize = size2 - size1;
 }
 
-void mtar_function_create_display_label1(const char * label __attribute__((unused))) {}
+static void mtar_function_create_display_label1(const char * label __attribute__((unused))) {}
 
-void mtar_function_create_display_label2(const char * label) {
+static void mtar_function_create_display_label2(const char * label) {
 	mtar_verbose_printf("%s\n", label);
 }
 
-void mtar_function_create_display_label3(const char * label) {
+static void mtar_function_create_display_label3(const char * label) {
 	char mode[11];
 	strcpy(mode, "V---------");
 
@@ -168,9 +168,9 @@ void mtar_function_create_display_label3(const char * label) {
 	mtar_verbose_printf("%s %s %s\n", mode, mtime, label);
 }
 
-void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
+static void mtar_function_create_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
 
-void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
+static void mtar_function_create_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
 	static const char * current_file = 0;
 
 	if (current_file != filename) {

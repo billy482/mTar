@@ -27,9 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:18:42 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 10:34:58 +0200                           *
 \***************************************************************************/
 
+// bool
+#include <stdbool.h>
 // free, malloc
 #include <stdlib.h>
 // inflate, inflateEnd, inflateInit2
@@ -40,9 +42,9 @@
 struct mtar_filter_gzip_reader {
 	z_stream gz_stream;
 	struct mtar_io_reader * io;
-	short closed;
+	bool closed;
 
-	char bufferIn[1024];
+	unsigned char bufferIn[1024];
 };
 
 static ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_reader * io);
@@ -64,12 +66,12 @@ static struct mtar_io_reader_ops mtar_filter_gzip_reader_ops = {
 };
 
 
-ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_reader * io) {
 	struct mtar_filter_gzip_reader * self = io->data;
 	return self->io->ops->block_size(self->io);
 }
 
-int mtar_filter_gzip_reader_close(struct mtar_io_reader * io) {
+static int mtar_filter_gzip_reader_close(struct mtar_io_reader * io) {
 	struct mtar_filter_gzip_reader * self = io->data;
 	if (self->closed)
 		return 0;
@@ -79,12 +81,14 @@ int mtar_filter_gzip_reader_close(struct mtar_io_reader * io) {
 		return failed;
 
 	inflateEnd(&self->gz_stream);
-	self->closed = 1;
+	self->closed = true;
 	return 0;
 }
 
-off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_filter_gzip_reader * self = io->data;
+	if (self->closed)
+		return self->gz_stream.total_out;
 
 	unsigned char buffer[1024];
 	self->gz_stream.next_out = buffer;
@@ -96,6 +100,7 @@ off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t offset) 
 			int err = inflate(&self->gz_stream, Z_SYNC_FLUSH);
 			if (err == Z_STREAM_END)
 				return self->gz_stream.total_out;
+
 			if (self->gz_stream.avail_out == 0) {
 				uLong tOffset = end_pos - self->gz_stream.total_out;
 				if (tOffset == 0)
@@ -107,7 +112,7 @@ off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t offset) 
 
 		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
 		if (nb_read > 0) {
-			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
+			self->gz_stream.next_in = self->bufferIn;
 			self->gz_stream.avail_in += nb_read;
 		} else if (nb_read == 0) {
 			return self->gz_stream.total_out;
@@ -119,7 +124,7 @@ off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t offset) 
 	return self->gz_stream.total_out;
 }
 
-void mtar_filter_gzip_reader_free(struct mtar_io_reader * io) {
+static void mtar_filter_gzip_reader_free(struct mtar_io_reader * io) {
 	struct mtar_filter_gzip_reader * self = io->data;
 	if (!self->closed)
 		mtar_filter_gzip_reader_close(io);
@@ -129,18 +134,21 @@ void mtar_filter_gzip_reader_free(struct mtar_io_reader * io) {
 	free(io);
 }
 
-int mtar_filter_gzip_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_filter_gzip_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_filter_gzip_reader * self = io->data;
 	return self->io->ops->last_errno(self->io);
 }
 
-off_t mtar_filter_gzip_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_filter_gzip_reader_position(struct mtar_io_reader * io) {
 	struct mtar_filter_gzip_reader * self = io->data;
 	return self->gz_stream.total_out;
 }
 
-ssize_t mtar_filter_gzip_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_filter_gzip_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_filter_gzip_reader * self = io->data;
+
+	if (self->closed)
+		return -1;
 
 	self->gz_stream.next_out = data;
 	self->gz_stream.avail_out = length;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 15:06:50 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 21:24:48 +0200                           *
 \***************************************************************************/
 
 // pcre_compile, pcre_exec, pcre_free
@@ -50,8 +50,8 @@ static struct mtar_pattern_exclude_ops mtar_pattern_pcre_exclude_ops = {
 };
 
 
-void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex) {
-	if (!ex)
+static void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex) {
+	if (ex == NULL)
 		return;
 
 	struct mtar_pattern_pcre_exclude * self = ex->data;
@@ -60,7 +60,7 @@ void mtar_pattern_pcre_exclude_free(struct mtar_pattern_exclude * ex) {
 	free(ex);
 }
 
-bool mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
+static bool mtar_pattern_pcre_exclude_match(struct mtar_pattern_exclude * ex, const char * filename) {
 	struct mtar_pattern_pcre_exclude * self = ex->data;
 	int cap[2];
 	return pcre_exec(self->pattern, 0, filename, strlen(filename), 0, 0, cap, 2) > 0;

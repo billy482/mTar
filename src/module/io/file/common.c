@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 19 May 2012 12:31:38 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:49:50 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -49,7 +49,8 @@ ssize_t mtar_io_file_common_block_size(struct mtar_io_file * self) {
 		return self->block_size;
 
 	struct stat st;
-	fstat(self->fd, &st);
+	if (fstat(self->fd, &st))
+		return -1;
 
 	return self->block_size = st.st_blksize << 8;
 }
@@ -59,7 +60,6 @@ int mtar_io_file_common_close(struct mtar_io_file * self) {
 		return 0;
 
 	int failed = close(self->fd);
-
 	if (failed)
 		self->last_errno = errno;
 	else

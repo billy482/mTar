@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:55:54 +0200                           *
+*  Last modified: Wed, 24 Oct 2012 21:23:58 +0200                           *
 \***************************************************************************/
 
 // pcre_version
@@ -64,15 +64,15 @@ static struct mtar_pattern_driver mtar_pattern_pcre_driver = {
 };
 
 
-void mtar_pattern_pcre_init() {
+static void mtar_pattern_pcre_init() {
 	mtar_pattern_register(&mtar_pattern_pcre_driver);
 }
 
-void mtar_pattern_pcre_show_description() {
+static void mtar_pattern_pcre_show_description() {
 	mtar_verbose_print_help("pcre : pcre powered based pattern matching (using libpcre: v%s)\n", pcre_version());
 }
 
-void mtar_pattern_pcre_show_version() {
+static void mtar_pattern_pcre_show_version() {
 	mtar_verbose_printf("  pcre: pcre powered based pattern matching (version: " MTAR_VERSION ") (using libpcre: v%s)\n", pcre_version());
 	mtar_verbose_printf("        SHA1 of source files: " MTAR_PATTERN_PCRE_SRCSUM "\n");
 }

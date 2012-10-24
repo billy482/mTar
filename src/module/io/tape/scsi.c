@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:10:06 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 23:05:25 +0200                           *
 \***************************************************************************/
 
 // be*toh, htobe*
@@ -89,7 +89,7 @@ static struct mtar_io_tape_scsi_device {
 } * mtar_io_tape_scsi_devices = NULL;
 static unsigned int mtar_io_tape_scsi_nb_devices = 0;
 
-void mtar_io_tape_scsi_init() {
+static void mtar_io_tape_scsi_init() {
 	glob_t gl = { .gl_offs = 0 };
 	glob("/sys/class/scsi_device/*/device/scsi_tape", GLOB_DOOFFS, 0, &gl);
 
@@ -132,7 +132,7 @@ void mtar_io_tape_scsi_init() {
 	globfree(&gl);
 }
 
-int mtar_io_tape_scsi_open(int fd) {
+static int mtar_io_tape_scsi_open(int fd) {
 	struct stat st;
 	int failed = fstat(fd, &st);
 	if (failed)

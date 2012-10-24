@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:01:10 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:51:59 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -61,15 +61,15 @@ static struct mtar_io_reader_ops mtar_io_file_reader_ops = {
 };
 
 
-ssize_t mtar_io_file_reader_block_size(struct mtar_io_reader * io) {
+static ssize_t mtar_io_file_reader_block_size(struct mtar_io_reader * io) {
 	return mtar_io_file_common_block_size(io->data);
 }
 
-int mtar_io_file_reader_close(struct mtar_io_reader * io) {
+static int mtar_io_file_reader_close(struct mtar_io_reader * io) {
 	return mtar_io_file_common_close(io->data);
 }
 
-off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
+static off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_io_file * self = io->data;
 
 	if (self->position + offset > self->volume_size && self->volume_size > 0)
@@ -78,31 +78,30 @@ off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	off_t ok = lseek(self->fd, offset, SEEK_CUR);
 	if (ok == (off_t) -1)
 		self->last_errno = errno;
-
-	if (ok >= 0)
+	else if (ok >= 0)
 		self->position = ok;
 
 	return ok;
 }
 
-void mtar_io_file_reader_free(struct mtar_io_reader * io) {
+static void mtar_io_file_reader_free(struct mtar_io_reader * io) {
 	mtar_io_file_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_file_reader_last_errno(struct mtar_io_reader * io) {
+static int mtar_io_file_reader_last_errno(struct mtar_io_reader * io) {
 	struct mtar_io_file * self = io->data;
 	return self->last_errno;
 }
 
-off_t mtar_io_file_reader_position(struct mtar_io_reader * io) {
+static off_t mtar_io_file_reader_position(struct mtar_io_reader * io) {
 	struct mtar_io_file * self = io->data;
 	return self->position;
 }
 
-ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
+static ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
 	struct mtar_io_file * self = io->data;
 
 	ssize_t nb_read = read(self->fd, data, length);

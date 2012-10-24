@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:08:58 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 23:15:17 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -83,17 +83,17 @@ static struct mtar_io_writer_ops mtar_io_tape_writer_ops = {
 };
 
 
-ssize_t mtar_io_tape_writer_available_space(struct mtar_io_writer * io) {
+static ssize_t mtar_io_tape_writer_available_space(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	return self->total_free_space ? self->total_free_space - self->position : -1 ;
 }
 
-ssize_t mtar_io_tape_writer_block_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_tape_writer_block_size(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	return self->buffer_size;
 }
 
-int mtar_io_tape_writer_close(struct mtar_io_writer * io) {
+static int mtar_io_tape_writer_close(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 
 	if (self->buffer_used > 0) {
@@ -119,13 +119,13 @@ int mtar_io_tape_writer_close(struct mtar_io_writer * io) {
 	return failed;
 }
 
-int mtar_io_tape_writer_flush(struct mtar_io_writer * io) {
+static int mtar_io_tape_writer_flush(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	self->last_errno = 0;
 	return 0;
 }
 
-void mtar_io_tape_writer_free(struct mtar_io_writer * io) {
+static void mtar_io_tape_writer_free(struct mtar_io_writer * io) {
 	mtar_io_tape_writer_close(io);
 
 	struct mtar_io_tape_writer * self = io->data;
@@ -135,22 +135,22 @@ void mtar_io_tape_writer_free(struct mtar_io_writer * io) {
 	free(io);
 }
 
-int mtar_io_tape_writer_last_errno(struct mtar_io_writer * io) {
+static int mtar_io_tape_writer_last_errno(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	return self->last_errno;
 }
 
-ssize_t mtar_io_tape_writer_next_prefered_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_tape_writer_next_prefered_size(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	return self->buffer_size - self->buffer_used;
 }
 
-off_t mtar_io_tape_writer_position(struct mtar_io_writer * io) {
+static off_t mtar_io_tape_writer_position(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
 	return self->position;
 }
 
-struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
+static struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
 	struct mtar_io_tape_writer * self = io->data;
 
 	if (self->fd < 0)
@@ -190,13 +190,13 @@ struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mtar_io_wr
 		return 0;
 
 	struct mtar_io_reader * in = mtar_io_tape_new_reader(self->fd, 0, option);
-	if (in)
+	if (in != NULL)
 		self->fd = -1;
 
 	return in;
 }
 
-ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
+static ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
 	struct mtar_io_tape_writer * self = io->data;
 
 	if (length < 1)

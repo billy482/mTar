@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:36:06 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:07:47 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -115,7 +115,7 @@ static struct mtar_format_writer_ops mtar_format_ustar_writer_ops = {
 
 struct mtar_format_writer * mtar_format_ustar_new_writer(struct mtar_io_writer * io, const struct mtar_option * option) {
 	if (!io)
-		return 0;
+		return NULL;
 
 	struct mtar_format_ustar_writer * data = malloc(sizeof(struct mtar_format_ustar_writer));
 	data->io = io;
@@ -123,7 +123,7 @@ struct mtar_format_writer * mtar_format_ustar_new_writer(struct mtar_io_writer *
 	data->size = 0;
 
 	// multi volume
-	data->remain_header = 0;
+	data->remain_header = NULL;
 	data->remain_size = 0;
 
 	// handling of file attributes
@@ -138,7 +138,7 @@ struct mtar_format_writer * mtar_format_ustar_new_writer(struct mtar_io_writer *
 	return self;
 }
 
-enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * h_writer) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * h_writer) {
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
@@ -230,8 +230,8 @@ enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_for
 	return mtar_format_ustar_writer_write_header(format, header, block_size);
 }
 
-enum mtar_format_writer_status mtar_format_ustar_writer_add_label(struct mtar_format_writer * f, const char * label) {
-	if (!label) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_label(struct mtar_format_writer * f, const char * label) {
+	if (label == NULL) {
 		mtar_verbose_printf("Label should be defined\n");
 		return mtar_format_writer_error;
 	}
@@ -251,9 +251,9 @@ enum mtar_format_writer_status mtar_format_ustar_writer_add_label(struct mtar_fo
 	return mtar_format_ustar_writer_write_header(format, header, 512);
 }
 
-enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * h_writer) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * h_writer) {
 	struct stat sfile;
-	if (stat(src, &sfile)) {
+	if (lstat(src, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", src);
 		return mtar_format_writer_error;
 	}
@@ -283,12 +283,12 @@ enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_for
 	return mtar_format_ustar_writer_write_header(format, header, block_size);
 }
 
-ssize_t mtar_format_ustar_writer_available_space(struct mtar_format_writer * f) {
+static ssize_t mtar_format_ustar_writer_available_space(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * format = f->data;
 	return format->io->ops->available_space(format->io);
 }
 
-void mtar_format_ustar_writer_copy(struct mtar_format_ustar_writer * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile) {
+static void mtar_format_ustar_writer_copy(struct mtar_format_ustar_writer * format, struct mtar_format_header * h_to, struct mtar_format_ustar * h_from, struct stat * sfile) {
 	mtar_format_init_header(h_to);
 
 	if (h_from->flag == 'K' || h_from->flag == 'L') {
@@ -319,7 +319,7 @@ void mtar_format_ustar_writer_copy(struct mtar_format_ustar_writer * format, str
 	h_to->mode = sfile->st_mode;
 	h_to->mtime = sfile->st_mtime;
 
-	if (format->owner) {
+	if (format->owner != NULL) {
 		h_to->uid = mtar_file_user2uid(format->owner);
 		strcpy(h_to->uname, format->owner);
 	} else {
@@ -327,7 +327,7 @@ void mtar_format_ustar_writer_copy(struct mtar_format_ustar_writer * format, str
 		strcpy(h_to->uname, h_from->uname);
 	}
 
-	if (format->group) {
+	if (format->group != NULL) {
 		h_to->gid = mtar_file_group2gid(format->group);
 		strcpy(h_to->gname, format->group);
 	} else {
@@ -338,12 +338,12 @@ void mtar_format_ustar_writer_copy(struct mtar_format_ustar_writer * format, str
 	h_to->is_label = (h_from->flag == 'V');
 }
 
-ssize_t mtar_format_ustar_writer_block_size(struct mtar_format_writer * f) {
+static ssize_t mtar_format_ustar_writer_block_size(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * format = f->data;
 	return format->io->ops->block_size(format->io);
 }
 
-void mtar_format_ustar_writer_compute_checksum(const void * header, char * checksum) {
+static void mtar_format_ustar_writer_compute_checksum(const void * header, char * checksum) {
 	const unsigned char * ptr = header;
 
 	memset(checksum, ' ', 8);
@@ -355,7 +355,7 @@ void mtar_format_ustar_writer_compute_checksum(const void * header, char * check
 	snprintf(checksum, 7, "%06o", sum);
 }
 
-void mtar_format_ustar_writer_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile) {
+static void mtar_format_ustar_writer_compute_link(struct mtar_format_ustar * header, char * link, const char * filename, ssize_t filename_length, char flag, struct stat * sfile) {
 	strcpy(header->filename, "././@LongLink");
 	memset(header->filemode, '0', 7);
 	memset(header->uid, '0', 7);
@@ -372,7 +372,7 @@ void mtar_format_ustar_writer_compute_link(struct mtar_format_ustar * header, ch
 	strcpy(link, filename);
 }
 
-void mtar_format_ustar_writer_compute_size(char * csize, unsigned long long size) {
+static void mtar_format_ustar_writer_compute_size(char * csize, unsigned long long size) {
 	if (size > 077777777777) {
 		*csize = (char) 0x80;
 		unsigned int i;
@@ -385,7 +385,7 @@ void mtar_format_ustar_writer_compute_size(char * csize, unsigned long long size
 	}
 }
 
-int mtar_format_ustar_writer_end_of_file(struct mtar_format_writer * f) {
+static int mtar_format_ustar_writer_end_of_file(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * format = f->data;
 
 	unsigned short mod = format->position % 512;
@@ -402,36 +402,35 @@ int mtar_format_ustar_writer_end_of_file(struct mtar_format_writer * f) {
 	return 0;
 }
 
-void mtar_format_ustar_writer_free(struct mtar_format_writer * f) {
+static void mtar_format_ustar_writer_free(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * self = f->data;
 
-	if (self->io) {
+	if (self->io != NULL) {
 		self->io->ops->close(self->io);
 		self->io->ops->free(self->io);
 	}
 
-	if (self->remain_header)
-		free(self->remain_header);
-	self->remain_header = 0;
+	free(self->remain_header);
+	self->remain_header = NULL;
 
 	free(f->data);
 	free(f);
 }
 
-int mtar_format_ustar_writer_last_errno(struct mtar_format_writer * f) {
+static int mtar_format_ustar_writer_last_errno(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * format = f->data;
 	return format->io->ops->last_errno(format->io);
 }
 
-ssize_t mtar_format_ustar_writer_next_prefered_size(struct mtar_format_writer * f) {
+static ssize_t mtar_format_ustar_writer_next_prefered_size(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * format = f->data;
 	return format->io->ops->next_prefered_size(format->io);
 }
 
-void mtar_format_ustar_writer_new_volume(struct mtar_format_writer * f, struct mtar_io_writer * file) {
+static void mtar_format_ustar_writer_new_volume(struct mtar_format_writer * f, struct mtar_io_writer * file) {
 	struct mtar_format_ustar_writer * self = f->data;
 
-	if (self->io) {
+	if (self->io != NULL) {
 		self->io->ops->close(self->io);
 		self->io->ops->free(self->io);
 	}
@@ -439,22 +438,22 @@ void mtar_format_ustar_writer_new_volume(struct mtar_format_writer * f, struct m
 	self->io = file;
 }
 
-off_t mtar_format_ustar_writer_position(struct mtar_format_writer * f) {
+static off_t mtar_format_ustar_writer_position(struct mtar_format_writer * f) {
 	struct mtar_format_ustar_writer * self = f->data;
 	return self->position;
 }
 
-struct mtar_format_reader * mtar_format_ustar_writer_reopen_for_reading(struct mtar_format_writer * f, const struct mtar_option * option) {
+static struct mtar_format_reader * mtar_format_ustar_writer_reopen_for_reading(struct mtar_format_writer * f, const struct mtar_option * option) {
 	struct mtar_format_ustar_writer * format = f->data;
 	struct mtar_io_reader * in = format->io->ops->reopen_for_reading(format->io, option);
 
-	if (in)
+	if (in != NULL)
 		return mtar_format_ustar_new_reader(in, option);
 
 	return 0;
 }
 
-int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const char * filename, ssize_t position) {
+static int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const char * filename, ssize_t position) {
 	struct stat sfile;
 	if (lstat(filename, &sfile)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
@@ -462,13 +461,13 @@ int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const c
 	}
 
 	struct mtar_format_ustar_writer * format = f->data;
-	if (format->remain_header) {
+	if (format->remain_header != NULL) {
 		ssize_t nb_write = format->io->ops->write(format->io, format->remain_header, format->remain_size);
 
 		int failed = nb_write != format->remain_size;
 
 		free(format->remain_header);
-		format->remain_header = 0;
+		format->remain_header = NULL;
 		format->remain_size = 0;
 
 		return failed;
@@ -499,15 +498,15 @@ int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const c
 	return block_size != nb_write;
 }
 
-void mtar_format_ustar_writer_set_mode(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile) {
+static void mtar_format_ustar_writer_set_mode(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile) {
 	if (format->mode)
 		snprintf(header->filemode, 8, "%07o", format->mode & 0777);
 	else
 		snprintf(header->filemode, 8, "%07o", sfile->st_mode & 0777);
 }
 
-void mtar_format_ustar_writer_set_owner_and_group(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile) {
-	if (format->owner) {
+static void mtar_format_ustar_writer_set_owner_and_group(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile) {
+	if (format->owner != NULL) {
 		snprintf(header->uid, 8, "%07o", mtar_file_user2uid(format->owner));
 		strncpy(header->uname, format->owner, 32);
 	} else {
@@ -515,7 +514,7 @@ void mtar_format_ustar_writer_set_owner_and_group(struct mtar_format_ustar_write
 		mtar_file_uid2name(header->uname, 32, sfile->st_uid);
 	}
 
-	if (format->group) {
+	if (format->group != NULL) {
 		snprintf(header->gid, 8, "%07o", mtar_file_group2gid(format->group));
 		strncpy(header->gname, format->group, 32);
 	} else {
@@ -524,9 +523,9 @@ void mtar_format_ustar_writer_set_owner_and_group(struct mtar_format_ustar_write
 	}
 }
 
-const char * mtar_format_ustar_writer_skip_leading_slash(const char * str) {
-	if (!str)
-		return 0;
+static const char * mtar_format_ustar_writer_skip_leading_slash(const char * str) {
+	if (str == NULL)
+		return NULL;
 
 	const char * ptr;
 	size_t i = 0, length = strlen(str);
@@ -535,7 +534,7 @@ const char * mtar_format_ustar_writer_skip_leading_slash(const char * str) {
 	return ptr;
 }
 
-ssize_t mtar_format_ustar_writer_write(struct mtar_format_writer * f, const void * data, ssize_t length) {
+static ssize_t mtar_format_ustar_writer_write(struct mtar_format_writer * f, const void * data, ssize_t length) {
 	struct mtar_format_ustar_writer * format = f->data;
 
 	if (format->position >= format->size)
@@ -552,7 +551,7 @@ ssize_t mtar_format_ustar_writer_write(struct mtar_format_writer * f, const void
 	return nb_write;
 }
 
-enum mtar_format_writer_status mtar_format_ustar_writer_write_header(struct mtar_format_ustar_writer * f, void * data, ssize_t length) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_write_header(struct mtar_format_ustar_writer * f, void * data, ssize_t length) {
 	ssize_t available = f->io->ops->available_space(f->io);
 
 	ssize_t nb_write = 0;

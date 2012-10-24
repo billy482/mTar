@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:01:54 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 22:55:51 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -71,7 +71,7 @@ static struct mtar_io_writer_ops mtar_io_file_writer_ops = {
 };
 
 
-ssize_t mtar_io_file_writer_available_space(struct mtar_io_writer * io) {
+static ssize_t mtar_io_file_writer_available_space(struct mtar_io_writer * io) {
 	struct mtar_io_file * self = io->data;
 
 	if (self->volume_size > 0)
@@ -86,15 +86,15 @@ ssize_t mtar_io_file_writer_available_space(struct mtar_io_writer * io) {
 	return fs.f_bsize * fs.f_bavail;
 }
 
-ssize_t mtar_io_file_writer_block_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_file_writer_block_size(struct mtar_io_writer * io) {
 	return mtar_io_file_common_block_size(io->data);
 }
 
-int mtar_io_file_writer_close(struct mtar_io_writer * io) {
+static int mtar_io_file_writer_close(struct mtar_io_writer * io) {
 	return mtar_io_file_common_close(io->data);
 }
 
-int mtar_io_file_writer_flush(struct mtar_io_writer * io) {
+static int mtar_io_file_writer_flush(struct mtar_io_writer * io) {
 	struct mtar_io_file * self = io->data;
 
 	int failed = fdatasync(self->fd);
@@ -104,19 +104,19 @@ int mtar_io_file_writer_flush(struct mtar_io_writer * io) {
 	return failed;
 }
 
-void mtar_io_file_writer_free(struct mtar_io_writer * io) {
+static void mtar_io_file_writer_free(struct mtar_io_writer * io) {
 	mtar_io_file_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_file_writer_last_errno(struct mtar_io_writer * io) {
+static int mtar_io_file_writer_last_errno(struct mtar_io_writer * io) {
 	struct mtar_io_file * self = io->data;
 	return self->last_errno;
 }
 
-ssize_t mtar_io_file_writer_next_prefered_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_file_writer_next_prefered_size(struct mtar_io_writer * io) {
 	struct mtar_io_file * self = io->data;
 	ssize_t block_size = mtar_io_file_common_block_size(self);
 
@@ -127,32 +127,32 @@ ssize_t mtar_io_file_writer_next_prefered_size(struct mtar_io_writer * io) {
 	return next_size == 0 ? block_size : next_size;
 }
 
-off_t mtar_io_file_writer_position(struct mtar_io_writer * io) {
+static off_t mtar_io_file_writer_position(struct mtar_io_writer * io) {
 	struct mtar_io_file * self = io->data;
 	return self->position;
 }
 
-struct mtar_io_reader * mtar_io_file_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
+static struct mtar_io_reader * mtar_io_file_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
 	struct mtar_io_file * self = io->data;
 
 	if (self->fd < 0)
 		return 0;
 
 	off_t position = lseek(self->fd, 0, SEEK_SET);
-	if (position > 0) {
+	if (position == (off_t) -1) {
 		// lseek error
 		self->last_errno = errno;
 		return 0;
 	}
 
 	struct mtar_io_reader * in = mtar_io_file_new_reader(self->fd, 0, option);
-	if (in)
+	if (in != NULL)
 		self->fd = -1;
 
 	return in;
 }
 
-ssize_t mtar_io_file_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
+static ssize_t mtar_io_file_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
 	struct mtar_io_file * self = io->data;
 
 	if (self->fd < 0)

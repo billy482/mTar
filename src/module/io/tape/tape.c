@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:55:20 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 23:03:34 +0200                           *
 \***************************************************************************/
 
 #include <mtar-io-tape.chcksum>
@@ -61,15 +61,15 @@ static struct mtar_io mtar_io_tape = {
 };
 
 
-void mtar_io_tape_init() {
+static void mtar_io_tape_init() {
 	mtar_io_register(&mtar_io_tape);
 }
 
-void mtar_io_tape_show_description() {
+static void mtar_io_tape_show_description() {
 	mtar_verbose_print_help("tape : used for tape (scsi tape device)");
 }
 
-void mtar_io_tape_show_version() {
+static void mtar_io_tape_show_version() {
 	mtar_verbose_printf("  tape: used for tape (scsi tape device) (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("        SHA1 of source files: " MTAR_IO_TAPE_SRCSUM "\n");
 }

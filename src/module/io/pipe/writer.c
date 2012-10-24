@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:04:49 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 23:02:57 +0200                           *
 \***************************************************************************/
 
 // errno
@@ -69,37 +69,37 @@ static struct mtar_io_writer_ops mtar_io_pipe_writer_ops = {
 };
 
 
-ssize_t mtar_io_pipe_writer_available_space(struct mtar_io_writer * io __attribute__((unused))) {
+static ssize_t mtar_io_pipe_writer_available_space(struct mtar_io_writer * io __attribute__((unused))) {
 	return -1;
 }
 
-ssize_t mtar_io_pipe_writer_block_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_pipe_writer_block_size(struct mtar_io_writer * io) {
 	return mtar_io_pipe_common_block_size(io->data);
 }
 
-int mtar_io_pipe_writer_close(struct mtar_io_writer * io) {
+static int mtar_io_pipe_writer_close(struct mtar_io_writer * io) {
 	return mtar_io_pipe_common_close(io->data);
 }
 
-int mtar_io_pipe_writer_flush(struct mtar_io_writer * io) {
+static int mtar_io_pipe_writer_flush(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 	self->last_errno = 0;
 	return 0;
 }
 
-void mtar_io_pipe_writer_free(struct mtar_io_writer * io) {
+static void mtar_io_pipe_writer_free(struct mtar_io_writer * io) {
 	mtar_io_pipe_common_close(io->data);
 
 	free(io->data);
 	free(io);
 }
 
-int mtar_io_pipe_writer_last_errno(struct mtar_io_writer * io) {
+static int mtar_io_pipe_writer_last_errno(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->last_errno;
 }
 
-ssize_t mtar_io_pipe_writer_next_prefered_size(struct mtar_io_writer * io) {
+static ssize_t mtar_io_pipe_writer_next_prefered_size(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 	ssize_t block_size = mtar_io_pipe_common_block_size(self);
 
@@ -109,12 +109,12 @@ ssize_t mtar_io_pipe_writer_next_prefered_size(struct mtar_io_writer * io) {
 	return failed ? block_size : block_size - nb_read_available;
 }
 
-off_t mtar_io_pipe_writer_position(struct mtar_io_writer * io) {
+static off_t mtar_io_pipe_writer_position(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->position;
 }
 
-ssize_t mtar_io_pipe_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
+static ssize_t mtar_io_pipe_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length) {
 	struct mtar_io_pipe * self = io->data;
 
 	if (length < 1)
@@ -132,8 +132,8 @@ ssize_t mtar_io_pipe_writer_write(struct mtar_io_writer * io, const void * data,
 	return nb_write;
 }
 
-struct mtar_io_reader * mtar_io_pipe_writer_reopen_for_reading(struct mtar_io_writer * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
-	return 0;
+static struct mtar_io_reader * mtar_io_pipe_writer_reopen_for_reading(struct mtar_io_writer * io __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+	return NULL;
 }
 
 struct mtar_io_writer * mtar_io_pipe_new_writer(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
