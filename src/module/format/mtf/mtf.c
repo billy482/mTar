@@ -27,35 +27,32 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 22:48:13 +0200                           *
+*  Last modified: Tue, 23 Oct 2012 20:49:25 +0200                           *
 \***************************************************************************/
 
-// lzma_version_string
-#include <lzma.h>
-
-#include <mtar-filter-xz.chcksum>
+#include <mtar-format-mtf.chcksum>
 #include <mtar.version>
 
 #include <mtar/verbose.h>
 
-#include "xz.h"
+#include "mtf.h"
 
-static void mtar_filter_xz_init(void) __attribute__((constructor));
-static void mtar_filter_xz_show_description(void);
-static void mtar_filter_xz_show_version(void);
+static void mtar_format_mtf_format_init(void) __attribute__((constructor));
+static void mtar_format_mtf_show_description(void);
+static void mtar_format_mtf_show_version(void);
 
-static struct mtar_filter mtar_filter_xz = {
-	.name             = "xz",
+static struct mtar_format mtar_format_mtf = {
+	.name             = "mtf",
 
-	.new_reader       = mtar_filter_xz_new_reader,
-	.new_writer       = mtar_filter_xz_new_writer,
+	.new_reader       = mtar_format_mtf_new_reader,
+	.new_writer       = mtar_format_mtf_new_writer,
 
-	.show_description = mtar_filter_xz_show_description,
-	.show_version     = mtar_filter_xz_show_version,
+	.show_description = mtar_format_mtf_show_description,
+	.show_version     = mtar_format_mtf_show_version,
 
 	.api_level        = {
-		.filter   = MTAR_FILTER_API_LEVEL,
-		.format   = 0,
+		.filter   = 0,
+		.format   = MTAR_FORMAT_API_LEVEL,
 		.function = 0,
 		.io       = 0,
 		.mtar     = MTAR_API_LEVEL,
@@ -64,17 +61,16 @@ static struct mtar_filter mtar_filter_xz = {
 };
 
 
-static void mtar_filter_xz_init() {
-	mtar_filter_register(&mtar_filter_xz);
+static void mtar_format_mtf_format_init() {
+	mtar_format_register(&mtar_format_mtf);
 }
 
-static void mtar_filter_xz_show_description() {
-	mtar_verbose_print_help("xz : filter from/to compressed data (using liblzma: v%s)", lzma_version_string());
+static void mtar_format_mtf_show_description() {
+	mtar_verbose_print_help("mtf : Microsoft® tape format");
 }
 
-static void mtar_filter_xz_show_version() {
-	mtar_verbose_printf("  xz: filter from/to compressed data (version: " MTAR_VERSION ") (using liblzma: v%s)\n", lzma_version_string());
-	mtar_verbose_printf("      SHA1 of source files: " MTAR_FILTER_XZ_SRCSUM "\n");
+static void mtar_format_mtf_show_version() {
+	mtar_verbose_printf("  mtf : Microsoft® tape format (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("        SHA1 of source files: " MTAR_FORMAT_MTF_SRCSUM "\n");
 }
-
 

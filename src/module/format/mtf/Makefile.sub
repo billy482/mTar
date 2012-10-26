@@ -1,0 +1,9 @@
+MTAR_FORMAT_MTF_SRC_DIR			:= src/module/format/mtf
+
+MTAR_FORMAT_MTF_BIN				:= lib/libformat-mtf.so
+MTAR_FORMAT_MTF_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FORMAT_MTF_LD				:= -shared
+
+MTAR_FORMAT_MTF_CHCKSUM_FILE	:= mtar-format-mtf.chcksum
+
+BIN_SYMS						+= MTAR_FORMAT_MTF

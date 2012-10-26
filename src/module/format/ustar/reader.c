@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 21:57:41 +0200                           *
+*  Last modified: Thu, 25 Oct 2012 20:24:03 +0200                           *
 \***************************************************************************/
 
 // bool
@@ -141,7 +141,7 @@ static uid_t mtar_format_ustar_reader_convert_uid(struct mtar_format_ustar * hea
 static void mtar_format_ustar_reader_free(struct mtar_format_reader * f) {
 	struct mtar_format_ustar_reader * self = f->data;
 
-	if (self->io)
+	if (self->io != NULL)
 		self->io->ops->free(self->io);
 
 	free(self->buffer);
@@ -370,7 +370,7 @@ static enum mtar_format_reader_header_status mtar_format_ustar_reader_skip_file(
 }
 
 struct mtar_format_reader * mtar_format_ustar_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
-	if (!io)
+	if (io == NULL)
 		return NULL;
 
 	struct mtar_format_ustar_reader * self = malloc(sizeof(struct mtar_format_ustar_reader));

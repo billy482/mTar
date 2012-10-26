@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:47:06 +0200                           *
+*  Last modified: Fri, 26 Oct 2012 18:02:19 +0200                           *
 \***************************************************************************/
 
 #include <mtar-function-list.chcksum>
@@ -69,7 +69,7 @@ static struct mtar_function mtar_function_list_functions = {
 
 static int mtar_function_list(const struct mtar_option * option) {
 	struct mtar_format_reader * format = mtar_format_get_reader(option);
-	if (format != NULL)
+	if (format == NULL)
 		return 1;
 
 	mtar_function_list_configure(option);
