@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 09:58:14 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 14:30:37 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -190,7 +190,7 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 				asprintf(&dir_id, "dir_%u", file.directory_id);
 				dir_name = mtar_hashtable_value(self->directories, dir_id);
 
-				path = mtar_format_mtf_reader_get_path(buffer, file.file_name.size, block.string_type);
+				path = mtar_format_mtf_reader_get_string(buffer, file.file_name.size, block.string_type);
 
 				nb_read = self->io->ops->read(self->io, &strm, sstrm);
 				if (nb_read < 0)
@@ -323,13 +323,12 @@ static char * mtar_format_mtf_reader_get_path(const void * string, size_t length
 					offset += 4;
 				}
 			}
-
-			result[i] = '\0';
+			result[offset] = '\0';
 
 			if (length == 1 && result[0] == '/')
 				result[0] = '.';
-			else if (result[length - 1] == '/')
-				result[length - 1] = '\0';
+			else if (result[offset - 1] == '/')
+				result[offset - 1] = '\0';
 
 			return result;
 	}
@@ -409,8 +408,7 @@ static char * mtar_format_mtf_reader_get_string(const void * string, size_t leng
 					offset += 4;
 				}
 			}
-
-			result[i] = '\0';
+			result[offset] = '\0';
 
 			if (length == 1 && result[0] == '/')
 				result[0] = '.';
