@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 22 Sep 2011 10:21:37 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 10:22:25 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FUNCTION_EXTRACT_H__
@@ -35,6 +35,7 @@
 
 #include <mtar/format.h>
 
+extern void (*mtar_function_extract_clean)(void);
 extern void (*mtar_function_extract_display)(struct mtar_format_header * header);
 extern void (*mtar_function_extract_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 

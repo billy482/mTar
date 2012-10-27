@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:46:31 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 10:32:23 +0200                           *
 \***************************************************************************/
 
 // gettimeofday
@@ -41,33 +41,55 @@
 
 #include <mtar/file.h>
 #include <mtar/option.h>
+#include <mtar/util.h>
 #include <mtar/verbose.h>
 
 #include "extract.h"
 
+static void mtar_function_extract_clean1(void);
+static void mtar_function_extract_clean2(void);
 static void mtar_function_extract_display1(struct mtar_format_header * header);
 static void mtar_function_extract_display2(struct mtar_format_header * header);
 static void mtar_function_extract_display3(struct mtar_format_header * header);
 static void mtar_function_extract_progress1(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 static void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit);
 
+void (*mtar_function_extract_clean)(void) = mtar_function_extract_clean1;
 void (*mtar_function_extract_display)(struct mtar_format_header * header) = mtar_function_extract_display1;
 void (*mtar_function_extract_progress)(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) = mtar_function_extract_progress1;
 
+static struct timeval begin = { 0, 0 };
+static struct timeval middle = { 0, 0 };
+static double current_diff = 0;
+
+
+static void mtar_function_extract_clean1() {}
+
+static void mtar_function_extract_clean2() {
+	gettimeofday(&middle, 0);
+
+	double diff = difftime(middle.tv_sec, begin.tv_sec) + difftime(middle.tv_usec, begin.tv_usec) / 1000000;
+
+	if (diff > 4)
+		mtar_verbose_clean();
+}
 
 void mtar_function_extract_configure(const struct mtar_option * option) {
 	switch (option->verbose) {
 		case 0:
+			mtar_function_extract_clean = mtar_function_extract_clean1;
 			mtar_function_extract_display = mtar_function_extract_display1;
 			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
 
 		case 1:
+			mtar_function_extract_clean = mtar_function_extract_clean1;
 			mtar_function_extract_display = mtar_function_extract_display2;
 			mtar_function_extract_progress = mtar_function_extract_progress1;
 			break;
 
 		default:
+			mtar_function_extract_clean = mtar_function_extract_clean2;
 			mtar_function_extract_display = mtar_function_extract_display3;
 			mtar_function_extract_progress = mtar_function_extract_progress2;
 			break;
@@ -127,35 +149,24 @@ static void mtar_function_extract_display3(struct mtar_format_header * header) {
 static void mtar_function_extract_progress1(const char * filename __attribute__((unused)), const char * format __attribute__((unused)), unsigned long long current __attribute__((unused)), unsigned long long upperLimit __attribute__((unused))) {}
 
 static void mtar_function_extract_progress2(const char * filename, const char * format, unsigned long long current, unsigned long long upperLimit) {
-	static const char * current_file = 0;
-	static struct timeval last = {0, 0};
+	static unsigned long long current_hash = 0;
+	unsigned long long hash = mtar_util_compute_hash_string(filename);
 
-	struct timeval curtime;
-	gettimeofday(&curtime, 0);
-
-	if (current_file == 0) {
-		current_file = filename;
-		last = curtime;
+	if (current_hash != hash) {
+		current_hash = hash;
+		gettimeofday(&begin, 0);
+		current_diff = 4;
 		mtar_verbose_restart_timer();
 		return;
 	}
 
-	double diff = difftime(curtime.tv_sec, last.tv_sec) + difftime(curtime.tv_usec, last.tv_usec) / 1000000;
+	gettimeofday(&middle, 0);
 
-	if (filename != current_file) {
-		if (diff < 2)
-			return;
+	double diff = difftime(middle.tv_sec, begin.tv_sec) + difftime(middle.tv_usec, begin.tv_usec) / 1000000;
 
-		current_file = filename;
-		last = curtime;
-		mtar_verbose_restart_timer();
-	} else {
-		if (diff < 1)
-			return;
-
-		last = curtime;
+	if (diff > current_diff) {
+		current_diff = diff + 1;
+		mtar_verbose_progress(format, current, upperLimit);
 	}
-
-	mtar_verbose_progress(format, current, upperLimit);
 }
 

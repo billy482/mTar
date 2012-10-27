@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 26 Oct 2012 20:11:10 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 00:03:11 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_MTF_H__
@@ -164,7 +164,7 @@ struct mtar_format_mtf_stream {
 	uint16_t data_encryption_algorithm;
 	uint16_t data_compression_algorithm;
 	uint16_t checksum;
-};
+} __attribute__((packed));
 
 struct mtar_format_reader * mtar_format_mtf_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
 struct mtar_format_writer * mtar_format_mtf_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:54:24 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 10:24:58 +0200                           *
 \***************************************************************************/
 
 // mknod, open
@@ -106,7 +106,7 @@ static int mtar_function_extract(const struct mtar_option * option) {
 				if (header.is_label)
 					break;
 
-				if (header.link[0] != '\0' && !(header.mode & S_IFMT)) {
+				if (header.link != NULL && !(header.mode & S_IFMT)) {
 					link(header.link, header.path);
 				} else if (S_ISFIFO(header.mode)) {
 					mknod(header.path, S_IFIFO, 0);
@@ -128,7 +128,7 @@ static int mtar_function_extract(const struct mtar_option * option) {
 
 						mtar_function_extract_progress(header.path, "\r%b [%P] ETA: %E", nbTotalRead, header.size);
 					}
-					mtar_verbose_clean();
+					mtar_function_extract_clean();
 					close(fd);
 
 				} else if (S_ISLNK(header.mode)) {
