@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 14:30:37 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 14:57:02 +0200                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -409,11 +409,6 @@ static char * mtar_format_mtf_reader_get_string(const void * string, size_t leng
 				}
 			}
 			result[offset] = '\0';
-
-			if (length == 1 && result[0] == '/')
-				result[0] = '.';
-			else if (result[length - 1] == '/')
-				result[length - 1] = '\0';
 
 			return result;
 	}
