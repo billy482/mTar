@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 16 May 2012 21:56:16 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:20:02 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_TAPE_H__
@@ -38,8 +38,8 @@
 
 #include <mtar/io.h>
 
-struct mtar_io_reader * mtar_io_tape_new_reader(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_writer * mtar_io_tape_new_writer(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_reader * mtar_io_tape_new_reader(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
+struct mtar_io_writer * mtar_io_tape_new_writer(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 int mtar_io_tape_scsi_read_capacity(int fd, ssize_t * total_free, ssize_t * total);
 int mtar_io_tape_scsi_read_position(int fd, off_t * position);
 

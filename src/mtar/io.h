@@ -27,14 +27,18 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:32:50 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 22:33:30 +0200                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_P_H__
 #define __MTAR_IO_P_H__
 
+// bool
+#include <stdbool.h>
+
 #include <mtar/io.h>
 
+bool mtar_io_check_standard_input_output(void);
 void mtar_io_show_description(void);
 void mtar_io_show_version(void);
 

@@ -27,9 +27,10 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 11:17:16 +0200                           *
+*  Last modified: Mon, 29 Oct 2012 20:14:56 +0100                           *
 \***************************************************************************/
 
+#define _GNU_SOURCE
 // dlclose, dlopen
 #include <dlfcn.h>
 // glob, globfree
@@ -38,6 +39,8 @@
 #include <stdbool.h>
 // snprintf
 #include <stdio.h>
+// free
+#include <stdlib.h>
 // access
 #include <unistd.h>
 
@@ -55,21 +58,26 @@ int mtar_loader_load(const char * module, const char * name) {
 	if (module == NULL || name == NULL)
 		return 1;
 
-	char path[256];
-	snprintf(path, 256, PLUGINS_PATH "/lib%s-%s.so", module, name);
+	char * path;
+	asprintf(&path, "lib%s-%s.so", module, name);
 
-	return mtar_loader_load_file(path);
+	int ret = mtar_loader_load_file(path);
+
+	free(path);
+
+	return ret;
 }
 
 void mtar_loader_load_all(const char * module) {
-	char pattern[256];
-	snprintf(pattern, 256, "%s/lib%s-*.so", PLUGINS_PATH, module);
+	char * pattern;
+	asprintf(&pattern, PLUGINS_PATH "/lib%s-*.so", module);
 
 	glob_t globbuf;
 	globbuf.gl_offs = 0;
 	int failed = glob(pattern, GLOB_DOOFFS, 0, &globbuf);
 	if (failed) {
 		globfree(&globbuf);
+		free(pattern);
 		return;
 	}
 
@@ -78,12 +86,10 @@ void mtar_loader_load_all(const char * module) {
 		mtar_loader_load_file(globbuf.gl_pathv[i]);
 
 	globfree(&globbuf);
+	free(pattern);
 }
 
 int mtar_loader_load_file(const char * filename) {
-	if (access(filename, R_OK | X_OK))
-		return 2;
-
 	mtar_loader_loaded = false;
 
 	void * cookie = dlopen(filename, RTLD_NOW);

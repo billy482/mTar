@@ -1,7 +1,7 @@
 MTAR_SRC_DIR		:= src/mtar
 
 MTAR_BIN			:= bin/mtar
-MTAR_LD				:= -ldl -rdynamic
+MTAR_LD				:= -ldl -rdynamic -Wl,-rpath,$(shell ./script/rpath.pl)
 
 MTAR_CHCKSUM_FILE	:= mtar.chcksum
 

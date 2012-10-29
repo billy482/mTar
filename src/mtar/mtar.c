@@ -27,14 +27,18 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 19 Oct 2012 23:52:08 +0200                           *
+*  Last modified: Sat, 27 Oct 2012 22:40:16 +0200                           *
 \***************************************************************************/
 
+#include "io.h"
 #include "option.h"
 
 int main(int argc, char ** argv) {
 	static struct mtar_option option;
 	static int failed = 0;
+
+	if (!mtar_io_check_standard_input_output())
+		return 1;
 
 	failed = mtar_option_parse(&option, argc, argv);
 	if (failed)

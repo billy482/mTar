@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 14:02:51 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:18:18 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_PIPE_H__
@@ -45,8 +45,8 @@ struct mtar_io_pipe {
 ssize_t mtar_io_pipe_common_block_size(struct mtar_io_pipe * file);
 int mtar_io_pipe_common_close(struct mtar_io_pipe * file);
 
-struct mtar_io_reader * mtar_io_pipe_new_reader(int fd, int flags, const struct mtar_option * option);
-struct mtar_io_writer * mtar_io_pipe_new_writer(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_reader * mtar_io_pipe_new_reader(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
+struct mtar_io_writer * mtar_io_pipe_new_writer(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 
 #endif
 

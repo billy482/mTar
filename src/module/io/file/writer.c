@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:55:51 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:17:28 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -136,7 +136,7 @@ static struct mtar_io_reader * mtar_io_file_writer_reopen_for_reading(struct mta
 	struct mtar_io_file * self = io->data;
 
 	if (self->fd < 0)
-		return 0;
+		return NULL;
 
 	off_t position = lseek(self->fd, 0, SEEK_SET);
 	if (position == (off_t) -1) {
@@ -145,7 +145,7 @@ static struct mtar_io_reader * mtar_io_file_writer_reopen_for_reading(struct mta
 		return 0;
 	}
 
-	struct mtar_io_reader * in = mtar_io_file_new_reader(self->fd, 0, option);
+	struct mtar_io_reader * in = mtar_io_file_new_reader(self->fd, option, NULL);
 	if (in != NULL)
 		self->fd = -1;
 
@@ -181,7 +181,7 @@ static ssize_t mtar_io_file_writer_write(struct mtar_io_writer * io, const void 
 	return nb_write;
 }
 
-struct mtar_io_writer * mtar_io_file_new_writer(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
+struct mtar_io_writer * mtar_io_file_new_writer(int fd, const struct mtar_option * option, const struct mtar_hashtable * params __attribute__((unused))) {
 	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
 	self->fd = fd;
 	self->position = 0;

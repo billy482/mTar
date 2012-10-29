@@ -143,7 +143,7 @@ binaries: prepare $(sort ${BINS})
 
 check:
 	@echo 'Checking source files...'
-	-@${CC} -fsyntax-only ${CFLAGS} ${SRC_FILES}
+	@cppcheck -i include -i . ${SRC_FILES}
 
 clean:
 	@echo ' RM       -Rf $(foreach dir,${BIN_DIRS},$(word 1,$(subst /, ,$(dir)))) ${BUILD_DIR}'

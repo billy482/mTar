@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 22 Oct 2012 22:35:38 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:29:35 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -59,9 +59,19 @@ struct mtar_io * mtar_io_get(int fd);
 int mtar_io_open(const char * filename, int flags);
 
 
+bool mtar_io_check_standard_input_output() {
+	struct stat st;
+
+	int i;
+	for (i = 0; i < 3; i++)
+		if (fstat(i, &st))
+			return false;
+
+	return true;
+}
+
 void mtar_io_exit() {
-	if (mtar_io_nbIos > 0)
-		free(mtar_io_ios);
+	free(mtar_io_ios);
 	mtar_io_ios = NULL;
 }
 
@@ -76,8 +86,6 @@ struct mtar_io * mtar_io_get(int fd) {
 	const char * module = "pipe";
 	if (S_ISREG(st.st_mode))
 		module = "file";
-	else if (S_ISFIFO(st.st_mode))
-		module = "pipe";
 	else if (S_ISCHR(st.st_mode) && (st.st_rdev >> 8) == 9)
 		module = "tape";
 
@@ -96,23 +104,31 @@ struct mtar_io * mtar_io_get(int fd) {
 	return NULL;
 }
 
-struct mtar_io_reader * mtar_io_reader_get_fd(int fd, int flags, const struct mtar_option * option) {
+struct mtar_io_reader * mtar_io_reader_get_fd(int fd, const struct mtar_option * option, const struct mtar_hashtable * params) {
 	struct mtar_io * io = mtar_io_get(fd);
-	if (io != NULL)
-		return io->new_reader(fd, flags, option);
+
+	if (io != NULL && io->new_reader != NULL)
+		return io->new_reader(fd, option, params);
 
 	return NULL;
 }
 
-struct mtar_io_reader * mtar_io_reader_get_file(const char * filename, int flags, const struct mtar_option * option) {
+struct mtar_io_reader * mtar_io_reader_get_file(const char * filename, int flags, const struct mtar_option * option, const struct mtar_hashtable * params) {
 	int fd = mtar_io_open(filename, flags);
 	if (fd < 0)
 		return NULL;
 
-	return mtar_io_reader_get_fd(fd, flags, option);
+	return mtar_io_reader_get_fd(fd, option, params);
 }
 
 int mtar_io_open(const char * filename, int flags) {
+	if (!strcmp("-", filename)) {
+		if (flags & O_RDONLY)
+			return 0;
+		if ((flags & O_WRONLY) || (flags & O_RDWR))
+			return 1;
+	}
+
 	int m = F_OK;
 	if (flags & O_RDWR)
 		m |= R_OK | W_OK;
@@ -120,13 +136,6 @@ int mtar_io_open(const char * filename, int flags) {
 		m |= R_OK;
 	else if (flags & O_WRONLY)
 		m |= W_OK;
-
-	if (!strcmp("-", filename)) {
-		if (flags & O_RDONLY)
-			return 0;
-		if ((flags & O_WRONLY) || (flags & O_RDWR))
-			return 1;
-	}
 
 	if (access(filename, m)) {
 		if (flags & O_RDONLY) {
@@ -143,20 +152,21 @@ int mtar_io_open(const char * filename, int flags) {
 	return fd;
 }
 
-struct mtar_io_writer * mtar_io_writer_get_fd(int fd, int flags, const struct mtar_option * option) {
+struct mtar_io_writer * mtar_io_writer_get_fd(int fd, const struct mtar_option * option, const struct mtar_hashtable * params) {
 	struct mtar_io * io = mtar_io_get(fd);
-	if (io != NULL)
-		return io->new_writer(fd, flags, option);
+
+	if (io != NULL && io->new_writer != NULL)
+		return io->new_writer(fd, option, params);
 
 	return NULL;
 }
 
-struct mtar_io_writer * mtar_io_writer_get_file(const char * filename, int flags, const struct mtar_option * option) {
+struct mtar_io_writer * mtar_io_writer_get_file(const char * filename, int flags, const struct mtar_option * option, const struct mtar_hashtable * params) {
 	int fd = mtar_io_open(filename, flags);
 	if (fd < 0)
 		return NULL;
 
-	return mtar_io_writer_get_fd(fd, flags, option);
+	return mtar_io_writer_get_fd(fd, option, params);
 }
 
 void mtar_io_register(struct mtar_io * io) {
@@ -174,7 +184,7 @@ void mtar_io_register(struct mtar_io * io) {
 
 	void * new_addr = realloc(mtar_io_ios, (mtar_io_nbIos + 1) * sizeof(struct mtar_io *));
 	if (new_addr == NULL) {
-		mtar_verbose_printf("Failed to register '%s'", io->name);
+		mtar_verbose_printf("Failed to register '%s', not enough memory", io->name);
 		return;
 	}
 
@@ -187,7 +197,7 @@ void mtar_io_register(struct mtar_io * io) {
 
 void mtar_io_show_description() {
 	mtar_loader_load_all("io");
-	mtar_verbose_printf("List of available backend ios :\n");
+	mtar_verbose_printf("List of available back end ios :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)
@@ -197,7 +207,7 @@ void mtar_io_show_description() {
 
 void mtar_io_show_version() {
 	mtar_loader_load_all("io");
-	mtar_verbose_printf("List of available backend ios :\n");
+	mtar_verbose_printf("List of available back end ios :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)

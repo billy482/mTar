@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 10:28:46 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:09:33 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_IO_H__
@@ -38,6 +38,7 @@
 // off_t, ssize_t
 #include <sys/types.h>
 
+struct mtar_hashtable;
 struct mtar_option;
 
 /**
@@ -50,8 +51,8 @@ struct mtar_option;
  *
  * An example :
  *   - An implementation of mtar_io : \ref mtar_io_file
- *   - An implementation of mtar_io_reader : See code source of \ref module/io/file/in_ops.c
- *   - An implementation of mtar_io_writer : See code source of \ref module/io/file/out_ops.c
+ *   - An implementation of mtar_io_reader : See code source of \ref module/io/file/reader.c
+ *   - An implementation of mtar_io_writer : See code source of \ref module/io/file/writer.c
  */
 
 /**
@@ -156,19 +157,17 @@ struct mtar_io {
 	/**
 	 * \brief get a new input handler
 	 * \param[in] fd : an opened file descriptor
-	 * \param[in] flags : flags used to open file
 	 * \param[in] option : a struct containing argument passed to \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_in
 	 */
-	struct mtar_io_reader * (*new_reader)(int fd, int flags, const struct mtar_option * option);
+	struct mtar_io_reader * (*new_reader)(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 	/**
 	 * \brief get a new output handler
 	 * \param[in] fd : an opened file descriptor
-	 * \param[in] flags : flags used to open file
 	 * \param[in] option : a struct containing argument passed to \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_out
 	 */
-	struct mtar_io_writer * (*new_writer)(int fd, int flags, const struct mtar_option * option);
+	struct mtar_io_writer * (*new_writer)(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 
 	/**
 	 * \brief print a short description about driver
@@ -176,6 +175,11 @@ struct mtar_io {
 	 * This function is called by \b mtar when argument is --list-ios
 	 */
 	void (*show_description)(void);
+	/**
+	 * \brief print a full version about driver
+	 *
+	 * This function is called by \b mtar when argument is --full-version
+	 */
 	void (*show_version)(void);
 
 	struct mtar_plugin api_level;
@@ -183,42 +187,47 @@ struct mtar_io {
 
 /**
  * \brief helper function
- * \param[in] fd : an allready opened file descriptor
- * \param[in] flags : flags used to open file
+ *
+ * Find an appropriate io module which will use \a fd
+ *
+ * \param[in] fd : an already opened file descriptor
  * \param[in] option : a struct containing argument passed to \b mtar
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
-struct mtar_io_reader * mtar_io_reader_get_fd(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_reader * mtar_io_reader_get_fd(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 /**
  * \brief helper function which open a file and load correct io module
+ *
  * \param[in] filename : name of an existing file
  * \param[in] flags : flags used to open file
  * \param[in] option : a struct containing argument passed to \b mtar
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
-struct mtar_io_reader * mtar_io_reader_get_file(const char * filename, int flags, const struct mtar_option * option);
+struct mtar_io_reader * mtar_io_reader_get_file(const char * filename, int flags, const struct mtar_option * option, const struct mtar_hashtable * params);
 /**
  * \brief helper function
+ *
+ * Find an appropriate io module which will use \a fd
+ *
  * \param[in] fd : an allready opened file descriptor
- * \param[in] flags : flags used to open file
  * \param[in] option : a struct containing argument passed to \b mtar
  * \return 0 if failed or a new instance of struct mtar_io_out
  */
-struct mtar_io_writer * mtar_io_writer_get_fd(int fd, int flags, const struct mtar_option * option);
+struct mtar_io_writer * mtar_io_writer_get_fd(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 /**
  * \brief helper function which open a file and load correct io module
+ *
  * \param[in] filename : name of an existing file
  * \param[in] flags : flags used to open file
  * \param[in] option : a struct containing argument passed to \b mtar
  * \return 0 if failed or a new instance of struct mtar_io_out
  */
-struct mtar_io_writer * mtar_io_writer_get_file(const char * filename, int flags, const struct mtar_option * option);
+struct mtar_io_writer * mtar_io_writer_get_file(const char * filename, int flags, const struct mtar_option * option, const struct mtar_hashtable * params);
 /**
  * \brief register a new io driver
+ *
  * \param[in] io : io driver
  * \note io \b should be statically allocated
- * \bug this function do not check if there is two io driver with the same name
- * or if there is two same io driver
  */
 void mtar_io_register(struct mtar_io * io);
 

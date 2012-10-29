@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:51:59 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:16:34 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -72,16 +72,13 @@ static int mtar_io_file_reader_close(struct mtar_io_reader * io) {
 static off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_io_file * self = io->data;
 
-	if (self->position + offset > self->volume_size && self->volume_size > 0)
-		offset = self->volume_size - self->position;
-
-	off_t ok = lseek(self->fd, offset, SEEK_CUR);
-	if (ok == (off_t) -1)
+	off_t new_position = lseek(self->fd, offset, SEEK_CUR);
+	if (new_position == (off_t) -1)
 		self->last_errno = errno;
-	else if (ok >= 0)
-		self->position = ok;
+	else if (new_position >= 0)
+		self->position = new_position;
 
-	return ok;
+	return new_position;
 }
 
 static void mtar_io_file_reader_free(struct mtar_io_reader * io) {
@@ -114,20 +111,13 @@ static ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data,
 	return nb_read;
 }
 
-struct mtar_io_reader * mtar_io_file_new_reader(int fd, int flags __attribute__((unused)), const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_reader * mtar_io_file_new_reader(int fd, const struct mtar_option * option __attribute__((unused)), const struct mtar_hashtable * params __attribute__((unused))) {
 	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
 	self->fd = fd;
 	self->position = 0;
 	self->last_errno = 0;
 	self->block_size = 0;
 	self->volume_size = 0;
-
-	if (option->multi_volume) {
-		if (option->tape_length > 0)
-			self->volume_size = option->tape_length << 10;
-		else
-			mtar_verbose_printf("Warning: discard parameter '-M' because parameter '-L' is not specified\n");
-	}
 
 	struct mtar_io_reader * io = malloc(sizeof(struct mtar_io_reader));
 	io->ops = &mtar_io_file_reader_ops;

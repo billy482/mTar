@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 23:02:57 +0200                           *
+*  Last modified: Sun, 28 Oct 2012 16:19:32 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -136,7 +136,7 @@ static struct mtar_io_reader * mtar_io_pipe_writer_reopen_for_reading(struct mta
 	return NULL;
 }
 
-struct mtar_io_writer * mtar_io_pipe_new_writer(int fd, int flags __attribute__((unused)), const struct mtar_option * option) {
+struct mtar_io_writer * mtar_io_pipe_new_writer(int fd, const struct mtar_option * option, const struct mtar_hashtable * params __attribute__((unused))) {
 	if (option->multi_volume) {
 		mtar_verbose_printf("Error: I'm not able to write a multi volume archive into a pipe\n");
 		return 0;
