@@ -156,6 +156,7 @@ struct mtar_io {
 
 	/**
 	 * \brief get a new input handler
+	 *
 	 * \param[in] fd : an opened file descriptor
 	 * \param[in] option : a struct containing argument passed to \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_in
@@ -163,6 +164,7 @@ struct mtar_io {
 	struct mtar_io_reader * (*new_reader)(int fd, const struct mtar_option * option, const struct mtar_hashtable * params);
 	/**
 	 * \brief get a new output handler
+	 *
 	 * \param[in] fd : an opened file descriptor
 	 * \param[in] option : a struct containing argument passed to \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_out

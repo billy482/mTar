@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 28 Oct 2012 16:10:30 +0100                           *
+*  Last modified: Mon, 29 Oct 2012 23:52:10 +0100                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -52,8 +52,7 @@ static const char * mtar_filter_get_module(const char * filename);
 
 
 void mtar_filter_exit() {
-	if (mtar_filter_nb_filters > 0)
-		free(mtar_filter_filters);
+	free(mtar_filter_filters);
 	mtar_filter_filters = NULL;
 }
 

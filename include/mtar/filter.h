@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 10:24:10 +0200                           *
+*  Last modified: Mon, 29 Oct 2012 23:48:42 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -81,12 +81,14 @@ struct mtar_filter {
 
 /**
  * \brief Get an instance of filter or io based on \a option parameter
+ *
  * \param[in] option : 
  * \return 0 if failed or a new instance of struct mtar_io_in
  */
 struct mtar_io_reader * mtar_filter_get_reader(const struct mtar_option * option);
 /**
  * \brief Get an instance of filter or io based on \a option parameter
+ *
  * \param[in] io
  * \param[in] option : 
  * \return 0 if failed or a new instance of struct mtar_io_in

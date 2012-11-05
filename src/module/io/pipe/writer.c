@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 28 Oct 2012 16:19:32 +0100                           *
+*  Last modified: Tue, 06 Nov 2012 00:32:48 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -50,7 +50,6 @@ static int mtar_io_pipe_writer_close(struct mtar_io_writer * io);
 static int mtar_io_pipe_writer_flush(struct mtar_io_writer * io);
 static void mtar_io_pipe_writer_free(struct mtar_io_writer * io);
 static int mtar_io_pipe_writer_last_errno(struct mtar_io_writer * io);
-static ssize_t mtar_io_pipe_writer_next_prefered_size(struct mtar_io_writer * io);
 static off_t mtar_io_pipe_writer_position(struct mtar_io_writer * io);
 static struct mtar_io_reader * mtar_io_pipe_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option);
 static ssize_t mtar_io_pipe_writer_write(struct mtar_io_writer * io, const void * data, ssize_t length);
@@ -62,7 +61,7 @@ static struct mtar_io_writer_ops mtar_io_pipe_writer_ops = {
 	.flush              = mtar_io_pipe_writer_flush,
 	.free               = mtar_io_pipe_writer_free,
 	.last_errno         = mtar_io_pipe_writer_last_errno,
-	.next_prefered_size = mtar_io_pipe_writer_next_prefered_size,
+	.next_prefered_size = mtar_io_pipe_writer_block_size,
 	.position           = mtar_io_pipe_writer_position,
 	.reopen_for_reading = mtar_io_pipe_writer_reopen_for_reading,
 	.write              = mtar_io_pipe_writer_write,
@@ -70,7 +69,13 @@ static struct mtar_io_writer_ops mtar_io_pipe_writer_ops = {
 
 
 static ssize_t mtar_io_pipe_writer_available_space(struct mtar_io_writer * io __attribute__((unused))) {
-	return -1;
+	struct mtar_io_pipe * self = io->data;
+
+	ssize_t nb_write = write(self->fd, "", 0);
+	if (nb_write < 0 && errno == EPIPE)
+		return 0;
+
+	return mtar_io_pipe_common_block_size(self);
 }
 
 static ssize_t mtar_io_pipe_writer_block_size(struct mtar_io_writer * io) {
@@ -97,16 +102,6 @@ static void mtar_io_pipe_writer_free(struct mtar_io_writer * io) {
 static int mtar_io_pipe_writer_last_errno(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 	return self->last_errno;
-}
-
-static ssize_t mtar_io_pipe_writer_next_prefered_size(struct mtar_io_writer * io) {
-	struct mtar_io_pipe * self = io->data;
-	ssize_t block_size = mtar_io_pipe_common_block_size(self);
-
-	int nb_read_available;
-	int failed = ioctl(self->fd, FIONREAD, &nb_read_available);
-
-	return failed ? block_size : block_size - nb_read_available;
 }
 
 static off_t mtar_io_pipe_writer_position(struct mtar_io_writer * io) {

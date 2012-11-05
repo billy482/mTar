@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 22 Oct 2012 22:33:47 +0200                           *
+*  Last modified: Mon, 29 Oct 2012 23:51:09 +0100                           *
 \***************************************************************************/
 
 // free, realloc
@@ -51,8 +51,7 @@ static unsigned int mtar_format_nb_formats = 0;
 
 
 void mtar_format_exit() {
-	if (mtar_format_nb_formats > 0)
-		free(mtar_format_formats);
+	free(mtar_format_formats);
 	mtar_format_formats = NULL;
 }
 
@@ -88,7 +87,7 @@ struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, 
 		return NULL;
 
 	struct mtar_format * format = mtar_format_get(option->format);
-	if (format != NULL)
+	if (format != NULL && format->new_reader != NULL)
 		return format->new_reader(io, option);
 
 	return NULL;
@@ -110,7 +109,7 @@ struct mtar_format_writer * mtar_format_get_writer2(struct mtar_io_writer * io, 
 		return NULL;
 
 	struct mtar_format * format = mtar_format_get(option->format);
-	if (format != NULL)
+	if (format != NULL && format->new_writer != NULL)
 		return format->new_writer(io, option);
 
 	return NULL;
@@ -131,18 +130,7 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 	if (h == NULL)
 		return;
 
-	h->dev = 0;
-	h->path = 0;
-	h->link = 0;
-	h->size = 0;
-	h->position = 0;
-	h->mode = 0;
-	h->mtime = 0;
-	h->uid = 0;
-	bzero(h->uname, 32);
-	h->gid = 0;
-	bzero(h->gname, 32);
-	h->is_label = 0;
+	bzero(h, sizeof(*h));
 }
 
 void mtar_format_register(struct mtar_format * f) {

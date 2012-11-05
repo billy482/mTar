@@ -32,6 +32,8 @@
 
 // errno
 #include <errno.h>
+// bool
+#include <stdbool.h>
 // free, malloc
 #include <stdlib.h>
 // memcpy
@@ -52,6 +54,7 @@ struct mtar_io_tape_writer {
 	off_t position;
 	ssize_t total_free_space;
 	int last_errno;
+	bool eod_reached;
 
 	char * buffer;
 	ssize_t buffer_size;
@@ -85,6 +88,10 @@ static struct mtar_io_writer_ops mtar_io_tape_writer_ops = {
 
 static ssize_t mtar_io_tape_writer_available_space(struct mtar_io_writer * io) {
 	struct mtar_io_tape_writer * self = io->data;
+
+	if (self->eod_reached)
+		return self->buffer_used > 0 ? self->buffer_size - self->buffer_used : 0;
+
 	return self->total_free_space ? self->total_free_space - self->position : -1 ;
 }
 
@@ -217,8 +224,18 @@ static ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void 
 	ssize_t nb_write = write(self->fd, self->buffer, self->buffer_size);
 
 	if (nb_write < 0) {
-		self->last_errno = errno;
-		return nb_write;
+		switch (errno) {
+			case ENOSPC:
+				self->eod_reached = true;
+				nb_write = write(self->fd, self->buffer, self->buffer_size);
+
+				if (nb_write == self->buffer_size)
+					break;
+
+			default:
+				self->last_errno = errno;
+				return nb_write;
+		}
 	}
 
 	ssize_t nb_total_write = buffer_available;
@@ -230,8 +247,18 @@ static ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void 
 		nb_write = write(self->fd, c_buffer + nb_total_write, self->buffer_size);
 
 		if (nb_write < 0) {
-			self->last_errno = errno;
-			return nb_write;
+			switch (errno) {
+				case ENOSPC:
+					self->eod_reached = true;
+					nb_write = write(self->fd, self->buffer, self->buffer_size);
+
+					if (nb_write == self->buffer_size)
+						break;
+
+				default:
+					self->last_errno = errno;
+					return nb_write;
+			}
 		}
 
 		nb_total_write += nb_write;
@@ -254,6 +281,7 @@ struct mtar_io_writer * mtar_io_tape_new_writer(int fd, const struct mtar_option
 	data->position = 0;
 	data->total_free_space = 0;
 	data->last_errno = 0;
+	data->eod_reached = false;
 
 	data->buffer = malloc(option->block_factor << 9);
 	data->buffer_size = option->block_factor << 9;
