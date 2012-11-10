@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 10 Nov 2012 19:17:44 +0100                           *
+*  Last modified: Sat, 10 Nov 2012 21:39:54 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -481,6 +481,9 @@ static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void *
 
 	if (data == NULL)
 		return -1;
+
+	if (self->file_size < 1)
+		return 0;
 
 	if (length > self->file_size)
 		length = self->file_size;
