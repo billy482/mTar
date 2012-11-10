@@ -27,8 +27,10 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 20:49:25 +0200                           *
+*  Last modified: Sat, 10 Nov 2012 17:13:11 +0100                           *
 \***************************************************************************/
+
+#include <stddef.h>
 
 #include <mtar-format-mtf.chcksum>
 #include <mtar.version>
@@ -45,7 +47,7 @@ static struct mtar_format mtar_format_mtf = {
 	.name             = "mtf",
 
 	.new_reader       = mtar_format_mtf_new_reader,
-	.new_writer       = mtar_format_mtf_new_writer,
+	.new_writer       = NULL,
 
 	.show_description = mtar_format_mtf_show_description,
 	.show_version     = mtar_format_mtf_show_version,

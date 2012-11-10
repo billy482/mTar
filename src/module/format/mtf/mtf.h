@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 00:03:11 +0200                           *
+*  Last modified: Sat, 10 Nov 2012 17:12:33 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_MTF_H__
@@ -157,6 +157,10 @@ struct mtar_format_mtf_stream {
 		mtar_format_mtf_stream_crpt = 0x54505243, // corrupt stream
 		mtar_format_mtf_stream_spad = 0x44415053, // pad to next descriptor block
 		mtar_format_mtf_stream_spar = 0x52415053, // sparse data
+		mtar_format_mtf_stream_tsmp = 0x50534D54, // media based catalog - type 1
+		mtar_format_mtf_stream_tfdd = 0x44446D54, // media based catalog - type 1
+		mtar_format_mtf_stream_map2 = 0x32504153, // media based catalog - type 2
+		mtar_format_mtf_stream_fdd2 = 0x32444446, // media based catalog - type 2
 	} type;
 	uint16_t stream_file_system_attributes;
 	uint16_t stream_format_attributes;
@@ -167,7 +171,6 @@ struct mtar_format_mtf_stream {
 } __attribute__((packed));
 
 struct mtar_format_reader * mtar_format_mtf_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
-struct mtar_format_writer * mtar_format_mtf_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);
 
 #endif
 

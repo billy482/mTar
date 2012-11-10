@@ -27,13 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 29 Oct 2012 23:51:09 +0100                           *
+*  Last modified: Sat, 10 Nov 2012 17:29:58 +0100                           *
 \***************************************************************************/
 
 // free, realloc
 #include <stdlib.h>
-// bzero, strcmp, strlen
+// strcmp, strlen
 #include <string.h>
+// bzero
+#include <strings.h>
 
 #include <mtar/filter.h>
 #include <mtar/io.h>
@@ -130,7 +132,7 @@ void mtar_format_init_header(struct mtar_format_header * h) {
 	if (h == NULL)
 		return;
 
-	bzero(h, sizeof(*h));
+	bzero(h, sizeof(struct mtar_format_header));
 }
 
 void mtar_format_register(struct mtar_format * f) {

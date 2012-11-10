@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 14:57:02 +0200                           *
+*  Last modified: Sat, 10 Nov 2012 19:17:44 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -130,6 +130,7 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 		char * path = NULL;
 
 		uint32_t stream_offset = sblock;
+		off_t position;
 
 		switch (block.type) {
 			case mtar_format_mtf_descriptor_block_dirb:
@@ -216,6 +217,9 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 					stream_offset += nb_read;
 				}
 
+				if (strm.type == mtar_format_mtf_stream_spad)
+					self->io->ops->forward(self->io, strm.stream_length);
+
 				mtar_format_init_header(header);
 				asprintf(&header->path, "%s/%s", dir_name, path);
 				header->size = strm.type == mtar_format_mtf_stream_stan ? strm.stream_length : 0;
@@ -234,8 +238,18 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 
 				return mtar_format_header_ok;
 
+			case mtar_format_mtf_descriptor_block_espb:
+				return mtar_format_header_not_found;
+
 			default:
-				mtar_format_mtf_reader_next_header(self);
+				mtar_verbose_printf("mtf skip header: %x\n", block.type);
+
+			case mtar_format_mtf_descriptor_block_tape:
+			case mtar_format_mtf_descriptor_block_sset:
+			case mtar_format_mtf_descriptor_block_volb:
+				position = self->io->ops->position(self->io);
+				if (position % 1024 > 0)
+					self->io->ops->forward(self->io, 1024 - position % 1024);
 				continue;
 		}
 	}
@@ -432,10 +446,31 @@ static int mtar_format_mtf_reader_last_errno(struct mtar_format_reader * f) {
 }
 
 static void mtar_format_mtf_reader_next_header(struct mtar_format_mtf_reader * self) {
-	off_t position = self->io->ops->position(self->io);
+	struct mtar_format_mtf_stream strm;
+	static const ssize_t sstrm = sizeof(strm);
 
-	if (position % 1024 > 0)
-		self->io->ops->forward(self->io, 1024 - position % 1024);
+	off_t pos = self->io->ops->position(self->io);
+	if (pos % 4)
+		self->io->ops->forward(self->io, 4 - pos % 4);
+
+	ssize_t nb_read = self->io->ops->read(self->io, &strm, sstrm);
+	if (nb_read < sstrm)
+		return;
+
+	while (strm.type != mtar_format_mtf_stream_spad) {
+		self->io->ops->forward(self->io, strm.stream_length);
+		nb_read += strm.stream_length;
+
+		if (nb_read % 4 != 0)
+			self->io->ops->forward(self->io, 4 - nb_read % 4);
+
+		nb_read = self->io->ops->read(self->io, &strm, sstrm);
+		if (nb_read < 0)
+			return;
+	}
+
+	if (strm.type == mtar_format_mtf_stream_spad)
+		self->io->ops->forward(self->io, strm.stream_length);
 }
 
 static void mtar_format_mtf_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
