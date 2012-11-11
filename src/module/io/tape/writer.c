@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 28 Oct 2012 16:21:16 +0100                           *
+*  Last modified: Sun, 11 Nov 2012 16:00:35 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -291,12 +291,18 @@ struct mtar_io_writer * mtar_io_tape_new_writer(int fd, const struct mtar_option
 		data->total_free_space = option->tape_length << 10;
 	} else {
 		off_t tape_position;
-		ssize_t tape_size;
+		ssize_t tape_free, tape_size;
+
 		int failed = mtar_io_tape_scsi_read_position(fd, &tape_position);
 		if (!failed)
-			failed = mtar_io_tape_scsi_read_capacity(fd, 0, &tape_size);
-		if (!failed)
+			failed = mtar_io_tape_scsi_read_capacity(fd, &tape_free, &tape_size);
+
+		if (!failed && tape_free != tape_size && tape_position > 0)
+			data->total_free_space = tape_free;
+		else if (!failed)
 			data->total_free_space = tape_size - tape_position * data->buffer_size;
+		else
+			data->total_free_space = data->buffer_size;
 	}
 
 	struct mtar_io_writer * io = malloc(sizeof(struct mtar_io_writer));

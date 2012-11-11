@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 23:05:25 +0200                           *
+*  Last modified: Sun, 11 Nov 2012 15:53:55 +0100                           *
 \***************************************************************************/
 
 // be*toh, htobe*
@@ -235,11 +235,15 @@ int mtar_io_tape_scsi_read_capacity(int fd, ssize_t * total_free, ssize_t * tota
 		result.values[i].value = be32toh(result.values[i].value);
 	}
 
-	if (total_free)
-		*total_free = result.values[0].value << 20;
+	if (total_free) {
+		*total_free = result.values[0].value;
+		*total_free <<= 20;
+	}
 
-	if (total)
-		*total = result.values[2].value << 20;
+	if (total) {
+		*total = result.values[2].value;
+		*total <<= 20;
+	}
 
 	return 0;
 }
