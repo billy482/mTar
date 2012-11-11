@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 12:51:38 +0200                           *
+*  Last modified: Sun, 11 Nov 2012 16:35:36 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -98,6 +98,10 @@ void mtar_option_free(struct mtar_option * option) {
 	// overwrite control
 	option->verify = false;
 
+	// handling of file attributes
+	option->group = NULL;
+	option->owner = NULL;
+
 	// device selection and switching
 	option->filename = NULL;
 
@@ -110,6 +114,10 @@ void mtar_option_free(struct mtar_option * option) {
 
 	// local file selections
 	if (option->nb_files > 0) {
+		unsigned int i;
+		for (i = 0; i < option->nb_files; i++)
+			option->files[i]->ops->free(option->files[i]);
+
 		free(option->files);
 		option->files = NULL;
 		option->nb_files = 0;

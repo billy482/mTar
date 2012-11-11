@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:42:46 +0200                           *
+*  Last modified: Sun, 11 Nov 2012 17:19:09 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -172,6 +172,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 				continue;
 
 			struct mtar_format_header header;
+			mtar_format_init_header(&header);
 
 			char key[16];
 			snprintf(key, 16, "%x_%lx", (int) st.st_dev, st.st_ino);
@@ -193,8 +194,13 @@ static int mtar_function_create(const struct mtar_option * option) {
 						break;
 
 					case mtar_format_writer_ok:
+						free(filename);
+						mtar_format_free_header(&header);
 						continue;
 				}
+
+				free(filename);
+				mtar_format_free_header(&header);
 
 				if (failed)
 					break;
@@ -311,6 +317,8 @@ static int mtar_function_create(const struct mtar_option * option) {
 				};
 				utime(filename, &buf);
 			}
+
+			mtar_format_free_header(&header);
 		}
 	}
 
@@ -318,7 +326,13 @@ static int mtar_function_create(const struct mtar_option * option) {
 
 	if (failed || !option->verify) {
 		free(param.buffer);
+
 		tar_writer->ops->free(tar_writer);
+
+		for (i = 0; i < param.nb_files; i++)
+			free(param.files[i]);
+		free(param.files);
+
 		return failed;
 	}
 
@@ -436,6 +450,11 @@ static int mtar_function_create(const struct mtar_option * option) {
 	}
 
 	free(param.buffer);
+	param.tar_reader->ops->free(param.tar_reader);
+
+	for (i = 0; i < param.nb_files; i++)
+		free(param.files[i]);
+	free(param.files);
 
 	return failed;
 }
