@@ -27,14 +27,18 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 28 Oct 2012 16:16:34 +0100                           *
+*  Last modified: Sun, 11 Nov 2012 20:22:54 +0100                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
 // free, malloc
 #include <stdlib.h>
-// lseek, read
+// fstat
+#include <sys/stat.h>
+// fstat
+#include <sys/types.h>
+// fstat, lseek, read
 #include <unistd.h>
 
 #include <mtar/option.h>
@@ -72,7 +76,12 @@ static int mtar_io_file_reader_close(struct mtar_io_reader * io) {
 static off_t mtar_io_file_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_io_file * self = io->data;
 
-	off_t new_position = lseek(self->fd, offset, SEEK_CUR);
+	off_t new_position;
+	if (self->volume_size > 0 && self->volume_size < self->position + offset)
+		new_position = lseek(self->fd, 0, SEEK_END);
+	else
+		new_position = lseek(self->fd, offset, SEEK_CUR);
+
 	if (new_position == (off_t) -1)
 		self->last_errno = errno;
 	else if (new_position >= 0)
@@ -111,13 +120,20 @@ static ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data,
 	return nb_read;
 }
 
-struct mtar_io_reader * mtar_io_file_new_reader(int fd, const struct mtar_option * option __attribute__((unused)), const struct mtar_hashtable * params __attribute__((unused))) {
+struct mtar_io_reader * mtar_io_file_new_reader(int fd, const struct mtar_option * option, const struct mtar_hashtable * params __attribute__((unused))) {
 	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
 	self->fd = fd;
 	self->position = 0;
 	self->last_errno = 0;
 	self->block_size = 0;
 	self->volume_size = 0;
+
+	if (option->multi_volume) {
+		struct stat st;
+
+		if (!fstat(fd, &st))
+			self->volume_size = st.st_size;
+	}
 
 	struct mtar_io_reader * io = malloc(sizeof(struct mtar_io_reader));
 	io->ops = &mtar_io_file_reader_ops;

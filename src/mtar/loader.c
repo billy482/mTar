@@ -37,7 +37,7 @@
 #include <glob.h>
 // bool
 #include <stdbool.h>
-// snprintf
+// asprintf
 #include <stdio.h>
 // free
 #include <stdlib.h>

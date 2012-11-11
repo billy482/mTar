@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 29 Oct 2012 23:52:10 +0100                           *
+*  Last modified: Sun, 11 Nov 2012 18:56:32 +0100                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -91,7 +91,7 @@ struct mtar_io_reader * mtar_filter_get_reader2(struct mtar_io_reader * io, cons
 
 	if (option->compress_module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
-		if (filter == NULL)
+		if (filter == NULL || filter->new_reader == NULL)
 			return NULL;
 
 		return filter->new_reader(io, option);
@@ -109,7 +109,7 @@ struct mtar_io_reader * mtar_filter_get_reader3(const char * filename, const str
 
 	if (module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(module);
-		if (filter == NULL)
+		if (filter == NULL || filter->new_reader == NULL)
 			return 0;
 
 		return filter->new_reader(io, option);
@@ -167,7 +167,7 @@ struct mtar_io_writer * mtar_filter_get_writer2(struct mtar_io_writer * io, cons
 
 	if (option->compress_module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
-		if (filter == NULL)
+		if (filter == NULL || filter->new_writer == NULL)
 			return NULL;
 
 		return filter->new_writer(io, option);
@@ -185,7 +185,7 @@ struct mtar_io_writer * mtar_filter_get_writer3(const char * filename, const str
 
 	if (module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(module);
-		if (filter == NULL)
+		if (filter == NULL || filter->new_writer == NULL)
 			return NULL;
 
 		return filter->new_writer(io, option);

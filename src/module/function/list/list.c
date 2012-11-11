@@ -27,12 +27,22 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 26 Oct 2012 18:02:19 +0200                           *
+*  Last modified: Sun, 11 Nov 2012 21:43:26 +0100                           *
 \***************************************************************************/
+
+// free
+#include <stdlib.h>
+// waitpid
+#include <sys/types.h>
+// waitpid
+#include <sys/wait.h>
+// execl, _exit, fork
+#include <unistd.h>
 
 #include <mtar-function-list.chcksum>
 #include <mtar.version>
 
+#include <mtar/filter.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
@@ -41,8 +51,18 @@
 
 #include "list.h"
 
+struct mtar_function_list_param {
+	struct mtar_format_reader * format;
+
+	const char * filename;
+	unsigned int i_volume;
+
+	const struct mtar_option * option;
+};
+
 static int mtar_function_list(const struct mtar_option * option);
 static void mtar_function_list_init(void) __attribute__((constructor));
+static int mtar_function_list_select_volume(struct mtar_function_list_param * param);
 static void mtar_function_list_show_description(void);
 static void mtar_function_list_show_help(void);
 static void mtar_function_list_show_version(void);
@@ -68,8 +88,16 @@ static struct mtar_function mtar_function_list_functions = {
 
 
 static int mtar_function_list(const struct mtar_option * option) {
-	struct mtar_format_reader * format = mtar_format_get_reader(option);
-	if (format == NULL)
+	struct mtar_function_list_param param = {
+		.format = mtar_format_get_reader(option),
+
+		.filename = option->filename,
+		.i_volume = 1,
+
+		.option = option,
+	};
+
+	if (param.format == NULL)
 		return 1;
 
 	mtar_function_list_configure(option);
@@ -77,16 +105,13 @@ static int mtar_function_list(const struct mtar_option * option) {
 
 	int ok = -1;
 	while (ok < 0) {
-		enum mtar_format_reader_header_status status = format->ops->get_header(format, &header);
+		enum mtar_format_reader_header_status status = param.format->ops->get_header(param.format, &header);
 
 		switch (status) {
 			case mtar_format_header_ok:
-				if (mtar_pattern_match(option, header.path)) {
-					format->ops->skip_file(format);
-					continue;
-				}
+				if (!mtar_pattern_match(option, header.path))
+					mtar_function_list_display(&header);
 
-				mtar_function_list_display(&header);
 				break;
 
 			case mtar_format_header_bad_checksum:
@@ -97,6 +122,10 @@ static int mtar_function_list(const struct mtar_option * option) {
 			case mtar_format_header_bad_header:
 				mtar_verbose_printf("Bad header\n");
 				ok = 4;
+				continue;
+
+			case mtar_format_header_end_of_tape:
+				ok = mtar_function_list_select_volume(&param);
 				continue;
 
 			case mtar_format_header_error:
@@ -111,19 +140,109 @@ static int mtar_function_list(const struct mtar_option * option) {
 
 		mtar_format_free_header(&header);
 
-		if (format->ops->skip_file(format) != mtar_format_header_ok) {
-			mtar_verbose_printf("Failed to skip file\n");
-			ok = 2;
+		status = param.format->ops->skip_file(param.format);
+		switch (status) {
+			case mtar_format_header_end_of_tape:
+				ok = mtar_function_list_select_volume(&param);
+				continue;
+
+			case mtar_format_header_ok:
+				break;
+
+			default:
+				mtar_verbose_printf("Failed to skip file\n");
+				ok = 2;
 		}
 	}
 
-	format->ops->free(format);
+	param.format->ops->free(param.format);
 
 	return 0;
 }
 
 static void mtar_function_list_init() {
 	mtar_function_register(&mtar_function_list_functions);
+}
+
+static int mtar_function_list_select_volume(struct mtar_function_list_param * param) {
+	for (;;) {
+		char * line = mtar_verbose_prompt("Select volume #%u for `%s' and hit return: ", param->i_volume + 1, param->filename);
+		if (!line)
+			break;
+
+		switch (*line) {
+			case 'n': {
+				// new filename
+					char * filename;
+					for (filename = line + 1; *filename == ' '; filename++);
+
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(filename, param->option);
+
+					if (next_reader != NULL && param->format != NULL) {
+						param->format->ops->next_volume(param->format, next_reader);
+						param->i_volume++;
+						free(line);
+						return 0;
+					} else if (next_reader != NULL) {
+						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->i_volume++;
+						free(line);
+						return 0;
+					}
+				}
+				return 0;
+
+			case 'q':
+				mtar_verbose_printf("Archive is not fully parsed\n");
+				_exit(1);
+
+			case '\0':
+			case 'y': {
+					// reuse same filename
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(param->filename, param->option);
+
+					if (next_reader != NULL && param->format != NULL) {
+						param->format->ops->next_volume(param->format, next_reader);
+						param->i_volume++;
+						free(line);
+						return 0;
+					} else if (next_reader != NULL) {
+						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->i_volume++;
+						free(line);
+						return 0;
+					}
+				}
+				break;
+
+			case '!': {
+					// spawn shell
+					pid_t pid = fork();
+					if (pid > 0) {
+						int status;
+						waitpid(pid, &status, 0);
+					} else if (pid == 0) {
+						int failed = execl("/bin/bash", "bash", (const char *) NULL);
+						_exit(failed);
+					} else {
+						mtar_verbose_printf("Failed to spawn shell because %m\n");
+					}
+				}
+				break;
+
+			case '?':
+				mtar_verbose_printf(" n name        Give a new file name for the next (and subsequent) volume(s)\n");
+				mtar_verbose_printf(" q             Abort mtar\n");
+				mtar_verbose_printf(" y or newline  Continue operation\n");
+				mtar_verbose_printf(" !             Spawn a subshell\n");
+				mtar_verbose_printf(" ?             Print this list\n");
+				break;
+		}
+
+		free(line);
+	}
+
+	return 1;
 }
 
 static void mtar_function_list_show_description() {
