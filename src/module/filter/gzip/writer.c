@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 21:16:29 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 15:01:32 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -51,7 +51,7 @@ struct mtar_filter_gzip_writer {
 	uLong crc32;
 	bool closed;
 
-	char * buffer;
+	unsigned char * buffer;
 	ssize_t buffer_size;
 	ssize_t block_size;
 };
@@ -110,7 +110,7 @@ static bool mtar_filter_gzip_writer_finish(struct mtar_filter_gzip_writer * self
 
 	int err = 0;
 	do {
-		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.next_out = self->buffer;
 		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 		self->gz_stream.total_out = 0;
 
@@ -137,7 +137,7 @@ static int mtar_filter_gzip_writer_flush(struct mtar_io_writer * io) {
 
 	int ok;
 	do {
-		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.next_out = self->buffer;
 		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 		self->gz_stream.total_out = 0;
 
@@ -197,10 +197,8 @@ static ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const v
 	self->gz_stream.next_in = (unsigned char *) data;
 	self->gz_stream.avail_in = length;
 
-	self->crc32 = crc32(self->crc32, data, length);
-
 	while (self->gz_stream.avail_in > 0) {
-		self->gz_stream.next_out = (unsigned char *) self->buffer;
+		self->gz_stream.next_out = self->buffer;
 		self->gz_stream.avail_out = self->io->ops->next_prefered_size(self->io);
 		self->gz_stream.total_out = 0;
 
@@ -209,13 +207,15 @@ static ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const v
 			return -1;
 	}
 
+	self->crc32 = crc32(self->crc32, data, length);
+
 	return length;
 }
 
 struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option __attribute__((unused))) {
 	struct mtar_filter_gzip_writer * self = malloc(sizeof(struct mtar_filter_gzip_writer));
 	self->io = io;
-	self->closed = 0;
+	self->closed = false;
 	self->buffer_size = io->ops->block_size(io);
 	self->buffer = malloc(self->buffer_size);
 	self->block_size = (1 << 17) + (1 << (option->compress_level + 2));
@@ -236,14 +236,14 @@ struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, 
 	int err = deflateInit2(&self->gz_stream, option->compress_level, Z_DEFLATED, -MAX_WBITS, option->compress_level, Z_DEFAULT_STRATEGY);
 	if (err) {
 		free(self);
-		return 0;
+		return NULL;
 	}
 
 	struct gzip_header header = {
 		.magic = { 0x1F, 0x8B },
 		.compression_method = 0x08,
 		.flag = gzip_flag_none,
-		.mtime = time(0),
+		.mtime = time(NULL),
 		.extra_flag = self->gz_stream.data_type,
 		.os = gzip_os_unix,
 	};

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 10:34:58 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 14:49:01 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -44,7 +44,7 @@ struct mtar_filter_gzip_reader {
 	struct mtar_io_reader * io;
 	bool closed;
 
-	unsigned char bufferIn[1024];
+	unsigned char buffer_in[1024];
 };
 
 static ssize_t mtar_filter_gzip_reader_block_size(struct mtar_io_reader * io);
@@ -110,9 +110,9 @@ static off_t mtar_filter_gzip_reader_forward(struct mtar_io_reader * io, off_t o
 			}
 		}
 
-		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
+		int nb_read = self->io->ops->read(self->io, self->buffer_in + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
 		if (nb_read > 0) {
-			self->gz_stream.next_in = self->bufferIn;
+			self->gz_stream.next_in = self->buffer_in;
 			self->gz_stream.avail_in += nb_read;
 		} else if (nb_read == 0) {
 			return self->gz_stream.total_out;
@@ -161,9 +161,9 @@ static ssize_t mtar_filter_gzip_reader_read(struct mtar_io_reader * io, void * d
 				return self->gz_stream.total_out - previous_pos;
 		}
 
-		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
+		int nb_read = self->io->ops->read(self->io, self->buffer_in + self->gz_stream.avail_in, 1024 - self->gz_stream.avail_in);
 		if (nb_read > 0) {
-			self->gz_stream.next_in = (unsigned char *) self->bufferIn;
+			self->gz_stream.next_in = self->buffer_in;
 			self->gz_stream.avail_in += nb_read;
 		} else if (nb_read == 0) {
 			return self->gz_stream.total_out - previous_pos;
@@ -180,14 +180,14 @@ struct mtar_io_reader * mtar_filter_gzip_new_reader(struct mtar_io_reader * io, 
 	ssize_t nb_read = io->ops->read(io, &header, sizeof(header));
 
 	if (nb_read < 10 || header.magic[0] != 0x1F || header.magic[1] != 0x8B)
-		return 0;
+		return NULL;
 
 	if (header.flag & gzip_flag_extra_field) {
 		unsigned short extra_size;
 		nb_read = io->ops->read(io, &extra_size, sizeof(extra_size));
 
 		if (nb_read < 2)
-			return 0;
+			return NULL;
 
 		io->ops->forward(io, extra_size);
 	}
@@ -227,7 +227,7 @@ struct mtar_io_reader * mtar_filter_gzip_new_reader(struct mtar_io_reader * io, 
 	int err = inflateInit2(&self->gz_stream, -MAX_WBITS);
 	if (err < 0) {
 		free(self);
-		return 0;
+		return NULL;
 	}
 
 	struct mtar_io_reader * io2 = malloc(sizeof(struct mtar_io_reader));
