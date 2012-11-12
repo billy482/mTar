@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 19:28:03 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 15:09:19 +0100                           *
 \***************************************************************************/
 
 // lzma_code, lzma_easy_encoder, lzma_end
@@ -57,7 +57,7 @@ struct mtar_filter_xz_writer {
 static ssize_t mtar_filter_xz_writer_available_space(struct mtar_io_writer * io);
 static ssize_t mtar_filter_xz_writer_block_size(struct mtar_io_writer * io);
 static int mtar_filter_xz_writer_close(struct mtar_io_writer * io);
-static int mtar_filter_xz_writer_finish(struct mtar_filter_xz_writer * io);
+static bool mtar_filter_xz_writer_finish(struct mtar_filter_xz_writer * io);
 static int mtar_filter_xz_writer_flush(struct mtar_io_writer * io);
 static void mtar_filter_xz_writer_free(struct mtar_io_writer * io);
 static int mtar_filter_xz_writer_last_errno(struct mtar_io_writer * io);
@@ -102,7 +102,7 @@ static int mtar_filter_xz_writer_close(struct mtar_io_writer * io) {
 	return self->io->ops->close(self->io);
 }
 
-static int mtar_filter_xz_writer_finish(struct mtar_filter_xz_writer * self) {
+static bool mtar_filter_xz_writer_finish(struct mtar_filter_xz_writer * self) {
 	self->strm.next_in = 0;
 	self->strm.avail_in = 0;
 

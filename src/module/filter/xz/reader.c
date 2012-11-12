@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 09:33:26 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 15:03:22 +0100                           *
 \***************************************************************************/
 
 // lzma_code, lzma_end, lzma_stream_decoder
@@ -48,7 +48,7 @@ struct mtar_filter_xz_reader {
 	struct mtar_io_reader * io;
 	bool closed;
 
-	uint8_t bufferIn[1024];
+	uint8_t buffer_in[1024];
 };
 
 static ssize_t mtar_filter_xz_reader_block_size(struct mtar_io_reader * io);
@@ -114,9 +114,9 @@ static off_t mtar_filter_xz_reader_forward(struct mtar_io_reader * io, off_t off
 			}
 		}
 
-		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
+		int nb_read = self->io->ops->read(self->io, self->buffer_in + self->strm.avail_in, 1024 - self->strm.avail_in);
 		if (nb_read > 0) {
-			self->strm.next_in = self->bufferIn;
+			self->strm.next_in = self->buffer_in;
 			self->strm.avail_in += nb_read;
 		} else if (nb_read == 0) {
 			return self->strm.total_out;
@@ -165,9 +165,9 @@ static ssize_t mtar_filter_xz_reader_read(struct mtar_io_reader * io, void * dat
 				return self->strm.total_out - previous_pos;
 		}
 
-		ssize_t nb_read = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
+		ssize_t nb_read = self->io->ops->read(self->io, self->buffer_in + self->strm.avail_in, 1024 - self->strm.avail_in);
 		if (nb_read > 0) {
-			self->strm.next_in = self->bufferIn;
+			self->strm.next_in = self->buffer_in;
 			self->strm.avail_in += nb_read;
 		} else if (nb_read == 0) {
 			return self->strm.total_out - previous_pos;
