@@ -27,21 +27,30 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 10:24:58 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 09:51:55 +0100                           *
 \***************************************************************************/
 
 // mknod, open
 #include <fcntl.h>
+// bool
+#include <stdbool.h>
+// free
+#include <stdlib.h>
+// strerror
+#include <string.h>
 // mkdir, mknod, open
 #include <sys/stat.h>
-// mkdir, mknod, open
+// mkdir, mknod, open, waitpid
 #include <sys/types.h>
-// chdir, close, link, mknod, symlink, write
+// waitpid
+#include <sys/wait.h>
+// chdir, close, execl, _exit, fork, link, mknod, symlink, write
 #include <unistd.h>
 
 #include <mtar-function-extract.chcksum>
 #include <mtar.version>
 
+#include <mtar/filter.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
 #include <mtar/option.h>
@@ -50,8 +59,18 @@
 
 #include "extract.h"
 
+struct mtar_function_extract_param {
+	struct mtar_format_reader * format;
+
+	const char * filename;
+	unsigned int i_volume;
+
+	const struct mtar_option * option;
+};
+
 static int mtar_function_extract(const struct mtar_option * option);
 static void mtar_function_extract_init(void) __attribute__((constructor));
+static int mtar_function_extract_select_volume(struct mtar_function_extract_param * param);
 static void mtar_function_extract_show_description(void);
 static void mtar_function_extract_show_help(void);
 static void mtar_function_extract_show_version(void);
@@ -77,8 +96,16 @@ static struct mtar_function mtar_function_extract_functions = {
 
 
 static int mtar_function_extract(const struct mtar_option * option) {
-	struct mtar_format_reader * format = mtar_format_get_reader(option);
-	if (format == NULL)
+	struct mtar_function_extract_param param = {
+		.format = mtar_format_get_reader(option),
+
+		.filename = option->filename,
+		.i_volume = 1,
+
+		.option = option,
+	};
+
+	if (param.format == NULL)
 		return 1;
 
 	mtar_function_extract_configure(option);
@@ -90,14 +117,26 @@ static int mtar_function_extract(const struct mtar_option * option) {
 
 	struct mtar_format_header header;
 
-	int ok = -1;
-	while (ok < 0) {
-		enum mtar_format_reader_header_status status = format->ops->get_header(format, &header);
+	int failed = -1;
+	while (failed < 0) {
+		enum mtar_format_reader_header_status status = param.format->ops->get_header(param.format, &header);
 
 		switch (status) {
 			case mtar_format_header_ok:
 				if (mtar_pattern_match(option, header.path)) {
-					format->ops->skip_file(format);
+					status = param.format->ops->skip_file(param.format);
+					switch (status) {
+						case mtar_format_header_end_of_tape:
+							failed = mtar_function_extract_select_volume(&param);
+							continue;
+
+						case mtar_format_header_ok:
+							break;
+
+						default:
+							mtar_verbose_printf("Failed to skip file\n");
+							failed = 2;
+					}
 					continue;
 				}
 
@@ -107,66 +146,211 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					break;
 
 				if (header.link != NULL && !(header.mode & S_IFMT)) {
-					link(header.link, header.path);
+					if (link(header.link, header.path))
+						mtar_verbose_printf("Error while creating hardlink (from %s to %s) because %m\n", header.link, header.path);
 				} else if (S_ISFIFO(header.mode)) {
-					mknod(header.path, S_IFIFO, 0);
+					if (mknod(header.path, S_IFIFO, 0))
+						mtar_verbose_printf("Error while creating fifo (%s) because %m\n", header.path);
 				} else if (S_ISCHR(header.mode)) {
-					mknod(header.path, S_IFCHR, header.dev);
+					if (mknod(header.path, S_IFCHR, header.dev))
+						mtar_verbose_printf("Error while creating character device (%s %02x:%02x) because %m\n", header.path, (unsigned int) header.dev >> 8, (unsigned int) header.dev & 0xFF);
 				} else if (S_ISDIR(header.mode)) {
-					mkdir(header.path, header.mode);
+					if (mkdir(header.path, header.mode))
+						mtar_verbose_printf("Error while creating directory (%s) because %m\n", header.path);
 				} else if (S_ISBLK(header.mode)) {
-					mknod(header.path, S_IFBLK, header.dev);
+					if (mknod(header.path, S_IFBLK, header.dev))
+						mtar_verbose_printf("Error while creating block device (%s %02x:%02x) because %m\n", header.path, (unsigned int) header.dev >> 8, (unsigned int) header.dev & 0xFF);
 				} else if (S_ISREG(header.mode)) {
 					int fd = open(header.path, O_CREAT | O_TRUNC | O_WRONLY, header.mode);
 
 					char buffer[4096];
-					ssize_t nb_read, nbTotalRead = 0;
-					while ((nb_read = format->ops->read(format, buffer, 4096)) > 0) {
-						write(fd, buffer, nb_read);
+					ssize_t nb_total_read = 0;
+					bool cont = true;
 
-						nbTotalRead += nb_read;
+					while (nb_total_read < header.size && cont) {
+						ssize_t nb_read = param.format->ops->read(param.format, buffer, 4096);
 
-						mtar_function_extract_progress(header.path, "\r%b [%P] ETA: %E", nbTotalRead, header.size);
+						if (nb_read > 0) {
+							nb_total_read += nb_read;
+
+							ssize_t nb_write = write(fd, buffer, nb_read);
+							if (nb_write < 0) {
+								mtar_function_extract_clean();
+								mtar_verbose_printf("Error while write to (%s) because %m\n", header.path);
+							}
+
+							mtar_function_extract_progress(header.path, "\r%b [%P] ETA: %E", nb_total_read, header.size);
+						} else if (nb_read == 0) {
+							failed = mtar_function_extract_select_volume(&param);
+							if (failed != 0)
+								break;
+
+							struct mtar_format_header sub_header;
+							enum mtar_format_reader_header_status sub_status = param.format->ops->get_header(param.format, &sub_header);
+
+							int error;
+							size_t path_length;
+							switch (sub_status) {
+								case mtar_format_header_ok:
+									path_length = strlen(sub_header.path);
+									failed = strncmp(header.path, sub_header.path, path_length) || nb_total_read != sub_header.position;
+
+									if (failed) {
+										mtar_verbose_printf("Error, it seems you have selected wrong volume archive\n");
+										cont = false;
+										failed = 4;
+									}
+
+									break;
+
+								case mtar_format_header_end_of_tape:
+									mtar_verbose_printf("Error, end of tape found while reading header (from %s)\n", param.filename);
+									cont = false;
+									failed = 4;
+									break;
+
+								default:
+									error = param.format->ops->last_errno(param.format);
+									mtar_verbose_printf("Error while reading header (from %s) because %s\n", param.filename, strerror(error));
+									cont = false;
+									failed = 5;
+									break;
+							}
+						} else {
+							mtar_function_extract_clean();
+
+							int error = param.format->ops->last_errno(param.format);
+							mtar_verbose_printf("Error while reading from (%s) because %s\n", param.filename, strerror(error));
+						}
 					}
+
 					mtar_function_extract_clean();
 					close(fd);
 
 				} else if (S_ISLNK(header.mode)) {
-					symlink(header.link, header.path);
+					if (symlink(header.link, header.path))
+						mtar_verbose_printf("Error while creating symlink (from %s to %s) because %m\n", header.link, header.path);
 				}
 
 				break;
 
 			case mtar_format_header_bad_checksum:
 				mtar_verbose_printf("Bad checksum\n");
-				ok = 3;
+				failed = 3;
 				continue;
 
 			case mtar_format_header_bad_header:
 				mtar_verbose_printf("Bad header\n");
-				ok = 4;
+				failed = 4;
+				continue;
+
+			case mtar_format_header_end_of_tape:
+				failed = mtar_function_extract_select_volume(&param);
 				continue;
 
 			case mtar_format_header_error:
 				mtar_verbose_printf("Error while reader header\n");
-				ok = 5;
+				failed = 5;
 				continue;
 
 			case mtar_format_header_not_found:
-				ok = 0;
+				failed = 0;
 				continue;
 		}
 
 		mtar_format_free_header(&header);
 	}
 
-	format->ops->free(format);
+	param.format->ops->free(param.format);
 
 	return 0;
 }
 
 static void mtar_function_extract_init() {
 	mtar_function_register(&mtar_function_extract_functions);
+}
+
+static int mtar_function_extract_select_volume(struct mtar_function_extract_param * param) {
+	mtar_function_extract_clean();
+
+	for (;;) {
+		char * line = mtar_verbose_prompt("Select volume #%u for `%s' and hit return: ", param->i_volume + 1, param->filename);
+		if (!line)
+			break;
+
+		switch (*line) {
+			case 'n': {
+				// new filename
+					char * filename;
+					for (filename = line + 1; *filename == ' '; filename++);
+
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(filename, param->option);
+
+					if (next_reader != NULL && param->format != NULL) {
+						param->format->ops->next_volume(param->format, next_reader);
+						param->i_volume++;
+						free(line);
+						return 0;
+					} else if (next_reader != NULL) {
+						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->i_volume++;
+						free(line);
+						return 0;
+					}
+				}
+				return 0;
+
+			case 'q':
+				mtar_verbose_printf("Archive is not fully parsed\n");
+				_exit(1);
+
+			case '\0':
+			case 'y': {
+					// reuse same filename
+					struct mtar_io_reader * next_reader = mtar_filter_get_reader3(param->filename, param->option);
+
+					if (next_reader != NULL && param->format != NULL) {
+						param->format->ops->next_volume(param->format, next_reader);
+						param->i_volume++;
+						free(line);
+						return 0;
+					} else if (next_reader != NULL) {
+						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->i_volume++;
+						free(line);
+						return 0;
+					}
+				}
+				break;
+
+			case '!': {
+					// spawn shell
+					pid_t pid = fork();
+					if (pid > 0) {
+						int status;
+						waitpid(pid, &status, 0);
+					} else if (pid == 0) {
+						int failed = execl("/bin/bash", "bash", (const char *) NULL);
+						_exit(failed);
+					} else {
+						mtar_verbose_printf("Failed to spawn shell because %m\n");
+					}
+				}
+				break;
+
+			case '?':
+				mtar_verbose_printf(" n name        Give a new file name for the next (and subsequent) volume(s)\n");
+				mtar_verbose_printf(" q             Abort mtar\n");
+				mtar_verbose_printf(" y or newline  Continue operation\n");
+				mtar_verbose_printf(" !             Spawn a subshell\n");
+				mtar_verbose_printf(" ?             Print this list\n");
+				break;
+		}
+
+		free(line);
+	}
+
+	return 1;
 }
 
 static void mtar_function_extract_show_description() {
