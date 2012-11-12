@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 17:08:24 +0100                           *
+*  Last modified: Mon, 12 Nov 2012 17:21:13 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -154,7 +154,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->owner = NULL;
 
 	// device selection and switching
-	option->filename = NULL;
+	option->filename = "-";
 	option->tape_length = 0;
 	option->multi_volume = false;
 

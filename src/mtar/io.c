@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 28 Oct 2012 16:29:35 +0100                           *
+*  Last modified: Mon, 12 Nov 2012 18:04:49 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -123,7 +123,7 @@ struct mtar_io_reader * mtar_io_reader_get_file(const char * filename, int flags
 
 int mtar_io_open(const char * filename, int flags) {
 	if (!strcmp("-", filename)) {
-		if (flags & O_RDONLY)
+		if (!(flags & (O_WRONLY | O_RDWR)))
 			return 0;
 		if ((flags & O_WRONLY) || (flags & O_RDWR))
 			return 1;
