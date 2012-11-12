@@ -5,6 +5,6 @@ cscope.out
 depend/
 doc/
 lib/
-src/test/ext/
 tags
+test_bin/
 .*.swp

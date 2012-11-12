@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 09:23:56 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 12:27:32 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -110,7 +110,7 @@ static bool mtar_filter_bzip2_writer_finish(struct mtar_filter_bzip2_writer * se
 	do {
 		self->strm.next_out = self->buffer;
 		self->strm.avail_out = self->io->ops->next_prefered_size(self->io);
-		self->strm.total_out_lo32 = 0;
+		self->strm.total_out_hi32 = self->strm.total_out_lo32 = 0;
 
 		err = BZ2_bzCompress(&self->strm, BZ_FINISH);
 		if (err < 0 || self->io->ops->write(self->io, self->buffer, self->strm.total_out_lo32) < 0)
@@ -133,7 +133,7 @@ static int mtar_filter_bzip2_writer_flush(struct mtar_io_writer * io) {
 	do {
 		self->strm.next_out = self->buffer;
 		self->strm.avail_out = self->io->ops->next_prefered_size(self->io);
-		self->strm.total_out_lo32 = 0;
+		self->strm.total_out_hi32 = self->strm.total_out_lo32 = 0;
 
 		ok = BZ2_bzCompress(&self->strm, BZ_FLUSH);
 		if (ok < 0 || self->io->ops->write(self->io, self->buffer, self->strm.total_out_lo32) < 0)
@@ -169,7 +169,8 @@ static ssize_t mtar_filter_bzip2_writer_next_prefered_size(struct mtar_io_writer
 
 static off_t mtar_filter_bzip2_writer_position(struct mtar_io_writer * io) {
 	struct mtar_filter_bzip2_writer * self = io->data;
-	return (((unsigned long long int) self->strm.total_in_hi32) << 32) + self->strm.total_in_lo32;
+	off_t offset = self->strm.total_in_hi32;
+	return self->strm.total_in_lo32 | (offset << 32);
 }
 
 static struct mtar_io_reader * mtar_filter_bzip2_writer_reopen_for_reading(struct mtar_io_writer * io, const struct mtar_option * option) {
@@ -194,7 +195,7 @@ static ssize_t mtar_filter_bzip2_writer_write(struct mtar_io_writer * io, const 
 	while (self->strm.avail_in > 0) {
 		self->strm.next_out = self->buffer;
 		self->strm.avail_out = self->io->ops->next_prefered_size(self->io);
-		self->strm.total_out_lo32 = 0;
+		self->strm.total_out_hi32 = self->strm.total_out_lo32 = 0;
 
 		int err = BZ2_bzCompress(&self->strm, BZ_RUN);
 		if (err == BZ_RUN_OK && self->strm.total_out_lo32 > 0 && self->io->ops->write(self->io, self->buffer, self->strm.total_out_lo32) < 0)

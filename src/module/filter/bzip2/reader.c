@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 09:19:48 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 12:21:49 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -53,6 +53,7 @@ struct mtar_filter_bzip2_reader {
 
 static ssize_t mtar_filter_bzip2_reader_block_size(struct mtar_io_reader * io);
 static int mtar_filter_bzip2_reader_close(struct mtar_io_reader * io);
+static off_t mtar_filter_bzip2_reader_convert_total_out(bz_stream * strm);
 static off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset);
 static void mtar_filter_bzip2_reader_free(struct mtar_io_reader * io);
 static int mtar_filter_bzip2_reader_last_errno(struct mtar_io_reader * io);
@@ -89,28 +90,33 @@ static int mtar_filter_bzip2_reader_close(struct mtar_io_reader * io) {
 	return 0;
 }
 
+static off_t mtar_filter_bzip2_reader_convert_total_out(bz_stream * strm) {
+	off_t offset = strm->total_out_hi32;
+	return strm->total_out_lo32 | (offset << 32);
+}
+
 static off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t offset) {
 	struct mtar_filter_bzip2_reader * self = io->data;
 	if (self->closed)
-		return self->strm.total_out_lo32;
+		return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 
 	char buffer[1024];
 	self->strm.next_out = buffer;
 	self->strm.avail_out = offset > 1024 ? 1024 : offset;
-	unsigned int end_pos = self->strm.total_out_lo32 + offset;
+	off_t end_pos = mtar_filter_bzip2_reader_convert_total_out(&self->strm) + offset;
 
-	while (self->strm.total_out_lo32 < end_pos) {
+	while (mtar_filter_bzip2_reader_convert_total_out(&self->strm) < end_pos) {
 		while (self->strm.avail_in > 0) {
 			int err = BZ2_bzDecompress(&self->strm);
 			if (err == BZ_STREAM_END)
-				return self->strm.total_out_lo32;
+				return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 
 			if (self->strm.avail_out == 0) {
-				unsigned int tOffset = end_pos - self->strm.total_out_lo32;
-				if (tOffset == 0)
-					return self->strm.total_out_lo32;
+				off_t remain = end_pos - mtar_filter_bzip2_reader_convert_total_out(&self->strm);
+				if (remain == 0)
+					return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 				self->strm.next_out = buffer;
-				self->strm.avail_out = tOffset > 1024 ? 1024 : tOffset;
+				self->strm.avail_out = remain > 1024 ? 1024 : remain;
 			}
 		}
 
@@ -119,13 +125,13 @@ static off_t mtar_filter_bzip2_reader_forward(struct mtar_io_reader * io, off_t 
 			self->strm.next_in = self->bufferIn;
 			self->strm.avail_in += nb_read;
 		} else if (nb_read == 0) {
-			return self->strm.total_out_lo32;
+			return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 		} else {
 			return nb_read;
 		}
 	}
 
-	return self->strm.total_out_lo32;
+	return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 }
 
 static void mtar_filter_bzip2_reader_free(struct mtar_io_reader * io) {
@@ -145,7 +151,7 @@ static int mtar_filter_bzip2_reader_last_errno(struct mtar_io_reader * io) {
 
 static off_t mtar_filter_bzip2_reader_position(struct mtar_io_reader * io) {
 	struct mtar_filter_bzip2_reader * self = io->data;
-	return self->strm.total_out_lo32;
+	return mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 }
 
 static ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * data, ssize_t length) {
@@ -156,13 +162,13 @@ static ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * 
 
 	self->strm.next_out = data;
 	self->strm.avail_out = length;
-	unsigned int previous_pos = self->strm.total_out_lo32;
+	off_t previous_pos = mtar_filter_bzip2_reader_convert_total_out(&self->strm);
 
 	while (self->strm.avail_out > 0) {
 		if (self->strm.avail_in > 0) {
 			int err = BZ2_bzDecompress(&self->strm);
 			if (err == BZ_STREAM_END || self->strm.avail_out == 0)
-				return self->strm.total_out_lo32 - previous_pos;
+				return mtar_filter_bzip2_reader_convert_total_out(&self->strm) - previous_pos;
 		}
 
 		int nb_read = self->io->ops->read(self->io, self->bufferIn + self->strm.avail_in, 1024 - self->strm.avail_in);
@@ -170,13 +176,13 @@ static ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * 
 			self->strm.next_in = self->bufferIn;
 			self->strm.avail_in += nb_read;
 		} else if (nb_read == 0) {
-			return self->strm.total_out_lo32 - previous_pos;
+			return mtar_filter_bzip2_reader_convert_total_out(&self->strm) - previous_pos;
 		} else {
 			return nb_read;
 		}
 	}
 
-	return self->strm.total_out_lo32 - previous_pos;
+	return mtar_filter_bzip2_reader_convert_total_out(&self->strm) - previous_pos;
 }
 
 struct mtar_io_reader * mtar_filter_bzip2_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
