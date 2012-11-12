@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 16:35:36 +0100                           *
+*  Last modified: Mon, 12 Nov 2012 17:08:24 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -57,27 +57,29 @@ static void mtar_option_show_help(void);
 static void mtar_option_show_version(void);
 
 
-int mtar_option_check(struct mtar_option * option) {
+bool mtar_option_check(struct mtar_option * option) {
 	if (!option->do_work) {
 		mtar_verbose_printf("No function defined\n");
-		return 1;
+		return false;
 	}
 
 	if (option->owner) {
 		uid_t uid = mtar_file_user2uid(option->owner);
 		if (uid == (uid_t) -1) {
 			mtar_verbose_printf("Invalid user (%s)\n", option->owner);
-			return 1;
+			return false;
 		}
 	}
+
 	if (option->group) {
 		gid_t gid = mtar_file_group2gid(option->group);
 		if (gid == (gid_t) -1) {
 			mtar_verbose_printf("Invalid group (%s)\n", option->group);
-			return 1;
+			return false;
 		}
 	}
-	return 0;
+
+	return true;
 }
 
 void mtar_option_show_full_version() {

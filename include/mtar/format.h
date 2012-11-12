@@ -27,12 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 10:26:41 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 16:53:16 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
 #define __MTAR_FORMAT_H__
 
+// bool
+#include <stdbool.h>
 // dev_t, mode_t, ssize_t, time_t
 #include <sys/types.h>
 
@@ -112,7 +114,7 @@ struct mtar_format_header {
 	 * \note Name of group where tar has been made.
 	 */
 	char gname[32];
-	char is_label;
+	bool is_label;
 };
 
 enum mtar_format_reader_header_status {

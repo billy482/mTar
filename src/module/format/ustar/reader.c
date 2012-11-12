@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 25 Oct 2012 20:24:03 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 16:53:13 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -248,7 +248,7 @@ static enum mtar_format_reader_header_status mtar_format_ustar_reader_get_header
 				break;
 
 			case 'V':
-				header->is_label = 1;
+				header->is_label = true;
 				break;
 		}
 

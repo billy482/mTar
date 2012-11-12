@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 27 Oct 2012 22:40:16 +0200                           *
+*  Last modified: Mon, 12 Nov 2012 17:09:01 +0100                           *
 \***************************************************************************/
 
 #include "io.h"
@@ -44,9 +44,9 @@ int main(int argc, char ** argv) {
 	if (failed)
 		return failed - 1;
 
-	failed = mtar_option_check(&option);
-	if (failed)
-		return failed;
+	bool ok = mtar_option_check(&option);
+	if (!ok)
+		return 2;
 
 	failed = option.do_work(&option);
 

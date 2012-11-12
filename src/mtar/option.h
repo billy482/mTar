@@ -35,7 +35,7 @@
 
 #include <mtar/option.h>
 
-int mtar_option_check(struct mtar_option * option);
+bool mtar_option_check(struct mtar_option * option);
 void mtar_option_free(struct mtar_option * option);
 int mtar_option_parse(struct mtar_option * option, int argc, char ** argv);
 
