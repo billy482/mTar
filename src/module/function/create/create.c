@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 17:19:09 +0100                           *
+*  Last modified: Mon, 12 Nov 2012 19:26:21 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -129,7 +129,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 		.i_files = 0,
 	};
 
-	param.files[0] = strdup(option->filename);
+	param.files[0] = option->filename != NULL ? strdup(option->filename) : NULL;
 
 	int failed = 0;
 	enum mtar_format_writer_status status;

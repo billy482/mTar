@@ -68,14 +68,14 @@ static struct mtar_io_writer_ops mtar_io_pipe_writer_ops = {
 };
 
 
-static ssize_t mtar_io_pipe_writer_available_space(struct mtar_io_writer * io __attribute__((unused))) {
+static ssize_t mtar_io_pipe_writer_available_space(struct mtar_io_writer * io) {
 	struct mtar_io_pipe * self = io->data;
 
 	ssize_t nb_write = write(self->fd, "", 0);
 	if (nb_write < 0 && errno == EPIPE)
 		return 0;
 
-	return mtar_io_pipe_common_block_size(self);
+	return mtar_io_pipe_common_block_size(self) << 10;
 }
 
 static ssize_t mtar_io_pipe_writer_block_size(struct mtar_io_writer * io) {
