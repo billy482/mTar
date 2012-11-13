@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 19:26:31 +0100                           *
+*  Last modified: Tue, 13 Nov 2012 22:15:23 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -145,6 +145,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->do_work = NULL;
 
 	// overwrite control
+	option->unlink_first = false;
 	option->verify = false;
 
 	// handling of file attributes
@@ -193,7 +194,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-bcCfHjJLMtTvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-bcCfHjJLMtTUvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -259,6 +260,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, include_pattern_option, argv[optind++], option);
 					break;
 
+				case 'U':
+					option->unlink_first = true;
+					break;
+
 				case 'v':
 					if (option->verbose < 2)
 						option->verbose++;
@@ -307,6 +312,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_list            = 't',
 		opt_multi_volume    = 'M',
 		opt_tape_length     = 'L',
+		opt_unlink_first    = 'U',
 		opt_verbose         = 'v',
 		opt_verify          = 'W',
 		opt_xz              = 'J',
@@ -388,6 +394,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "pattern-engine",       1, 0, opt_pattern_engine },
 		{ "recursion",            0, 0, opt_recursion },
 		{ "tape-length",          1, 0, opt_tape_length },
+		{ "unlink-first",         0, 0, opt_unlink_first },
 		{ "ungzip",               0, 0, opt_gzip },
 		{ "verbose",              0, 0, opt_verbose },
 		{ "verify",               0, 0, opt_verify },
@@ -599,6 +606,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				sscanf(optarg, "%zd", &option->tape_length);
 				break;
 
+			case opt_unlink_first:
+				option->unlink_first = true;
+				break;
+
 			case opt_verbose:
 				if (option->verbose < 2)
 					option->verbose++;
@@ -626,7 +637,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 void mtar_option_show_help() {
 	mtar_verbose_printf("mtar: modular tar (version: %s)\n", MTAR_VERSION);
-	mtar_verbose_printf("Usage: mtar [short_option] [param_short_option] [long_option] [--] [files]\n\n");
+	mtar_verbose_printf("Usage: mtar [short_option [param_short_option]] [long_option] [--] [files]\n\n");
 
 	mtar_verbose_printf("  Main operation mode:\n");
 	mtar_verbose_print_help("-c, --create : create new archive");
@@ -641,6 +652,7 @@ void mtar_option_show_help() {
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("  Overwrite control:\n");
+	mtar_verbose_print_help("-U, --unlink-first : remove each file prior to extracting over it");
 	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
 	mtar_verbose_print_flush(4, 1);
 

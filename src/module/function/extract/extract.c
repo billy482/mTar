@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 18:43:53 +0100                           *
+*  Last modified: Tue, 13 Nov 2012 23:06:25 +0100                           *
 \***************************************************************************/
 
 // mknod, open
@@ -38,13 +38,13 @@
 #include <stdlib.h>
 // strerror
 #include <string.h>
-// mkdir, mknod, open
+// mkdir, mknod, open, stat
 #include <sys/stat.h>
-// mkdir, mknod, open, waitpid
+// mkdir, mknod, open, stat, waitpid
 #include <sys/types.h>
 // waitpid
 #include <sys/wait.h>
-// chdir, close, execl, _exit, fork, link, mknod, symlink, write
+// access, chdir, close, execl, _exit, fork, link, mknod, stat, symlink, unlink, write
 #include <unistd.h>
 
 #include <mtar-function-extract.chcksum>
@@ -162,6 +162,16 @@ static int mtar_function_extract(const struct mtar_option * option) {
 
 				if (header.is_label)
 					break;
+
+				if (option->unlink_first && !access(header.path, F_OK)) {
+					struct stat st;
+					stat(header.path, &st);
+
+					if (S_ISDIR(st.st_mode)) {
+					} else if (unlink(header.path)) {
+						mtar_verbose_printf("Error while unlinking (%s) because %m\n", header.link);
+					}
+				}
 
 				if (header.link != NULL && !(header.mode & S_IFMT)) {
 					if (link(header.link, header.path))

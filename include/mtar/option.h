@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 22:43:53 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 21:34:15 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -49,6 +49,7 @@ struct mtar_option {
 	mtar_function_f do_work;
 
 	// overwrite control
+	bool unlink_first;
 	bool verify;
 
 	// handling of file attributes
