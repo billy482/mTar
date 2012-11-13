@@ -27,20 +27,22 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 19 Oct 2012 23:04:00 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 14:16:40 +0100                           *
 \***************************************************************************/
 
 // open
 #include <fcntl.h>
 // sscanf, snprintf
 #include <stdio.h>
-// strchr, strcpy, strlen, strncpy, strstr
+// free
+#include <stdlib.h>
+// strchr, strcpy, strlen, strncpy, strrchr, strstr
 #include <string.h>
 // mmap, munmap
 #include <sys/mman.h>
-// fstat, mode_t, open, S_*
+// fstat, mode_t, mkdir, open, S_*
 #include <sys/stat.h>
-// fstat, open, S_*
+// fstat, mkdir, open, S_*
 #include <sys/types.h>
 // close, fstat, S_*
 #include <unistd.h>
@@ -187,6 +189,52 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 
 	munmap(buffer, fs.st_size);
 	close(fd);
+}
+
+int mtar_file_mkdir(const char * filename, mode_t mode) {
+	if (!access(filename, F_OK))
+		return 0;
+
+	mode &= S_IRWXU | S_IRWXG | S_IRWXO;
+	if ((mode & S_IRUSR) || (mode & S_IWUSR))
+		mode |= S_IXUSR;
+	if ((mode & S_IRGRP) || (mode & S_IWGRP))
+		mode |= S_IXGRP;
+	if ((mode & S_IROTH) || (mode & S_IWOTH))
+		mode |= S_IXOTH;
+
+	char * dir = strdup(filename);
+	mtar_util_string_delete_double_char(dir, '/');
+	mtar_util_string_rtrim(dir, '/');
+
+	char * ptr = strrchr(dir, '/');
+	if (ptr == NULL) {
+		free(dir);
+		return mkdir(filename, mode);
+	}
+
+	unsigned short nb = 0;
+	do {
+		*ptr = '\0';
+		nb++;
+		ptr = strrchr(dir, '/');
+	} while (ptr != NULL && access(dir, F_OK));
+
+	int failed = 0;
+	if (access(dir, F_OK))
+		failed = mkdir(dir, mode);
+
+	unsigned short i;
+	for (i = 0; i < nb && !failed; i++) {
+		size_t length = strlen(dir);
+		dir[length] = '/';
+
+		failed = mkdir(dir, mode);
+	}
+
+	free(dir);
+
+	return failed;
 }
 
 void mtar_file_rlookup(const char * filename, const char * name, char * id, ssize_t namelength) {

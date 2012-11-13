@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 21:28:28 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 13:32:10 +0100                           *
 \***************************************************************************/
 
 // pcre_compile, pcre_exec, pcre_free
@@ -57,11 +57,13 @@ struct mtar_pattern_pcre_include {
 
 static void mtar_pattern_pcre_include_free(struct mtar_pattern_include * pattern);
 static bool mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+static bool mtar_pattern_pcre_include_match(struct mtar_pattern_include * pattern, const char * filename);
 static void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern, char ** filename);
 
 static struct mtar_pattern_include_ops mtar_pattern_pcre_include_ops = {
 	.free     = mtar_pattern_pcre_include_free,
 	.has_next = mtar_pattern_pcre_include_has_next,
+	.match    = mtar_pattern_pcre_include_match,
 	.next     = mtar_pattern_pcre_include_next,
 };
 
@@ -147,6 +149,12 @@ static bool mtar_pattern_pcre_include_has_next(struct mtar_pattern_include * pat
 	return false;
 }
 
+static bool mtar_pattern_pcre_include_match(struct mtar_pattern_include * pattern, const char * filename) {
+	struct mtar_pattern_pcre_include * self = pattern->data;
+	int cap[2];
+	return pcre_exec(self->pattern, 0, filename, strlen(filename), 0, 0, cap, 2) > 0;
+}
+
 static void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern, char ** filename) {
 	struct mtar_pattern_pcre_include * self = pattern->data;
 
@@ -190,7 +198,7 @@ static void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern
 }
 
 struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern, enum mtar_pattern_option option) {
-	const char * error = 0;
+	const char * error = NULL;
 	int erroroffset = 0;
 
 	int pcre_option = 0;
@@ -202,27 +210,7 @@ struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern
 	struct mtar_pattern_pcre_include * self = malloc(sizeof(struct mtar_pattern_pcre_include));
 	self->pattern = pcre_compile(pattern, pcre_option, &error, &erroroffset, 0);
 
-	self->path_gen = 0;
-	size_t pos = strcspn(pattern, "*?{[");
-
-	if (pos > 0) {
-		char * dir = malloc(pos + 1);
-		strncpy(dir, pattern, pos);
-		dir[pos] = '\0';
-
-		char * last_slash = strrchr(dir, '/');
-
-		if (last_slash != NULL) {
-			*last_slash = '\0';
-			self->path_gen = mtar_pattern_get_include(0, dir, option);
-		} else {
-			self->path_gen = mtar_pattern_get_include(0, ".", option);
-		}
-
-		free(dir);
-	} else {
-		self->path_gen = mtar_pattern_get_include(0, ".", option);
-	}
+	self->path_gen = mtar_pattern_get_include(0, ".", option);
 
 	self->current_dir = NULL;
 	self->next_dir = NULL;

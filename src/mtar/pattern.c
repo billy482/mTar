@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 22 Oct 2012 22:36:23 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 11:46:51 +0100                           *
 \***************************************************************************/
 
 // versionsort
@@ -39,7 +39,7 @@
 #include <fnmatch.h>
 // free, realloc
 #include <stdlib.h>
-// memmove, strcmp, strdup, strlen, strrchr, strstr
+// memmove, strcmp, strdup, strlen, strncmp, strrchr, strstr
 #include <string.h>
 // lstat, stat
 #include <sys/types.h>
@@ -58,6 +58,7 @@
 
 struct mtar_pattern_include_private {
 	char * path;
+	size_t spath;
 	enum mtar_pattern_option option;
 
 	char * current_path;
@@ -86,12 +87,14 @@ static void mtar_pattern_exit(void) __attribute__((destructor));
 static int mtar_pattern_include_filter(const struct dirent * file);
 static void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern);
 static bool mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+static bool mtar_pattern_include_private_match(struct mtar_pattern_include * pattern, const char * filename);
 static void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, char ** filename);
 static struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option);
 
 static struct mtar_pattern_include_ops mtar_pattern_include_private_ops = {
 	.free     = mtar_pattern_include_private_free,
 	.has_next = mtar_pattern_include_private_has_next,
+	.match    = mtar_pattern_include_private_match,
 	.next     = mtar_pattern_include_private_next,
 };
 
@@ -378,6 +381,11 @@ bool mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern
 	return true;
 }
 
+static bool mtar_pattern_include_private_match(struct mtar_pattern_include * pattern, const char * filename) {
+	struct mtar_pattern_include_private * self = pattern->data;
+	return !strncmp(filename, self->path, self->spath);
+}
+
 void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, char ** filename) {
 	struct mtar_pattern_include_private * self = pattern->data;
 
@@ -396,6 +404,7 @@ void mtar_pattern_include_private_next(struct mtar_pattern_include * pattern, ch
 struct mtar_pattern_include * mtar_pattern_include_private_new(const char * pattern, enum mtar_pattern_option option) {
 	struct mtar_pattern_include_private * self = malloc(sizeof(struct mtar_pattern_include_private));
 	self->path = strdup(pattern);
+	self->spath = 0;
 	self->option = option;
 	self->current_path = NULL;
 	self->first = self->last = NULL;
@@ -413,6 +422,8 @@ struct mtar_pattern_include * mtar_pattern_include_private_new(const char * patt
 		length--;
 		self->path[length] = '\0';
 	}
+
+	self->spath = strlen(self->path);
 
 	struct mtar_pattern_include * pttrn = malloc(sizeof(struct mtar_pattern_include));
 	pttrn->ops = &mtar_pattern_include_private_ops;

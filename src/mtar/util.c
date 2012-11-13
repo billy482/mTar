@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 18:25:22 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 14:18:10 +0100                           *
 \***************************************************************************/
 
 // free
@@ -159,6 +159,16 @@ void mtar_util_string_trim(char * str, char trim) {
 		memmove(str, ptr, length + 1);
 	}
 
+	for (ptr = str + (length - 1); *ptr == trim && ptr > str; ptr--);
+
+	if (ptr[1] != '\0')
+		ptr[1] = '\0';
+}
+
+void mtar_util_string_rtrim(char * str, char trim) {
+	size_t length = strlen(str);
+
+	char * ptr;
 	for (ptr = str + (length - 1); *ptr == trim && ptr > str; ptr--);
 
 	if (ptr[1] != '\0')

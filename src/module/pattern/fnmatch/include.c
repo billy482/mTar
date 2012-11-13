@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 21:28:15 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 12:12:09 +0100                           *
 \***************************************************************************/
 
 // fnmatch
@@ -48,6 +48,7 @@
 struct mtar_pattern_fnmatch_include {
 	char * pattern;
 	int fnmatch_flags;
+	bool anchored;
 
 	struct mtar_pattern_include * path_gen;
 	char * current_dir;
@@ -58,11 +59,13 @@ struct mtar_pattern_fnmatch_include {
 
 static void mtar_pattern_fnmatch_include_free(struct mtar_pattern_include * pattern);
 static bool mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+static bool mtar_pattern_fnmatch_include_match(struct mtar_pattern_include * pattern, const char * filename);
 static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename);
 
 static struct mtar_pattern_include_ops mtar_pattern_fnmatch_include_ops = {
 	.free     = mtar_pattern_fnmatch_include_free,
 	.has_next = mtar_pattern_fnmatch_include_has_next,
+	.match    = mtar_pattern_fnmatch_include_match,
 	.next     = mtar_pattern_fnmatch_include_next,
 };
 
@@ -147,6 +150,26 @@ static bool mtar_pattern_fnmatch_include_has_next(struct mtar_pattern_include * 
 	return false;
 }
 
+static bool mtar_pattern_fnmatch_include_match(struct mtar_pattern_include * pattern, const char * filename) {
+	struct mtar_pattern_fnmatch_include * self = pattern->data;
+
+	if (self->anchored && !self->path_gen->ops->match(self->path_gen, filename))
+		return false;
+
+	if (self->anchored)
+		return !fnmatch(self->pattern, filename, self->fnmatch_flags);
+
+	const char * ptr = filename;
+	bool not_matched = false;
+	while (ptr && (not_matched = fnmatch(self->pattern, ptr, self->fnmatch_flags))) {
+		ptr = strchr(ptr, '/');
+		if (ptr)
+			ptr++;
+	}
+
+	return !not_matched;
+}
+
 static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * pattern, char ** filename) {
 	struct mtar_pattern_fnmatch_include * self = pattern->data;
 
@@ -193,6 +216,7 @@ struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * patt
 	struct mtar_pattern_fnmatch_include * self = malloc(sizeof(struct mtar_pattern_fnmatch_include));
 	self->pattern = strdup(pattern);
 	self->fnmatch_flags = 0;
+	self->anchored = false;
 
 	if (option & mtar_pattern_option_ignore_case)
 		self->fnmatch_flags |= FNM_CASEFOLD;
@@ -210,6 +234,7 @@ struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * patt
 		if (last_slash != NULL) {
 			*last_slash = '\0';
 			self->path_gen = mtar_pattern_get_include(0, dir, option);
+			self->anchored = true;
 		} else {
 			self->path_gen = mtar_pattern_get_include(0, ".", option);
 		}

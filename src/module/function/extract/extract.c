@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 09:51:55 +0100                           *
+*  Last modified: Tue, 13 Nov 2012 18:43:53 +0100                           *
 \***************************************************************************/
 
 // mknod, open
@@ -50,6 +50,7 @@
 #include <mtar-function-extract.chcksum>
 #include <mtar.version>
 
+#include <mtar/file.h>
 #include <mtar/filter.h>
 #include <mtar/function.h>
 #include <mtar/io.h>
@@ -121,9 +122,16 @@ static int mtar_function_extract(const struct mtar_option * option) {
 	while (failed < 0) {
 		enum mtar_format_reader_header_status status = param.format->ops->get_header(param.format, &header);
 
+		bool extract = option->nb_files == 0;
+		unsigned int i;
+		char * last_slash;
+
 		switch (status) {
 			case mtar_format_header_ok:
-				if (mtar_pattern_match(option, header.path)) {
+				for (i = 0; !extract && i < option->nb_files; i++)
+					extract = option->files[i]->ops->match(option->files[i], header.path);
+
+				if (!extract || mtar_pattern_match(option, header.path)) {
 					status = param.format->ops->skip_file(param.format);
 					switch (status) {
 						case mtar_format_header_end_of_tape:
@@ -139,6 +147,16 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					}
 					continue;
 				}
+
+				last_slash = strrchr(header.path, '/');
+				if (last_slash != NULL) {
+					*last_slash = '\0';
+
+					mtar_file_mkdir(header.path, header.mode);
+
+					*last_slash = '/';
+				}
+
 
 				mtar_function_extract_display(&header);
 

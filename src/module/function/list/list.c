@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 21:43:26 +0100                           *
+*  Last modified: Tue, 13 Nov 2012 11:54:41 +0100                           *
 \***************************************************************************/
 
 // free
@@ -107,9 +107,14 @@ static int mtar_function_list(const struct mtar_option * option) {
 	while (ok < 0) {
 		enum mtar_format_reader_header_status status = param.format->ops->get_header(param.format, &header);
 
+		bool display = option->nb_files == 0;
+		unsigned int i;
 		switch (status) {
 			case mtar_format_header_ok:
-				if (!mtar_pattern_match(option, header.path))
+				for (i = 0; !display && i < option->nb_files; i++)
+					display = option->files[i]->ops->match(option->files[i], header.path);
+
+				if (display && !mtar_pattern_match(option, header.path))
 					mtar_function_list_display(&header);
 
 				break;

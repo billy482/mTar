@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 19 Oct 2012 22:58:25 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 13:45:46 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILE_H__
@@ -60,6 +60,8 @@ void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
  * \return gid of <a>group's name</a> or -1
  */
 gid_t mtar_file_group2gid(const char * group);
+
+int mtar_file_mkdir(const char * filename, mode_t mode);
 
 /**
  * \brief Convert an uid to user's name

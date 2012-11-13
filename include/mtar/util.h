@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 05 May 2012 15:18:36 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 14:16:22 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_UTIL_H__
@@ -38,6 +38,7 @@ unsigned long long mtar_util_compute_hash_string(const void * key);
 void mtar_util_string_delete_double_char(char * str, char delete_char);
 char ** mtar_util_string_justified(const char * str, unsigned int width, unsigned int * nb_lines);
 void mtar_util_string_trim(char * str, char trim);
+void mtar_util_string_rtrim(char * str, char trim);
 
 #endif
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 21 Oct 2012 10:29:59 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 11:26:21 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_H__
@@ -54,6 +54,7 @@ struct mtar_pattern_include {
 	struct mtar_pattern_include_ops {
 		void (*free)(struct mtar_pattern_include * pattern);
 		bool (*has_next)(struct mtar_pattern_include * pattern, const struct mtar_option * option);
+		bool (*match)(struct mtar_pattern_include * pattern, const char * filename);
 		void (*next)(struct mtar_pattern_include * pattern, char ** filename);
 	} * ops;
 	void * data;
