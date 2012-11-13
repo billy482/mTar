@@ -27,14 +27,14 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 08 May 2012 00:11:12 +0200                           *
+*  Last modified: Tue, 13 Nov 2012 19:10:18 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_CONFIG_H__
 #define __MTAR_CONFIG_H__
 
-// #define PLUGINS_PATH "/usr/lib/mtar"
-#define PLUGINS_PATH "lib"
+#define PLUGINS_PATH "/usr/lib/mtar"
+// #define PLUGINS_PATH "lib"
 
 #endif
 
