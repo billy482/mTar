@@ -27,10 +27,10 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 14 Nov 2012 19:02:30 +0100                           *
+*  Last modified: Wed, 14 Nov 2012 23:07:27 +0100                           *
 \***************************************************************************/
 
-// fstatat, linkat, openat, symlinkat, unlinkat
+// fstatat, futimesat, linkat, openat, symlinkat, unlinkat
 #include <fcntl.h>
 // bool
 #include <stdbool.h>
@@ -40,6 +40,8 @@
 #include <string.h>
 // fstatat
 #include <sys/stat.h>
+// futimesat
+#include <sys/time.h>
 // waitpid
 #include <sys/types.h>
 // waitpid
@@ -278,6 +280,13 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					if (symlinkat(header.link, dir_fd, header.path))
 						mtar_verbose_printf("Error while creating symlink (from %s to %s) because %m\n", header.link, header.path);
 				}
+
+				struct timespec times[2] = {
+					{ .tv_sec = header.mtime, .tv_nsec = 0 },
+					{ .tv_sec = header.mtime, .tv_nsec = 0 },
+				};
+				if (utimensat(dir_fd, header.path, times, AT_SYMLINK_NOFOLLOW))
+					mtar_verbose_printf("Warning, failed to restore modified time of %s because %m\n", header.path);
 
 				break;
 
