@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 11:46:51 +0100                           *
+*  Last modified: Wed, 14 Nov 2012 18:29:44 +0100                           *
 \***************************************************************************/
 
 // versionsort
@@ -48,6 +48,7 @@
 // access, lstat, stat
 #include <unistd.h>
 
+#include <mtar/file.h>
 #include <mtar/filter.h>
 #include <mtar/option.h>
 #include <mtar/readline.h>
@@ -84,7 +85,6 @@ static struct mtar_pattern_driver ** mtar_pattern_drivers = NULL;
 static unsigned int mtar_pattern_nb_drivers = 0;
 
 static void mtar_pattern_exit(void) __attribute__((destructor));
-static int mtar_pattern_include_filter(const struct dirent * file);
 static void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern);
 static bool mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern, const struct mtar_option * option);
 static bool mtar_pattern_include_private_match(struct mtar_pattern_include * pattern, const char * filename);
@@ -221,16 +221,6 @@ struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, cons
 	return NULL;
 }
 
-int mtar_pattern_include_filter(const struct dirent * file) {
-	if (file->d_name[0] != '.')
-		return 1;
-
-	if (file->d_name[1] == '\0')
-		return 0;
-
-	return file->d_name[1] != '.' || file->d_name[2] != '\0';
-}
-
 void mtar_pattern_include_private_free(struct mtar_pattern_include * pattern) {
 	struct mtar_pattern_include_private * self = pattern->data;
 
@@ -277,7 +267,7 @@ bool mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern
 				cnode->index_nl = 0;
 				cnode->next = cnode->previous = NULL;
 
-				cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_pattern_include_filter, versionsort);
+				cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_file_basic_filter, versionsort);
 
 				if (cnode->nb_nl > 0) {
 					cnode->nl_next = *cnode->nl;
@@ -321,7 +311,7 @@ bool mtar_pattern_include_private_has_next(struct mtar_pattern_include * pattern
 					csubnode->nl_next = NULL;
 					csubnode->index_nl = 0;
 
-					csubnode->nb_nl = scandir(self->current_path, &csubnode->nl, mtar_pattern_include_filter, versionsort);
+					csubnode->nb_nl = scandir(self->current_path, &csubnode->nl, mtar_file_basic_filter, versionsort);
 
 					if (csubnode->nb_nl > 0) {
 						csubnode->nl_next = *csubnode->nl;

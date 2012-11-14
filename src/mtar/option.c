@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 22:15:23 +0100                           *
+*  Last modified: Wed, 14 Nov 2012 09:59:30 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -145,6 +145,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->do_work = NULL;
 
 	// overwrite control
+	option->recursive_unlink = false;
 	option->unlink_first = false;
 	option->verify = false;
 
@@ -345,6 +346,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_owner,
 		opt_pattern_engine,
 		opt_recursion,
+		opt_recursive_unlink,
 		opt_version,
 	};
 
@@ -393,6 +395,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "owner",                1, 0, opt_owner },
 		{ "pattern-engine",       1, 0, opt_pattern_engine },
 		{ "recursion",            0, 0, opt_recursion },
+		{ "recursive-unlink",     0, 0, opt_recursive_unlink },
 		{ "tape-length",          1, 0, opt_tape_length },
 		{ "unlink-first",         0, 0, opt_unlink_first },
 		{ "ungzip",               0, 0, opt_gzip },
@@ -602,6 +605,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				include_pattern_option |= mtar_pattern_option_recursion;
 				break;
 
+			case opt_recursive_unlink:
+				option->recursive_unlink = true;
+				break;
+
 			case opt_tape_length:
 				sscanf(optarg, "%zd", &option->tape_length);
 				break;
@@ -652,6 +659,7 @@ void mtar_option_show_help() {
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("  Overwrite control:\n");
+	mtar_verbose_print_help("--recursive-unlink : empty hierarchies prior to extracting directory");
 	mtar_verbose_print_help("-U, --unlink-first : remove each file prior to extracting over it");
 	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
 	mtar_verbose_print_flush(4, 1);

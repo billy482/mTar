@@ -27,24 +27,28 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 14:16:40 +0100                           *
+*  Last modified: Wed, 14 Nov 2012 18:47:00 +0100                           *
 \***************************************************************************/
 
-// open
+#define _GNU_SOURCE
+
+// scandir
+#include <dirent.h>
+// fstatat, mkdirat, open, scandir
 #include <fcntl.h>
-// sscanf, snprintf
+// asprintf, sscanf, snprintf
 #include <stdio.h>
-// free
+// free, malloc
 #include <stdlib.h>
 // strchr, strcpy, strlen, strncpy, strrchr, strstr
 #include <string.h>
 // mmap, munmap
 #include <sys/mman.h>
-// fstat, mode_t, mkdir, open, S_*
+// fstat, fstatat, mode_t, mkdir, mkdirat, open, stat, S_*
 #include <sys/stat.h>
-// fstat, mkdir, open, S_*
+// fstat, mkdir, open, stat, S_*
 #include <sys/types.h>
-// close, fstat, S_*
+// close, fstat, readlink, rmdir, stat, S_*
 #include <unistd.h>
 
 #include <mtar/file.h>
@@ -62,6 +66,16 @@ static struct mtar_hashtable * mtar_file_groupCached = NULL;
 static struct mtar_hashtable * mtar_file_uidCached = NULL;
 static struct mtar_hashtable * mtar_file_userCached = NULL;
 
+
+int mtar_file_basic_filter(const struct dirent * file) {
+	if (file->d_name[0] != '.')
+		return 1;
+
+	if (file->d_name[1] == '\0')
+		return 0;
+
+	return file->d_name[1] != '.' || file->d_name[2] != '\0';
+}
 
 void mtar_file_convert_mode(char * buffer, mode_t mode) {
 	strcpy(buffer, "----------");
@@ -192,8 +206,22 @@ void mtar_file_lookup(const char * filename, char * name, ssize_t namelength, co
 }
 
 int mtar_file_mkdir(const char * filename, mode_t mode) {
-	if (!access(filename, F_OK))
-		return 0;
+	return mtar_file_mkdirat(AT_FDCWD, filename, mode);
+}
+
+int mtar_file_mkdirat(int dir_fd, const char * filename, mode_t mode) {
+	struct stat st;
+	int failed = 0;
+
+	if (dir_fd != AT_FDCWD) {
+		failed = fstat(dir_fd, &st);
+		if (failed || !S_ISDIR(st.st_mode))
+			return 1;
+	}
+
+	failed = fstatat(dir_fd, filename, &st, AT_SYMLINK_NOFOLLOW);
+	if (!failed)
+		return !S_ISDIR(st.st_mode);
 
 	mode &= S_IRWXU | S_IRWXG | S_IRWXO;
 	if ((mode & S_IRUSR) || (mode & S_IWUSR))
@@ -210,7 +238,7 @@ int mtar_file_mkdir(const char * filename, mode_t mode) {
 	char * ptr = strrchr(dir, '/');
 	if (ptr == NULL) {
 		free(dir);
-		return mkdir(filename, mode);
+		return mkdirat(dir_fd, filename, mode);
 	}
 
 	unsigned short nb = 0;
@@ -218,18 +246,22 @@ int mtar_file_mkdir(const char * filename, mode_t mode) {
 		*ptr = '\0';
 		nb++;
 		ptr = strrchr(dir, '/');
-	} while (ptr != NULL && access(dir, F_OK));
+		if (ptr != NULL) {
+			failed = fstatat(dir_fd, dir, &st, AT_SYMLINK_NOFOLLOW);
 
-	int failed = 0;
-	if (access(dir, F_OK))
-		failed = mkdir(dir, mode);
+			if (!failed && !S_ISDIR(st.st_mode)) {
+				free(dir);
+				return 1;
+			}
+		}
+	} while (ptr != NULL && failed);
 
 	unsigned short i;
 	for (i = 0; i < nb && !failed; i++) {
 		size_t length = strlen(dir);
 		dir[length] = '/';
 
-		failed = mkdir(dir, mode);
+		failed = mkdirat(dir_fd, dir, mode);
 	}
 
 	free(dir);
@@ -264,6 +296,57 @@ void mtar_file_rlookup(const char * filename, const char * name, char * id, ssiz
 
 	munmap(buffer, fs.st_size);
 	close(fd);
+}
+
+int mtar_file_rmdir(const char * filename) {
+	struct stat st;
+	int failed = stat(filename, &st);
+	if (failed)
+		return failed;
+
+	if (S_ISDIR(st.st_mode)) {
+		struct dirent ** nl;
+		int i, nb_files = scandir(filename, &nl, mtar_file_basic_filter, NULL);
+		for (i = 0; i < nb_files; i++) {
+			if (!failed) {
+				char * subfilename;
+				asprintf(&subfilename, "%s/%s", filename, nl[i]->d_name);
+
+				failed = mtar_file_rmdir(subfilename);
+
+				free(subfilename);
+			}
+			free(nl[i]);
+		}
+		free(nl);
+
+		if (!failed)
+			failed = rmdir(filename);
+
+		return failed;
+	} else {
+		return unlink(filename);
+	}
+}
+
+int mtar_file_rmdirat(int dir_fd, const char * filename) {
+	char * path;
+	asprintf(&path, "/proc/self/fd/%d", dir_fd);
+
+	char * buffer = malloc(256);
+	int failed = readlink(path, buffer, 256);
+
+	free(path);
+
+	if (failed > 0) {
+		asprintf(&path, "%s/%s", buffer, filename);
+		failed = mtar_file_rmdir(path);
+		free(path);
+	}
+
+	free(buffer);
+
+	return failed;
 }
 
 void mtar_file_uid2name(char * name, ssize_t namelength, uid_t uid) {

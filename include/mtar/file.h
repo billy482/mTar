@@ -27,16 +27,19 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 13:45:46 +0100                           *
+*  Last modified: Wed, 14 Nov 2012 17:00:27 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILE_H__
 #define __MTAR_FILE_H__
 
+struct dirent;
 struct mtar_option;
 
 // gid_t, mode_t, ssize_t, uid_t
 #include <sys/types.h>
+
+int mtar_file_basic_filter(const struct dirent * dirent);
 
 /**
  * \brief Convert a file mode to \b buffer with `ls -l` style
@@ -62,6 +65,10 @@ void mtar_file_gid2name(char * name, ssize_t namelength, gid_t gid);
 gid_t mtar_file_group2gid(const char * group);
 
 int mtar_file_mkdir(const char * filename, mode_t mode);
+int mtar_file_mkdirat(int dir_fd, const char * filename, mode_t mode);
+
+int mtar_file_rmdir(const char * filename);
+int mtar_file_rmdirat(int dir_fd, const char * filename);
 
 /**
  * \brief Convert an uid to user's name
