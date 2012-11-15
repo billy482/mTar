@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:21:10 +0200                           *
+*  Last modified: Thu, 15 Nov 2012 12:15:35 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_P_H__
@@ -35,6 +35,8 @@
 
 #include <mtar/format.h>
 
+struct mtar_format_reader * mtar_format_auto_detect(struct mtar_io_reader * reader, const struct mtar_option * option);
+struct mtar_format * mtar_format_auto_detect2(const void * buffer, ssize_t length);
 void mtar_format_show_description(void);
 void mtar_format_show_version(void);
 

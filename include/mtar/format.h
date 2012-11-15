@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 16:53:16 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 11:42:58 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -189,6 +189,7 @@ struct mtar_format_writer {
 struct mtar_format {
 	const char * name;
 
+	bool (*auto_detect)(const void * buffer, ssize_t length);
 	struct mtar_format_reader * (*new_reader)(struct mtar_io_reader * io, const struct mtar_option * option);
 	struct mtar_format_writer * (*new_writer)(struct mtar_io_writer * io, const struct mtar_option * option);
 
@@ -198,8 +199,8 @@ struct mtar_format {
 	struct mtar_plugin api_level;
 };
 
-struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option);
-struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option);
+struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option, bool auto_detect);
+struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option, bool auto_detect);
 struct mtar_format_writer * mtar_format_get_writer(const struct mtar_option * option);
 struct mtar_format_writer * mtar_format_get_writer2(struct mtar_io_writer * io, const struct mtar_option * option);
 void mtar_format_free_header(struct mtar_format_header * h);

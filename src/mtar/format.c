@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 10 Nov 2012 17:29:58 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 13:42:44 +0100                           *
 \***************************************************************************/
 
 // free, realloc
@@ -52,6 +52,14 @@ static struct mtar_format ** mtar_format_formats = NULL;
 static unsigned int mtar_format_nb_formats = 0;
 
 
+struct mtar_format * mtar_format_auto_detect2(const void * buffer, ssize_t length) {
+	unsigned int i;
+	for (i = 0; i < mtar_format_nb_formats; i++)
+		if (mtar_format_formats[i]->auto_detect(buffer, length))
+			return mtar_format_formats[i];
+	return NULL;
+}
+
 void mtar_format_exit() {
 	free(mtar_format_formats);
 	mtar_format_formats = NULL;
@@ -73,22 +81,29 @@ struct mtar_format * mtar_format_get(const char * name) {
 	return NULL;
 }
 
-struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option) {
+struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option, bool auto_detect) {
 	if (option == NULL)
 		return NULL;
 
 	struct mtar_io_reader * io = mtar_filter_get_reader(option);
 	if (io != NULL)
-		return mtar_format_get_reader2(io, option);
+		return mtar_format_get_reader2(io, option, auto_detect);
 
 	return NULL;
 }
 
-struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option) {
+struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option, bool auto_detect) {
 	if (option == NULL || io == NULL)
 		return NULL;
 
-	struct mtar_format * format = mtar_format_get(option->format);
+	struct mtar_format * format = NULL;
+
+	if (auto_detect) {
+		mtar_loader_load_all("format");
+		return mtar_format_auto_detect(io, option);
+	} else
+		format = mtar_format_get(option->format);
+
 	if (format != NULL && format->new_reader != NULL)
 		return format->new_reader(io, option);
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 14 Nov 2012 23:07:27 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 11:51:06 +0100                           *
 \***************************************************************************/
 
 // fstatat, futimesat, linkat, openat, symlinkat, unlinkat
@@ -100,7 +100,7 @@ static struct mtar_function mtar_function_extract_functions = {
 
 static int mtar_function_extract(const struct mtar_option * option) {
 	struct mtar_function_extract_param param = {
-		.format = mtar_format_get_reader(option),
+		.format = mtar_format_get_reader(option, false),
 
 		.filename = option->filename,
 		.i_volume = 1,
@@ -349,7 +349,7 @@ static int mtar_function_extract_select_volume(struct mtar_function_extract_para
 						free(line);
 						return 0;
 					} else if (next_reader != NULL) {
-						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->format = mtar_format_get_reader2(next_reader, param->option, false);
 						param->i_volume++;
 						free(line);
 						return 0;
@@ -372,7 +372,7 @@ static int mtar_function_extract_select_volume(struct mtar_function_extract_para
 						free(line);
 						return 0;
 					} else if (next_reader != NULL) {
-						param->format = mtar_format_get_reader2(next_reader, param->option);
+						param->format = mtar_format_get_reader2(next_reader, param->option, false);
 						param->i_volume++;
 						free(line);
 						return 0;
