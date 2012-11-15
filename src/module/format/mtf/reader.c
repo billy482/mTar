@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 14:05:15 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:44:56 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -87,7 +87,11 @@ static struct mtar_format_reader_ops mtar_format_mtf_reader_ops = {
 
 
 bool mtar_format_mtf_auto_detect(const void * buffer, ssize_t length) {
-	return false;
+	if (length < 1024)
+		return false;
+
+	const struct mtar_format_mtf_descriptor_block * block = buffer;
+	return block->type == mtar_format_mtf_descriptor_block_sset;
 }
 
 static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {
@@ -477,7 +481,7 @@ static void mtar_format_mtf_reader_next_header(struct mtar_format_mtf_reader * s
 		self->io->ops->forward(self->io, strm.stream_length);
 }
 
-static void mtar_format_mtf_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
+static void mtar_format_mtf_reader_next_volume(struct mtar_format_reader * f __attribute__((unused)), struct mtar_io_reader * next_volume __attribute__((unused))) {
 }
 
 static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void * data, ssize_t length) {
