@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 18:56:32 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 10:37:19 +0100                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -75,6 +75,9 @@ struct mtar_filter * mtar_filter_get(const char * module) {
 struct mtar_io_reader * mtar_filter_get_reader(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
+
+	if (option->auto_compress && option->filename != NULL)
+		return mtar_filter_get_reader3(option->filename, option);
 
 	struct mtar_io_reader * io = NULL;
 	if (option->filename != NULL)
@@ -151,6 +154,9 @@ const char * mtar_filter_get_module(const char * filename) {
 struct mtar_io_writer * mtar_filter_get_writer(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
+
+	if (option->auto_compress && option->filename != NULL)
+		return mtar_filter_get_writer3(option->filename, option);
 
 	struct mtar_io_writer * io = NULL;
 	if (option->filename != NULL)

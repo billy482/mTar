@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 14 Nov 2012 09:59:30 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 10:38:18 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -168,6 +168,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->label = NULL;
 
 	// compression options
+	option->auto_compress = true;
 	option->compress_module = NULL;
 	option->compress_level = 6;
 
@@ -195,7 +196,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-bcCfHjJLMtTUvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-abcCfHjJLMtTUvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -207,6 +208,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		optind = 2;
 		for (i = 0; i < length; i++) {
 			switch (argv[1][i]) {
+				case 'a':
+					option->auto_compress = true;
+					break;
+
 				case 'b':
 					option->block_factor = atoi(argv[optind++]);
 					break;
@@ -298,6 +303,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	enum {
+		opt_auto_compress   = 'a',
 		opt_blocking_factor = 'b',
 		opt_bzip2           = 'j',
 		opt_create          = 'c',
@@ -340,6 +346,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_list_ios,
 		opt_mode,
 		opt_no_anchored,
+		opt_no_auto_compress,
 		opt_no_null,
 		opt_no_recursion,
 		opt_null,
@@ -354,6 +361,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "add-file",             1, 0, opt_add_file },
 		{ "anchored",             0, 0, opt_anchored },
 		{ "atime-preserve",       2, 0, opt_atime_preserve },
+		{ "auto-compress",        0, 0, opt_auto_compress },
 		{ "blocking-factor",      1, 0, opt_blocking_factor },
 		{ "bzip2",                0, 0, opt_bzip2 },
 		{ "compression-level",    1, 0, opt_compression_level },
@@ -389,6 +397,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "mode",                 1, 0, opt_mode },
 		{ "multi-volume",         0, 0, opt_multi_volume },
 		{ "no-anchored",          0, 0, opt_no_anchored },
+		{ "no-auto-compress",     0, 0, opt_no_auto_compress },
 		{ "no-null",              0, 0, opt_no_null },
 		{ "no-recursion",         0, 0, opt_no_recursion },
 		{ "null",                 0, 0, opt_null },
@@ -430,6 +439,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case opt_atime_preserve:
 				option->atime_preserve = mtar_option_atime_replace;
+				break;
+
+			case opt_auto_compress:
+				option->auto_compress = true;
 				break;
 
 			case opt_blocking_factor:
@@ -583,6 +596,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				exclude_pattern_option &= ~mtar_pattern_option_anchored;
 				break;
 
+			case opt_no_auto_compress:
+				option->auto_compress = false;
+				break;
+
 			case opt_no_recursion:
 				exclude_pattern_option &= ~mtar_pattern_option_recursion;
 				include_pattern_option &= ~mtar_pattern_option_recursion;
@@ -691,8 +708,10 @@ void mtar_option_show_help() {
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("  Compression options:\n");
+	mtar_verbose_print_help("-a, --auto-compress : use archive suffix to determine the compression program");
 	mtar_verbose_print_help("-j, --bzip2 : filter the archive through bzip2");
 	mtar_verbose_print_help("-J, --xz : filter the archive through xz");
+	mtar_verbose_print_help("--no-auto-compress : do not use archive suffix to determine the compression program");
 	mtar_verbose_print_help("-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
 	mtar_verbose_print_help("--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
 	mtar_verbose_print_flush(4, 1);

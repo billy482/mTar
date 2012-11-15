@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 14 Nov 2012 09:50:43 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 09:26:41 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -76,6 +76,7 @@ struct mtar_option {
 	const char * label;
 
 	// compression options
+	bool auto_compress;
 	const char * compress_module;
 	unsigned short compress_level;
 
