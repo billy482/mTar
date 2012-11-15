@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 11:50:20 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 18:52:37 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -570,7 +570,7 @@ static int mtar_function_create_select_volume(struct mtar_function_create_param 
 						free(line);
 						return 0;
 					} else if (next_reader) {
-						param->tar_reader = mtar_format_get_reader2(next_reader, param->option, false);
+						param->tar_reader = mtar_format_get_reader2(next_reader, param->option);
 						param->i_files++;
 						free(line);
 						return 0;
@@ -593,7 +593,7 @@ static int mtar_function_create_select_volume(struct mtar_function_create_param 
 						free(line);
 						return 0;
 					} else if (next_reader) {
-						param->tar_reader = mtar_format_get_reader2(next_reader, param->option, false);
+						param->tar_reader = mtar_format_get_reader2(next_reader, param->option);
 						param->i_files++;
 						free(line);
 						return 0;

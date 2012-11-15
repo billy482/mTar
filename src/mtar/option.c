@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 10:49:05 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 15:27:41 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -164,6 +164,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->block_factor = 10;
 
 	// archive format selection
+	option->auto_detect_format = true;
 	option->format = "ustar";
 	option->label = NULL;
 
@@ -240,6 +241,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				case 'H':
 					option->format = argv[optind++];
+					option->auto_detect_format = false;
 					break;
 
 				case 'j':
@@ -347,6 +349,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_mode,
 		opt_no_anchored,
 		opt_no_auto_compress,
+		opt_no_format_detection,
 		opt_no_null,
 		opt_no_recursion,
 		opt_null,
@@ -398,6 +401,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "multi-volume",         0, 0, opt_multi_volume },
 		{ "no-anchored",          0, 0, opt_no_anchored },
 		{ "no-auto-compress",     0, 0, opt_no_auto_compress },
+		{ "no-format-detection",  0, 0, opt_no_format_detection },
 		{ "no-null",              0, 0, opt_no_null },
 		{ "no-recursion",         0, 0, opt_no_recursion },
 		{ "null",                 0, 0, opt_null },
@@ -524,6 +528,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case opt_format:
 				option->format = optarg;
+				option->auto_detect_format = false;
 				break;
 
 			case opt_full_version:
@@ -598,6 +603,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case opt_no_auto_compress:
 				option->auto_compress = false;
+				break;
+
+			case opt_no_format_detection:
+				option->auto_detect_format = false;
 				break;
 
 			case opt_no_recursion:
@@ -700,6 +709,7 @@ void mtar_option_show_help() {
 
 	mtar_verbose_printf("  Archive format selection:\n");
 	mtar_verbose_print_help("-H, --format=FORMAT : use FORMAT as tar format");
+	mtar_verbose_print_help("--no-format-detection * : disable detection of format. --format disable also format dectection");
 	mtar_verbose_print_help("-V, --label=TEXT : create archive with volume name TEXT");
 	mtar_verbose_print_flush(4, 1);
 

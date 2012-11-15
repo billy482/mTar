@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 14:24:44 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 18:52:07 +0100                           *
 \***************************************************************************/
 
 // free, realloc
@@ -81,24 +81,24 @@ struct mtar_format * mtar_format_get(const char * name) {
 	return NULL;
 }
 
-struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option, bool auto_detect) {
+struct mtar_format_reader * mtar_format_get_reader(const struct mtar_option * option) {
 	if (option == NULL)
 		return NULL;
 
 	struct mtar_io_reader * io = mtar_filter_get_reader(option);
 	if (io != NULL)
-		return mtar_format_get_reader2(io, option, auto_detect);
+		return mtar_format_get_reader2(io, option);
 
 	return NULL;
 }
 
-struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option, bool auto_detect) {
+struct mtar_format_reader * mtar_format_get_reader2(struct mtar_io_reader * io, const struct mtar_option * option) {
 	if (option == NULL || io == NULL)
 		return NULL;
 
 	struct mtar_format * format = NULL;
 
-	if (auto_detect) {
+	if (option->auto_detect_format) {
 		mtar_loader_load_all("format");
 		return mtar_format_auto_detect(io, option);
 	} else

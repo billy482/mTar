@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 09:26:41 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 15:08:51 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -72,6 +72,7 @@ struct mtar_option {
 	size_t block_factor;
 
 	// archive format selection
+	bool auto_detect_format;
 	const char * format;
 	const char * label;
 

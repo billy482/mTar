@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 11:51:37 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 18:53:23 +0100                           *
 \***************************************************************************/
 
 // free
@@ -89,7 +89,7 @@ static struct mtar_function mtar_function_list_functions = {
 
 static int mtar_function_list(const struct mtar_option * option) {
 	struct mtar_function_list_param param = {
-		.format = mtar_format_get_reader(option, false),
+		.format = mtar_format_get_reader(option),
 
 		.filename = option->filename,
 		.i_volume = 1,
@@ -189,7 +189,7 @@ static int mtar_function_list_select_volume(struct mtar_function_list_param * pa
 						free(line);
 						return 0;
 					} else if (next_reader != NULL) {
-						param->format = mtar_format_get_reader2(next_reader, param->option, false);
+						param->format = mtar_format_get_reader2(next_reader, param->option);
 						param->i_volume++;
 						free(line);
 						return 0;
@@ -212,7 +212,7 @@ static int mtar_function_list_select_volume(struct mtar_function_list_param * pa
 						free(line);
 						return 0;
 					} else if (next_reader != NULL) {
-						param->format = mtar_format_get_reader2(next_reader, param->option, false);
+						param->format = mtar_format_get_reader2(next_reader, param->option);
 						param->i_volume++;
 						free(line);
 						return 0;
