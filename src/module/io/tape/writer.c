@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 16:00:35 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 19:30:31 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -196,7 +196,7 @@ static struct mtar_io_reader * mtar_io_tape_writer_reopen_for_reading(struct mta
 	if (failed)
 		return 0;
 
-	struct mtar_io_reader * in = mtar_io_tape_new_reader(self->fd, option, NULL);
+	struct mtar_io_reader * in = mtar_io_tape_new_reader(self->fd, option);
 	if (in != NULL)
 		self->fd = -1;
 
@@ -275,7 +275,7 @@ static ssize_t mtar_io_tape_writer_write(struct mtar_io_writer * io, const void 
 	return length;
 }
 
-struct mtar_io_writer * mtar_io_tape_new_writer(int fd, const struct mtar_option * option, const struct mtar_hashtable * params __attribute__((unused))) {
+struct mtar_io_writer * mtar_io_tape_new_writer(int fd, const struct mtar_option * option) {
 	struct mtar_io_tape_writer * data = malloc(sizeof(struct mtar_io_tape_writer));
 	data->fd = fd;
 	data->position = 0;

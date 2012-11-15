@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 11 Nov 2012 20:22:54 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 19:27:58 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -120,7 +120,7 @@ static ssize_t mtar_io_file_reader_read(struct mtar_io_reader * io, void * data,
 	return nb_read;
 }
 
-struct mtar_io_reader * mtar_io_file_new_reader(int fd, const struct mtar_option * option, const struct mtar_hashtable * params __attribute__((unused))) {
+struct mtar_io_reader * mtar_io_file_new_reader(int fd, const struct mtar_option * option) {
 	struct mtar_io_file * self = malloc(sizeof(struct mtar_io_file));
 	self->fd = fd;
 	self->position = 0;
