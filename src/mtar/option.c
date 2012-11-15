@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 10:38:18 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 10:49:05 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -664,9 +664,9 @@ void mtar_option_show_help() {
 	mtar_verbose_printf("Usage: mtar [short_option [param_short_option]] [long_option] [--] [files]\n\n");
 
 	mtar_verbose_printf("  Main operation mode:\n");
-	mtar_verbose_print_help("-c, --create : create new archive");
-	mtar_verbose_print_help("-t, --list : list files from tar archive");
-	mtar_verbose_print_help("-x, --extract, --get : extract new archive");
+	mtar_verbose_print_help("-c, --create : create a new archive");
+	mtar_verbose_print_help("-t, --list : list the contents of an archive");
+	mtar_verbose_print_help("-x, --extract, --get : extract files from an archive");
 	mtar_verbose_print_help("--function FUNCTION * : use FUNCTION as action");
 	mtar_verbose_print_help("--function help=FUNCTION * : show specific help from function FUNCTION");
 	mtar_verbose_print_flush(4, 1);

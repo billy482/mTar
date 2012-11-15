@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 23:23:31 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 11:16:40 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -80,7 +80,7 @@ struct mtar_io * mtar_io_get(int fd) {
 
 	if (fstat(fd, &st)) {
 		mtar_verbose_printf("Getting information about file descriptor (%d) failed => %s\n", fd, strerror(errno));
-		return 0;
+		return NULL;
 	}
 
 	const char * module = "pipe";
