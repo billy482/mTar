@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 10 Nov 2012 21:39:54 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:05:15 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -85,6 +85,10 @@ static struct mtar_format_reader_ops mtar_format_mtf_reader_ops = {
 	.skip_file   = mtar_format_mtf_reader_skip_file,
 };
 
+
+bool mtar_format_mtf_auto_detect(const void * buffer, ssize_t length) {
+	return false;
+}
 
 static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {
 	struct mtar_format_mtf_reader * self = f->data;

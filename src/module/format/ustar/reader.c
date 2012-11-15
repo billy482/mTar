@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 16:53:13 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 13:54:01 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -79,6 +79,26 @@ static struct mtar_format_reader_ops mtar_format_ustar_reader_ops = {
 	.skip_file   = mtar_format_ustar_reader_skip_file,
 };
 
+
+bool mtar_format_ustar_auto_detect(const void * buffer, ssize_t length) {
+	if (length < 512)
+		return false;
+
+	const unsigned char * ptr = buffer;
+	unsigned int i, sum = 0;
+	for (i = 0; i < 512; i++)
+		sum += ptr[i];
+
+	const struct mtar_format_ustar * raw_header = buffer;
+	ptr = (const unsigned char *) &raw_header->checksum;
+	for (i = 0; i < 8; i++)
+		sum -= ptr[i];
+
+	unsigned int sum2;
+	sscanf(raw_header->checksum, "%06o", &sum2);
+
+	return sum == sum2;
+}
 
 static bool mtar_format_ustar_reader_check_header(struct mtar_format_ustar * header) {
 	char checksum[8];

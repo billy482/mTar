@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 10 Nov 2012 17:12:33 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:04:17 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_MTF_H__
@@ -170,6 +170,7 @@ struct mtar_format_mtf_stream {
 	uint16_t checksum;
 } __attribute__((packed));
 
+bool mtar_format_mtf_auto_detect(const void * buffer, ssize_t length);
 struct mtar_format_reader * mtar_format_mtf_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
 
 #endif

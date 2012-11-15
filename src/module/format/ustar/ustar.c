@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 20:49:25 +0200                           *
+*  Last modified: Thu, 15 Nov 2012 13:52:54 +0100                           *
 \***************************************************************************/
 
 #include <mtar-format-ustar.chcksum>
@@ -44,6 +44,7 @@ static void mtar_format_ustar_show_version(void);
 static struct mtar_format mtar_format_ustar = {
 	.name             = "ustar",
 
+	.auto_detect      = mtar_format_ustar_auto_detect,
 	.new_reader       = mtar_format_ustar_new_reader,
 	.new_writer       = mtar_format_ustar_new_writer,
 
