@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 13:38:17 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:28:00 +0100                           *
 \***************************************************************************/
 
 // free, malloc
@@ -173,7 +173,9 @@ static ssize_t mtar_format_detect_read(struct mtar_io_reader * io, void * data, 
 		} else {
 			memcpy(data, self->buffer_pos, length);
 
-			return self->buffer_pos - self->buffer;
+			self->buffer_pos += length;
+
+			return length;
 		}
 	}
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 14:04:49 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:13:30 +0100                           *
 \***************************************************************************/
 
 #include <stddef.h>
@@ -46,7 +46,7 @@ static void mtar_format_mtf_show_version(void);
 static struct mtar_format mtar_format_mtf = {
 	.name             = "mtf",
 
-	.auto_detect      = mtar_format_mtf_auto_detect,
+	.auto_detect      = NULL,
 	.new_reader       = mtar_format_mtf_new_reader,
 	.new_writer       = NULL,
 

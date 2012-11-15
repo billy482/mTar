@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 13:54:01 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:21:21 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -92,7 +92,7 @@ bool mtar_format_ustar_auto_detect(const void * buffer, ssize_t length) {
 	const struct mtar_format_ustar * raw_header = buffer;
 	ptr = (const unsigned char *) &raw_header->checksum;
 	for (i = 0; i < 8; i++)
-		sum -= ptr[i];
+		sum += ' ' - ptr[i];
 
 	unsigned int sum2;
 	sscanf(raw_header->checksum, "%06o", &sum2);

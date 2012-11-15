@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 13:42:44 +0100                           *
+*  Last modified: Thu, 15 Nov 2012 14:24:44 +0100                           *
 \***************************************************************************/
 
 // free, realloc
@@ -55,7 +55,7 @@ static unsigned int mtar_format_nb_formats = 0;
 struct mtar_format * mtar_format_auto_detect2(const void * buffer, ssize_t length) {
 	unsigned int i;
 	for (i = 0; i < mtar_format_nb_formats; i++)
-		if (mtar_format_formats[i]->auto_detect(buffer, length))
+		if (mtar_format_formats[i]->auto_detect != NULL && mtar_format_formats[i]->auto_detect(buffer, length))
 			return mtar_format_formats[i];
 	return NULL;
 }
