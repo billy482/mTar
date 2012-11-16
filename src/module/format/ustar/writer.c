@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 14:15:53 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 15:12:27 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -203,7 +203,7 @@ static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct m
 		current_header->flag = '0';
 	} else if (S_ISLNK(sfile.st_mode)) {
 		current_header->flag = '2';
-		readlink(filename, current_header->linkname, 100);
+		readlinkat(dir_fd, filename, current_header->linkname, 100);
 	} else if (S_ISCHR(sfile.st_mode)) {
 		current_header->flag = '3';
 		snprintf(current_header->devmajor, 8, "%07o", (unsigned int) (sfile.st_rdev >> 8));
