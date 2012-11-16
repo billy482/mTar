@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 18:55:54 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 20:45:12 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -65,6 +65,7 @@ struct mtar_format_mtf_reader {
 	gid_t group;
 };
 
+static bool mtar_format_mtf_reader_check_header(const struct mtar_format_mtf_descriptor_block * block);
 static void mtar_format_mtf_reader_free(struct mtar_format_reader * f);
 static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header);
 static char * mtar_format_mtf_reader_get_path(const void * string, size_t length, enum mtar_format_mtf_string_type type);
@@ -103,7 +104,19 @@ bool mtar_format_mtf_auto_detect(const void * buffer, ssize_t length) {
 		if (block->type == types[i])
 			found = true;
 
-	return found;
+	if (!found)
+		return false;
+
+	return mtar_format_mtf_reader_check_header(block);
+}
+
+static bool mtar_format_mtf_reader_check_header(const struct mtar_format_mtf_descriptor_block * block) {
+	uint16_t sum = 0;
+	const uint16_t * cbuf = (const uint16_t *) block;
+	unsigned short i;
+	for (i = 0; i < 25; i++)
+		sum ^= cbuf[i];
+	return sum == block->header_checksum;
 }
 
 static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {
@@ -135,6 +148,8 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 			return mtar_format_header_not_found;
 		if (nb_read < sblock)
 			return mtar_format_header_bad_header;
+		if (!mtar_format_mtf_reader_check_header(&block))
+			return mtar_format_header_bad_checksum;
 
 		struct mtar_format_mtf_dirb dirb;
 		static const ssize_t sdirb = sizeof(dirb);
