@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 10:16:20 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 15:21:42 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -197,7 +197,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-abcCfHjJLMtTUvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-abcCdfHjJLMtTUvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -223,6 +223,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 				case 'C':
 					option->working_directory = argv[optind++];
+					break;
+
+				case 'd':
+					option->do_work = mtar_function_get("diff");
 					break;
 
 				case 'f':
@@ -309,6 +313,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_blocking_factor = 'b',
 		opt_bzip2           = 'j',
 		opt_create          = 'c',
+		opt_diff            = 'd',
 		opt_directory       = 'C',
 		opt_exclude_from    = 'X',
 		opt_extract         = 'x',
@@ -367,8 +372,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "auto-compress",        0, 0, opt_auto_compress },
 		{ "blocking-factor",      1, 0, opt_blocking_factor },
 		{ "bzip2",                0, 0, opt_bzip2 },
+		{ "compare",              0, 0, opt_diff },
 		{ "compression-level",    1, 0, opt_compression_level },
 		{ "create",               0, 0, opt_create },
+		{ "diff",                 0, 0, opt_diff },
 		{ "directory",            1, 0, opt_directory },
 		{ "exclude",              1, 0, opt_exclude },
 		{ "exclude-backups",      0, 0, opt_exclude_backups },
@@ -463,6 +470,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 			case opt_create:
 				option->do_work = mtar_function_get("create");
+				break;
+
+			case opt_diff:
+				option->do_work = mtar_function_get("diff");
 				break;
 
 			case opt_directory:
@@ -674,6 +685,7 @@ void mtar_option_show_help() {
 
 	mtar_verbose_printf("  Main operation mode:\n");
 	mtar_verbose_print_help("-c, --create : create a new archive");
+	mtar_verbose_print_help("-d, --diff, --compare : find differences between archive and file system");
 	mtar_verbose_print_help("-t, --list : list the contents of an archive");
 	mtar_verbose_print_help("-x, --extract, --get : extract files from an archive");
 	mtar_verbose_print_help("--function FUNCTION * : use FUNCTION as action");

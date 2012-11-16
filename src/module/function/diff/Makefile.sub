@@ -1,0 +1,9 @@
+MTAR_FUNCTION_DIFF_SRC_DIR		:= src/module/function/diff
+
+MTAR_FUNCTION_DIFF_BIN			:= lib/libfunction-diff.so
+MTAR_FUNCTION_DIFF_CFLAG		:= -fPIC -fvisibility=hidden
+MTAR_FUNCTION_DIFF_LD			:= -shared
+
+MTAR_FUNCTION_DIFF_CHCKSUM_FILE	:= mtar-function-diff.chcksum
+
+BIN_SYMS						+= MTAR_FUNCTION_DIFF
