@@ -197,7 +197,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	size_t length = strlen(argv[1]);
-	size_t goodArg = strspn(argv[1], "-abcCdfHjJLMtTUvVWxXz?");
+	size_t goodArg = strspn(argv[1], "-abcCdfHjJLMLtTUvVWxXz?");
 	if (length != goodArg && strncmp(argv[1], "--", 2)) {
 		mtar_verbose_printf("Invalid argument '%c'\n", argv[1][goodArg]);
 		mtar_option_show_help();
@@ -435,7 +435,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		}
 
 		int option_index;
-		int c = getopt_long(argc, argv, "b:cC:f:H:jML:tT:vV:WxX:z?", long_options, &option_index);
+		int c = getopt_long(argc, argv, "ab:cC:df:H:jJML:tT:UvV:WxX:z?", long_options, &option_index);
 		if (c == -1)
 			break;
 
