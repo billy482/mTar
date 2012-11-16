@@ -27,31 +27,30 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 11:20:02 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 17:53:04 +0100                           *
 \***************************************************************************/
 
-// versionsort
+// asprintf, versionsort
 #define _GNU_SOURCE
 
 // scandir
 #include <dirent.h>
-// openat
+// fstatat, openat
 #include <fcntl.h>
 // asprintf
 #include <stdio.h>
 // free, malloc
 #include <stdlib.h>
-// memmove, strdup, strlen, strncmp, strstr
+// memmove, strcat, strcpy, strdup, strlen, strncmp, strstr
 #include <string.h>
-// lstat
-#include <sys/types.h>
-// lstat
+// fstatat
 #include <sys/stat.h>
-// close, lstat
+// close
 #include <unistd.h>
 
 #include <mtar/file.h>
 #include <mtar/option.h>
+#include <mtar/util.h>
 
 #include "pattern.h"
 
@@ -313,30 +312,12 @@ struct mtar_pattern_include * mtar_pattern_default_include_new(const char * root
 	self->first = self->last = NULL;
 	self->status = mtar_pattern_include_status_init;
 
-	// remove double '/'
-	char * ptr = self->path;
-	while ((ptr = strstr(ptr, "//")))
-		memmove(ptr, ptr + 1, strlen(ptr));
+	mtar_util_string_delete_double_char(self->path, '/');
+	mtar_util_string_rtrim(self->path, '/');
 
 	if (self->root_directory != NULL) {
-		ptr = self->root_directory;
-		while ((ptr = strstr(ptr, "//")))
-			memmove(ptr, ptr + 1, strlen(ptr));
-	}
-
-	// remove trailing '/'
-	size_t length = strlen(self->path);
-	while (length > 0 && self->path[length - 1] == '/') {
-		length--;
-		self->path[length] = '\0';
-	}
-
-	if (self->root_directory != NULL) {
-		length = strlen(self->root_directory);
-		while (length > 0 && self->root_directory[length - 1] == '/') {
-			length--;
-			self->root_directory[length] = '\0';
-		}
+		mtar_util_string_delete_double_char(self->root_directory, '/');
+		mtar_util_string_rtrim(self->root_directory, '/');
 	}
 
 	self->spath = strlen(self->path);
