@@ -27,11 +27,15 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 23:49:54 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 09:52:36 +0100                           *
 \***************************************************************************/
 
+// fstatat, openat
+#include <fcntl.h>
 // free
 #include <stdlib.h>
+// fstatat
+#include <sys/stat.h>
 // waitpid
 #include <sys/types.h>
 // waitpid
@@ -103,7 +107,17 @@ static int mtar_function_diff(const struct mtar_option * option) {
 	mtar_function_diff_configure(option);
 	struct mtar_format_header header;
 
-	int ok = -1;
+	int dir_fd = AT_FDCWD;
+	if (option->working_directory != NULL) {
+		dir_fd = openat(AT_FDCWD, option->working_directory, O_RDONLY | O_NOCTTY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC);
+		if (dir_fd == -1) {
+			mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
+			return 1;
+		}
+	}
+
+	int ok = -1, failed;
+	struct stat st;
 	while (ok < 0) {
 		enum mtar_format_reader_header_status status = param.format->ops->get_header(param.format, &header);
 
@@ -116,6 +130,14 @@ static int mtar_function_diff(const struct mtar_option * option) {
 
 				if (display && !mtar_pattern_match(option, header.path))
 					mtar_function_diff_display(&header);
+
+				failed = fstatat(dir_fd, header.path, &st, AT_SYMLINK_NOFOLLOW);
+				if (!failed) {
+					if (st.st_mtime != header.mtime)
+						mtar_verbose_printf("File (%s) has been modifed\n", header.path);
+				} else {
+					mtar_verbose_printf("There is no file named %s\n", header.path);
+				}
 
 				break;
 
@@ -160,6 +182,7 @@ static int mtar_function_diff(const struct mtar_option * option) {
 		}
 	}
 
+	close(dir_fd);
 	param.format->ops->free(param.format);
 
 	return 0;
