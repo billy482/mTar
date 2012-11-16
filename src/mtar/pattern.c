@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 19:44:33 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 10:22:43 +0100                           *
 \***************************************************************************/
 
 // fnmatch
@@ -58,7 +58,7 @@ static unsigned int mtar_pattern_nb_drivers = 0;
 static void mtar_pattern_exit(void) __attribute__((destructor));
 
 
-struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, const char * engine, const char * pattern, enum mtar_pattern_option option) {
 	if (nb_patterns == NULL || engine == NULL || pattern == NULL)
 		return patterns;
 
@@ -69,18 +69,18 @@ struct mtar_pattern_exclude ** mtar_pattern_add_exclude(struct mtar_pattern_excl
 	return patterns;
 }
 
-struct mtar_pattern_include ** mtar_pattern_add_include(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_include ** mtar_pattern_add_include(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, const char * engine, const char * root_directory, const char * pattern, enum mtar_pattern_option option) {
 	if (nb_patterns == NULL || engine == NULL || pattern == NULL)
 		return patterns;
 
 	patterns = realloc(patterns, (*nb_patterns + 1) * sizeof(struct mtar_pattern *));
-	patterns[*nb_patterns] = mtar_pattern_get_include(engine, pattern, option);
+	patterns[*nb_patterns] = mtar_pattern_get_include(engine, root_directory, pattern, option);
 	(*nb_patterns)++;
 
 	return patterns;
 }
 
-struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op) {
+struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pattern_exclude ** patterns, unsigned int * nb_patterns, const char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op) {
 	if (nb_patterns == NULL || engine == NULL || filename == NULL)
 		return patterns;
 
@@ -105,7 +105,7 @@ struct mtar_pattern_exclude ** mtar_pattern_add_exclude_from_file(struct mtar_pa
 	return patterns;
 }
 
-struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, char * engine, enum mtar_pattern_option option, const char * filename, struct mtar_option * op) {
+struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pattern_include ** patterns, unsigned int * nb_patterns, const char * engine, const char * root_directory, enum mtar_pattern_option option, const char * filename, struct mtar_option * op) {
 	if (nb_patterns == NULL || engine == NULL || filename == NULL)
 		return patterns;
 
@@ -122,7 +122,7 @@ struct mtar_pattern_include ** mtar_pattern_add_include_from_file(struct mtar_pa
 		}
 
 		patterns = realloc(patterns, (*nb_patterns + 1) * sizeof(struct mtar_pattern *));
-		patterns[*nb_patterns] = mtar_pattern_get_include(engine, line, option);
+		patterns[*nb_patterns] = mtar_pattern_get_include(engine, root_directory, line, option);
 		(*nb_patterns)++;
 	}
 	mtar_readline_free(rl);
@@ -161,21 +161,21 @@ struct mtar_pattern_exclude * mtar_pattern_get_exclude(const char * engine, cons
 	return NULL;
 }
 
-struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * root_directory, const char * pattern, enum mtar_pattern_option option) {
 	if (!access(pattern, F_OK | R_OK))
-		return mtar_pattern_default_include_new(pattern, option);
+		return mtar_pattern_default_include_new(root_directory, pattern, option);
 
 	unsigned int i;
 	for (i = 0; i < mtar_pattern_nb_drivers; i++)
 		if (!strcmp(engine, mtar_pattern_drivers[i]->name))
-			return mtar_pattern_drivers[i]->new_include(pattern, option);
+			return mtar_pattern_drivers[i]->new_include(root_directory, pattern, option);
 
 	if (mtar_loader_load("pattern", engine))
 		return NULL;
 
 	for (i = 0; i < mtar_pattern_nb_drivers; i++)
 		if (!strcmp(engine, mtar_pattern_drivers[i]->name))
-			return mtar_pattern_drivers[i]->new_include(pattern, option);
+			return mtar_pattern_drivers[i]->new_include(root_directory, pattern, option);
 
 	return NULL;
 }

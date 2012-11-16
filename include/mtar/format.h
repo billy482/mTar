@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 18:50:56 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 11:37:23 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FORMAT_H__
@@ -168,9 +168,9 @@ struct mtar_format_reader {
 
 struct mtar_format_writer {
 	struct mtar_format_writer_ops {
-		enum mtar_format_writer_status (*add_file)(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * header);
+		enum mtar_format_writer_status (*add_file)(struct mtar_format_writer * f, int dir_fd, const char * filename, struct mtar_format_header * header);
 		enum mtar_format_writer_status (*add_label)(struct mtar_format_writer * f, const char * label);
-		enum mtar_format_writer_status (*add_link)(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * header);
+		enum mtar_format_writer_status (*add_link)(struct mtar_format_writer * f, int dir_fd, const char * src, const char * target, struct mtar_format_header * header);
 		ssize_t (*available_space)(struct mtar_format_writer * io);
 		ssize_t (*block_size)(struct mtar_format_writer * f);
 		int (*end_of_file)(struct mtar_format_writer * f);

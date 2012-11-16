@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 13:32:10 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 10:28:02 +0100                           *
 \***************************************************************************/
 
 // pcre_compile, pcre_exec, pcre_free
@@ -197,7 +197,7 @@ static void mtar_pattern_pcre_include_next(struct mtar_pattern_include * pattern
 	}
 }
 
-struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * root_directory, const char * pattern, enum mtar_pattern_option option) {
 	const char * error = NULL;
 	int erroroffset = 0;
 
@@ -210,7 +210,7 @@ struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern
 	struct mtar_pattern_pcre_include * self = malloc(sizeof(struct mtar_pattern_pcre_include));
 	self->pattern = pcre_compile(pattern, pcre_option, &error, &erroroffset, 0);
 
-	self->path_gen = mtar_pattern_get_include(0, ".", option);
+	self->path_gen = mtar_pattern_get_include(NULL, root_directory, ".", option);
 
 	self->current_dir = NULL;
 	self->next_dir = NULL;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 15:27:41 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 10:16:20 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -265,7 +265,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'T':
-					option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, include_pattern_option, argv[optind++], option);
+					option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, option->working_directory, include_pattern_option, argv[optind++], option);
 					break;
 
 				case 'U':
@@ -422,7 +422,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 	while (optind < argc) {
 		if (argv[optind][0] != '-') {
-			option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, argv[optind], include_pattern_option);
+			option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, option->working_directory, argv[optind], include_pattern_option);
 			optind++;
 			continue;
 		}
@@ -434,7 +434,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 
 		switch (c) {
 			case opt_add_file:
-				option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, optarg, include_pattern_option);
+				option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, option->working_directory, optarg, include_pattern_option);
 				break;
 
 			case opt_anchored:
@@ -523,7 +523,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case opt_files_from:
-				option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, include_pattern_option, optarg, option);
+				option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, option->working_directory, include_pattern_option, optarg, option);
 				break;
 
 			case opt_format:
@@ -663,7 +663,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	}
 
 	while (optind < argc)
-		option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, argv[optind++], include_pattern_option);
+		option->files = mtar_pattern_add_include(option->files, &option->nb_files, pattern_engine, option->working_directory, argv[optind++], include_pattern_option);
 
 	return 0;
 }

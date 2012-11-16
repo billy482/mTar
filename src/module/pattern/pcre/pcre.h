@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 25 Oct 2011 11:37:50 +0200                           *
+*  Last modified: Fri, 16 Nov 2012 10:26:08 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_PCRE_H__
@@ -36,7 +36,7 @@
 #include <mtar/pattern.h>
 
 struct mtar_pattern_exclude * mtar_pattern_pcre_new_exclude(const char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_pcre_new_include(const char * root_directory, const char * pattern, enum mtar_pattern_option option);
 
 #endif
 

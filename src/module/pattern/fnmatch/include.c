@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 12:12:09 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 10:25:14 +0100                           *
 \***************************************************************************/
 
 // fnmatch
@@ -212,7 +212,7 @@ static void mtar_pattern_fnmatch_include_next(struct mtar_pattern_include * patt
 	}
 }
 
-struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * root_directory, const char * pattern, enum mtar_pattern_option option) {
 	struct mtar_pattern_fnmatch_include * self = malloc(sizeof(struct mtar_pattern_fnmatch_include));
 	self->pattern = strdup(pattern);
 	self->fnmatch_flags = 0;
@@ -233,15 +233,15 @@ struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * patt
 
 		if (last_slash != NULL) {
 			*last_slash = '\0';
-			self->path_gen = mtar_pattern_get_include(0, dir, option);
+			self->path_gen = mtar_pattern_get_include(NULL, root_directory, dir, option);
 			self->anchored = true;
 		} else {
-			self->path_gen = mtar_pattern_get_include(0, ".", option);
+			self->path_gen = mtar_pattern_get_include(NULL, root_directory, ".", option);
 		}
 
 		free(dir);
 	} else {
-		self->path_gen = mtar_pattern_get_include(0, ".", option);
+		self->path_gen = mtar_pattern_get_include(NULL, root_directory, ".", option);
 	}
 
 	self->current_dir = NULL;

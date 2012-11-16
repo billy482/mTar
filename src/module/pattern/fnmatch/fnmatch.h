@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 10 Oct 2011 22:13:44 +0200                           *
+*  Last modified: Fri, 16 Nov 2012 10:23:14 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_FNMATCH_H__
@@ -36,7 +36,7 @@
 #include <mtar/pattern.h>
 
 struct mtar_pattern_exclude * mtar_pattern_fnmatch_new_exclude(const char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_fnmatch_new_include(const char * root_directory, const char * pattern, enum mtar_pattern_option option);
 
 #endif
 

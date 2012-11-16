@@ -27,12 +27,12 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 18:52:37 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 11:47:38 +0100                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
-// open
+// open, openat
 #include <fcntl.h>
 // free, malloc, realloc
 #include <stdlib.h>
@@ -134,9 +134,11 @@ static int mtar_function_create(const struct mtar_option * option) {
 	int failed = 0;
 	enum mtar_format_writer_status status;
 
-	if (option->working_directory != NULL && chdir(option->working_directory)) {
-		mtar_verbose_printf("Fatal error: failed to change directory (%s)\n", option->working_directory);
-		failed = 1;
+	int dir_fd = AT_FDCWD;
+	if (option->working_directory != NULL) {
+		dir_fd = openat(AT_FDCWD, option->working_directory, O_RDONLY | O_NOCTTY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC);
+		if (dir_fd == -1)
+			return 1;
 	}
 
 	if (!failed && option->label != NULL) {
@@ -163,7 +165,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 			option->files[i]->ops->next(option->files[i], &filename);
 
 			struct stat st;
-			if (lstat(filename, &st)) {
+			if (fstatat(dir_fd, filename, &st, AT_SYMLINK_NOFOLLOW)) {
 				failed = 1;
 				break;
 			}
@@ -181,7 +183,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 				if (!strcmp(target, filename))
 					continue;
 
-				status = tar_writer->ops->add_link(tar_writer, filename, target, &header);
+				status = tar_writer->ops->add_link(tar_writer, dir_fd, filename, target, &header);
 				mtar_function_create_display(&header, target, 0);
 
 				switch (status) {
@@ -209,7 +211,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 
 			mtar_hashtable_put(inode, strdup(key), filename);
 
-			status = tar_writer->ops->add_file(tar_writer, filename, &header);
+			status = tar_writer->ops->add_file(tar_writer, dir_fd, filename, &header);
 			mtar_function_create_display(&header, 0, 0);
 
 			switch (status) {
@@ -229,7 +231,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 				break;
 
 			if (S_ISREG(st.st_mode)) {
-				int fd = open(filename, O_RDONLY);
+				int fd = openat(dir_fd, filename, O_RDONLY);
 
 				ssize_t nb_read, total_nb_write = 0;
 				while (!failed) {

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 13 Nov 2012 11:26:21 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 10:22:08 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_PATTERN_H__
@@ -73,7 +73,7 @@ struct mtar_pattern_driver {
 	const char * name;
 
 	struct mtar_pattern_exclude * (*new_exclude)(const char * pattern, enum mtar_pattern_option option);
-	struct mtar_pattern_include * (*new_include)(const char * pattern, enum mtar_pattern_option option);
+	struct mtar_pattern_include * (*new_include)(const char * root_directory, const char * pattern, enum mtar_pattern_option option);
 
 	void (*show_description)(void);
 	void (*show_version)(void);
@@ -82,7 +82,7 @@ struct mtar_pattern_driver {
 };
 
 struct mtar_pattern_exclude * mtar_pattern_get_exclude(const char * engine, const char * pattern, enum mtar_pattern_option option);
-struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * pattern, enum mtar_pattern_option option);
+struct mtar_pattern_include * mtar_pattern_get_include(const char * engine, const char * root_directory, const char * pattern, enum mtar_pattern_option option);
 bool mtar_pattern_match(const struct mtar_option * option, const char * filename);
 void mtar_pattern_register(struct mtar_pattern_driver * driver);
 

@@ -27,11 +27,13 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 22:07:47 +0200                           *
+*  Last modified: Fri, 16 Nov 2012 11:43:53 +0100                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
+// fstatat
+#include <fcntl.h>
 // free, malloc, realloc
 #include <stdlib.h>
 // snprintf
@@ -72,9 +74,9 @@ struct mtar_format_ustar_writer {
 };
 
 
-static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * header);
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, int dir_fd, const char * filename, struct mtar_format_header * header);
 static enum mtar_format_writer_status mtar_format_ustar_writer_add_label(struct mtar_format_writer * f, const char * label);
-static enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * header);
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, int dir_fd, const char * src, const char * target, struct mtar_format_header * header);
 static ssize_t mtar_format_ustar_writer_available_space(struct mtar_format_writer * io);
 static ssize_t mtar_format_ustar_writer_block_size(struct mtar_format_writer * f);
 static void mtar_format_ustar_writer_compute_checksum(const void * header, char * checksum);
@@ -138,9 +140,9 @@ struct mtar_format_writer * mtar_format_ustar_new_writer(struct mtar_io_writer *
 	return self;
 }
 
-static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, const char * filename, struct mtar_format_header * h_writer) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct mtar_format_writer * f, int dir_fd, const char * filename, struct mtar_format_header * h_writer) {
 	struct stat sfile;
-	if (lstat(filename, &sfile)) {
+	if (fstatat(dir_fd, filename, &sfile, AT_SYMLINK_NOFOLLOW)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
 		return mtar_format_writer_error;
 	}
@@ -251,9 +253,9 @@ static enum mtar_format_writer_status mtar_format_ustar_writer_add_label(struct 
 	return mtar_format_ustar_writer_write_header(format, header, 512);
 }
 
-static enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, const char * src, const char * target, struct mtar_format_header * h_writer) {
+static enum mtar_format_writer_status mtar_format_ustar_writer_add_link(struct mtar_format_writer * f, int dir_fd, const char * src, const char * target, struct mtar_format_header * h_writer) {
 	struct stat sfile;
-	if (lstat(src, &sfile)) {
+	if (fstatat(dir_fd, src, &sfile, AT_SYMLINK_NOFOLLOW)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", src);
 		return mtar_format_writer_error;
 	}

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2011, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 19:45:00 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 11:20:02 +0100                           *
 \***************************************************************************/
 
 // versionsort
@@ -35,6 +35,10 @@
 
 // scandir
 #include <dirent.h>
+// openat
+#include <fcntl.h>
+// asprintf
+#include <stdio.h>
 // free, malloc
 #include <stdlib.h>
 // memmove, strdup, strlen, strncmp, strstr
@@ -43,7 +47,7 @@
 #include <sys/types.h>
 // lstat
 #include <sys/stat.h>
-// lstat
+// close, lstat
 #include <unistd.h>
 
 #include <mtar/file.h>
@@ -52,6 +56,9 @@
 #include "pattern.h"
 
 struct mtar_pattern_default_include {
+	int dir_fd;
+	char * root_directory;
+
 	char * path;
 	size_t spath;
 	enum mtar_pattern_option option;
@@ -91,6 +98,13 @@ static struct mtar_pattern_include_ops mtar_pattern_default_include_ops = {
 void mtar_pattern_default_include_free(struct mtar_pattern_include * pattern) {
 	struct mtar_pattern_default_include * self = pattern->data;
 
+	if (self->dir_fd != AT_FDCWD)
+		close(self->dir_fd);
+	self->dir_fd = AT_FDCWD;
+
+	free(self->root_directory);
+	self->root_directory = NULL;
+
 	free(self->path);
 	self->path = NULL;
 
@@ -119,6 +133,7 @@ bool mtar_pattern_default_include_has_next(struct mtar_pattern_include * pattern
 	size_t length;
 	struct mtar_pattern_include_node * ptr, * cnode = self->last;
 	struct stat st;
+	char * path;
 
 	switch (self->status) {
 		case mtar_pattern_include_status_finished:
@@ -134,7 +149,15 @@ bool mtar_pattern_default_include_has_next(struct mtar_pattern_include * pattern
 				cnode->index_nl = 0;
 				cnode->next = cnode->previous = NULL;
 
-				cnode->nb_nl = scandir(self->path, &cnode->nl, mtar_file_basic_filter, versionsort);
+				if (self->root_directory != NULL)
+					asprintf(&path, "%s/%s", self->root_directory, self->path);
+				else
+					path = self->path;
+
+				cnode->nb_nl = scandir(path, &cnode->nl, mtar_file_basic_filter, versionsort);
+
+				if (self->root_directory != NULL)
+					free(path);
 
 				if (cnode->nb_nl > 0) {
 					cnode->nl_next = *cnode->nl;
@@ -159,7 +182,7 @@ bool mtar_pattern_default_include_has_next(struct mtar_pattern_include * pattern
 					strcat(self->current_path, ptr->nl_next->d_name);
 				}
 
-				if (lstat(self->current_path, &st)) {
+				if (fstatat(self->dir_fd, self->current_path, &st, AT_SYMLINK_NOFOLLOW)) {
 					free(self->current_path);
 					self->current_path = 0;
 
@@ -178,7 +201,15 @@ bool mtar_pattern_default_include_has_next(struct mtar_pattern_include * pattern
 					csubnode->nl_next = NULL;
 					csubnode->index_nl = 0;
 
-					csubnode->nb_nl = scandir(self->current_path, &csubnode->nl, mtar_file_basic_filter, versionsort);
+					if (self->root_directory != NULL)
+						asprintf(&path, "%s/%s", self->root_directory, self->current_path);
+					else
+						path = self->current_path;
+
+					csubnode->nb_nl = scandir(path, &csubnode->nl, mtar_file_basic_filter, versionsort);
+
+					if (self->root_directory != NULL)
+						free(path);
 
 					if (csubnode->nb_nl > 0) {
 						csubnode->nl_next = *csubnode->nl;
@@ -220,8 +251,10 @@ bool mtar_pattern_default_include_has_next(struct mtar_pattern_include * pattern
 			return self->current_path != NULL;
 
 		case mtar_pattern_include_status_init:
-			if (lstat(self->path, &st)) {
+			if (fstatat(self->dir_fd, self->path, &st, AT_SYMLINK_NOFOLLOW)) {
 				self->status = mtar_pattern_include_status_finished;
+				if (self->root_directory != NULL)
+					free(path);
 				return false;
 			}
 
@@ -258,8 +291,21 @@ void mtar_pattern_default_include_next(struct mtar_pattern_include * pattern, ch
 	}
 }
 
-struct mtar_pattern_include * mtar_pattern_default_include_new(const char * pattern, enum mtar_pattern_option option) {
+struct mtar_pattern_include * mtar_pattern_default_include_new(const char * root_directory, const char * pattern, enum mtar_pattern_option option) {
+	int dir_fd = AT_FDCWD;
+	if (root_directory != NULL) {
+		dir_fd = openat(AT_FDCWD, root_directory, O_RDONLY | O_NOCTTY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC);
+		if (dir_fd == -1)
+			return NULL;
+	}
+
 	struct mtar_pattern_default_include * self = malloc(sizeof(struct mtar_pattern_default_include));
+
+	self->dir_fd = dir_fd;
+	self->root_directory = NULL;
+	if (root_directory != NULL)
+		self->root_directory = strdup(root_directory);
+
 	self->path = strdup(pattern);
 	self->spath = 0;
 	self->option = option;
@@ -269,15 +315,28 @@ struct mtar_pattern_include * mtar_pattern_default_include_new(const char * patt
 
 	// remove double '/'
 	char * ptr = self->path;
-	while ((ptr = strstr(ptr, "//"))) {
+	while ((ptr = strstr(ptr, "//")))
 		memmove(ptr, ptr + 1, strlen(ptr));
+
+	if (self->root_directory != NULL) {
+		ptr = self->root_directory;
+		while ((ptr = strstr(ptr, "//")))
+			memmove(ptr, ptr + 1, strlen(ptr));
 	}
 
 	// remove trailing '/'
-	size_t length = strlen(pattern);
+	size_t length = strlen(self->path);
 	while (length > 0 && self->path[length - 1] == '/') {
 		length--;
 		self->path[length] = '\0';
+	}
+
+	if (self->root_directory != NULL) {
+		length = strlen(self->root_directory);
+		while (length > 0 && self->root_directory[length - 1] == '/') {
+			length--;
+			self->root_directory[length] = '\0';
+		}
 	}
 
 	self->spath = strlen(self->path);
