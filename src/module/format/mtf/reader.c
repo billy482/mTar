@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 14:44:56 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 18:55:54 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -91,7 +91,19 @@ bool mtar_format_mtf_auto_detect(const void * buffer, ssize_t length) {
 		return false;
 
 	const struct mtar_format_mtf_descriptor_block * block = buffer;
-	return block->type == mtar_format_mtf_descriptor_block_sset;
+	bool found = false;
+	static const enum mtar_format_mtf_descriptor_type types[] = {
+		mtar_format_mtf_descriptor_block_tape, mtar_format_mtf_descriptor_block_sset, mtar_format_mtf_descriptor_block_volb,
+		mtar_format_mtf_descriptor_block_dirb, mtar_format_mtf_descriptor_block_file, mtar_format_mtf_descriptor_block_cfil,
+		mtar_format_mtf_descriptor_block_espb, mtar_format_mtf_descriptor_block_eset, mtar_format_mtf_descriptor_block_eotm,
+		mtar_format_mtf_descriptor_block_sfmb, 0
+	};
+	unsigned short i;
+	for (i = 0; !found && types[i] != 0; i++)
+		if (block->type == types[i])
+			found = true;
+
+	return found;
 }
 
 static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {

@@ -49,7 +49,7 @@ struct mtar_format_mtf_tape_address {
  * All integers are little endian
  */
 struct mtar_format_mtf_descriptor_block {
-	enum {
+	enum mtar_format_mtf_descriptor_type {
 		mtar_format_mtf_descriptor_block_tape = 0x45504154, // tape descriptor
 		mtar_format_mtf_descriptor_block_sset = 0x54455353, // start of data set descriptor
 		mtar_format_mtf_descriptor_block_volb = 0x424C4F56, // volume descriptor
