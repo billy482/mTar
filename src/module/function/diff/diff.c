@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 09:52:36 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 16:24:16 +0100                           *
 \***************************************************************************/
 
 // fstatat, openat
@@ -133,8 +133,18 @@ static int mtar_function_diff(const struct mtar_option * option) {
 
 				failed = fstatat(dir_fd, header.path, &st, AT_SYMLINK_NOFOLLOW);
 				if (!failed) {
+					if ((st.st_mode & 07777) != (header.mode & 07777))
+						mtar_verbose_printf("%s: permission differs\n", header.path);
+
 					if (st.st_mtime != header.mtime)
-						mtar_verbose_printf("File (%s) has been modifed\n", header.path);
+						mtar_verbose_printf("%s: Mod time differs\n", header.path);
+
+					if ((st.st_mode & S_IFMT) != (header.mode & S_IFMT)) {
+						mtar_verbose_printf("%s: file type differs\n", header.path);
+					} else if (S_ISREG(st.st_mode)) {
+						if (st.st_size != header.size)
+							mtar_verbose_printf("%s: : Size differs\n", header.path);
+					}
 				} else {
 					mtar_verbose_printf("There is no file named %s\n", header.path);
 				}

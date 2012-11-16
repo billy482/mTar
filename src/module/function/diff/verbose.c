@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 23:45:49 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 16:03:59 +0100                           *
 \***************************************************************************/
 
 // localtime_r, strftime
@@ -45,20 +45,34 @@
 
 static void mtar_function_diff_display1(struct mtar_format_header * header);
 static void mtar_function_diff_display2(struct mtar_format_header * header);
+static void mtar_function_diff_display3(struct mtar_format_header * header);
 
 void (*mtar_function_diff_display)(struct mtar_format_header * header) = mtar_function_diff_display1;
 
 
 void mtar_function_diff_configure(const struct mtar_option * option) {
-	if (option->verbose > 0)
-		mtar_function_diff_display = mtar_function_diff_display2;
+	switch (option->verbose) {
+		case 0:
+			mtar_function_diff_display = mtar_function_diff_display1;
+			break;
+
+		case 1:
+			mtar_function_diff_display = mtar_function_diff_display2;
+			break;
+
+		default:
+			mtar_function_diff_display = mtar_function_diff_display3;
+			break;
+	}
 }
 
-static void mtar_function_diff_display1(struct mtar_format_header * header) {
+static void mtar_function_diff_display1(struct mtar_format_header * header __attribute__((unused))) {}
+
+static void mtar_function_diff_display2(struct mtar_format_header * header) {
 	mtar_verbose_printf("%s\n", header->path);
 }
 
-static void mtar_function_diff_display2(struct mtar_format_header * header) {
+static void mtar_function_diff_display3(struct mtar_format_header * header) {
 	char mode[11];
 	mtar_file_convert_mode(mode, header->mode);
 
