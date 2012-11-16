@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 11:43:53 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 14:15:53 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -42,13 +42,11 @@
 #include <string.h>
 // bzero
 #include <strings.h>
-// lstat, stat
+// fstatat
 #include <sys/stat.h>
-// lstat, stat
-#include <sys/types.h>
 // time
 #include <time.h>
-// access, readlink, stat
+// readlinkat
 #include <unistd.h>
 
 #include <mtar/file.h>
@@ -90,7 +88,7 @@ static ssize_t mtar_format_ustar_writer_next_prefered_size(struct mtar_format_wr
 static void mtar_format_ustar_writer_new_volume(struct mtar_format_writer * f, struct mtar_io_writer * file);
 static off_t mtar_format_ustar_writer_position(struct mtar_format_writer * io);
 static struct mtar_format_reader * mtar_format_ustar_writer_reopen_for_reading(struct mtar_format_writer * f, const struct mtar_option * option);
-static int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const char * filename, ssize_t position);
+static int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, int dir_fd, const char * filename, ssize_t position);
 static void mtar_format_ustar_writer_set_mode(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile);
 static void mtar_format_ustar_writer_set_owner_and_group(struct mtar_format_ustar_writer * format, struct mtar_format_ustar * header, struct stat * sfile);
 static const char * mtar_format_ustar_writer_skip_leading_slash(const char * str);
@@ -154,7 +152,7 @@ static enum mtar_format_writer_status mtar_format_ustar_writer_add_file(struct m
 	int filename_length = strlen(filename);
 	if (S_ISLNK(sfile.st_mode)) {
 		char link[257];
-		ssize_t link_length = readlink(filename, link, 256);
+		ssize_t link_length = readlinkat(dir_fd, filename, link, 256);
 		link[link_length] = '\0';
 
 		if (filename_length > 100 && link_length > 100) {
@@ -455,9 +453,9 @@ static struct mtar_format_reader * mtar_format_ustar_writer_reopen_for_reading(s
 	return 0;
 }
 
-static int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, const char * filename, ssize_t position) {
+static int mtar_format_ustar_writer_restart_file(struct mtar_format_writer * f, int dir_fd, const char * filename, ssize_t position) {
 	struct stat sfile;
-	if (lstat(filename, &sfile)) {
+	if (fstatat(dir_fd, filename, &sfile, AT_SYMLINK_NOFOLLOW)) {
 		mtar_verbose_printf("An unexpected error occured while getting information about: %s\n", filename);
 		return 1;
 	}

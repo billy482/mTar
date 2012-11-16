@@ -27,26 +27,26 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 11:47:38 +0100                           *
+*  Last modified: Fri, 16 Nov 2012 14:46:10 +0100                           *
 \***************************************************************************/
 
 // errno
 #include <errno.h>
-// open, openat
+// openat
 #include <fcntl.h>
 // free, malloc, realloc
 #include <stdlib.h>
-// snprintf, sprintf
+// snprintf
 #include <stdio.h>
-// strcmp, strcpy, strdup, strlen
+// strcmp, strdup
 #include <string.h>
-// lstat, open
+// lstat
 #include <sys/stat.h>
-// lstat, open, utime, waitpid
+// lstat, utime, waitpid
 #include <sys/types.h>
 // waitpid
 #include <sys/wait.h>
-// chdir, execl, _exit, fork, lstat, read, readlink
+// execl, _exit, fork, lstat, read, readlink
 #include <unistd.h>
 // utime
 #include <utime.h>
@@ -270,7 +270,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						tar_writer->ops->restart_file(tar_writer, filename, total_nb_write);
+						tar_writer->ops->restart_file(tar_writer, dir_fd, filename, total_nb_write);
 						nb_write = tar_writer->ops->write(tar_writer, param.buffer, nb_read);
 					}
 
@@ -281,7 +281,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 						if (failed)
 							break;
 
-						tar_writer->ops->restart_file(tar_writer, filename, total_nb_write + nb_write);
+						tar_writer->ops->restart_file(tar_writer, dir_fd, filename, total_nb_write + nb_write);
 
 						if (nb_read > nb_write) {
 							ssize_t nb_write2 = tar_writer->ops->write(tar_writer, param.buffer + nb_write, nb_read - nb_write);
@@ -298,8 +298,6 @@ static int mtar_function_create(const struct mtar_option * option) {
 					total_nb_write += nb_write;
 
 					mtar_function_create_progress(filename, "\r[%b @%P] ETA: %E", total_nb_write, st.st_size);
-
-					// mtar_plugin_write(buffer, nb_write);
 				}
 
 				if (nb_read < 0) {
@@ -313,11 +311,11 @@ static int mtar_function_create(const struct mtar_option * option) {
 			}
 
 			if (option->atime_preserve == mtar_option_atime_replace) {
-				struct utimbuf buf = {
-					.actime  = st.st_atime,
-					.modtime = st.st_mtime,
+				struct timespec buf[] = {
+					{ .tv_sec = st.st_atime, .tv_nsec = 0 },
+					{ .tv_sec = st.st_mtime, .tv_nsec = 0 },
 				};
-				utime(filename, &buf);
+				utimensat(dir_fd, filename, buf, AT_SYMLINK_NOFOLLOW);
 			}
 
 			mtar_format_free_header(&header);
@@ -334,6 +332,9 @@ static int mtar_function_create(const struct mtar_option * option) {
 		for (i = 0; i < param.nb_files; i++)
 			free(param.files[i]);
 		free(param.files);
+
+		if (dir_fd != AT_FDCWD)
+			close(dir_fd);
 
 		return failed;
 	}
@@ -382,7 +383,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 				if (header.is_label || header.position > 0)
 					break;
 
-				if (lstat(header.path, &st)) {
+				if (fstatat(dir_fd, header.path, &st, AT_SYMLINK_NOFOLLOW)) {
 					mtar_verbose_printf("%s: Error while getting information\n", header.path);
 					param.tar_reader->ops->skip_file(param.tar_reader);
 					continue;
@@ -398,7 +399,7 @@ static int mtar_function_create(const struct mtar_option * option) {
 						mtar_verbose_printf("%s: size differs\n", header.path);
 				} else if (S_ISLNK(st.st_mode)) {
 					char link[256];
-					ssize_t slink = readlink(header.path, link, 256);
+					ssize_t slink = readlinkat(dir_fd, header.path, link, 256);
 					if (slink >= 0) {
 						link[slink] = '\0';
 
