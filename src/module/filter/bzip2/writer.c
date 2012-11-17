@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 12:27:32 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 20:27:40 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzCompress, BZ2_bzCompressEnd, BZ2_bzCompressInit
@@ -181,7 +181,7 @@ static struct mtar_io_reader * mtar_filter_bzip2_writer_reopen_for_reading(struc
 
 	struct mtar_io_reader * in = self->io->ops->reopen_for_reading(self->io, option);
 	if (in != NULL)
-		return mtar_filter_bzip2_new_reader(in, option);
+		return mtar_filter_bzip2_new_reader(in, option, NULL);
 
 	return NULL;
 }
@@ -209,7 +209,7 @@ static ssize_t mtar_filter_bzip2_writer_write(struct mtar_io_writer * io, const 
 	return length;
 }
 
-struct mtar_io_writer * mtar_filter_bzip2_new_writer(struct mtar_io_writer * io, const struct mtar_option * option) {
+struct mtar_io_writer * mtar_filter_bzip2_new_writer(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters __attribute__((unused))) {
 	struct mtar_filter_bzip2_writer * self = malloc(sizeof(struct mtar_filter_bzip2_writer));
 	self->io = io;
 	self->closed = 0;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 29 Oct 2012 23:48:42 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 18:46:34 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_H__
@@ -52,13 +52,13 @@ struct mtar_filter {
 	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_in
 	 */
-	struct mtar_io_reader * (*new_reader)(struct mtar_io_reader * io, const struct mtar_option * option);
+	struct mtar_io_reader * (*new_reader)(struct mtar_io_reader * io, const struct mtar_option * option, const char * parameters);
 	/**
 	 * \brief get a new output handler
 	 * \param[in] option : a struct containing argument passed by \b mtar
 	 * \return 0 if failed or a new instance of struct mtar_io_out
 	 */
-	struct mtar_io_writer * (*new_writer)(struct mtar_io_writer * io, const struct mtar_option * option);
+	struct mtar_io_writer * (*new_writer)(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters);
 
 	/**
 	 * \brief print a short description about driver
@@ -66,6 +66,7 @@ struct mtar_filter {
 	 * This function is called by \b mtar when argument is --list-filters
 	 */
 	void (*show_description)(void);
+	void (*show_help)(void);
 	/**
 	 * \brief print extented version about driver
 	 *

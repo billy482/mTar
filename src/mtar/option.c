@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 15:21:42 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 11:45:53 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -172,6 +172,10 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 	option->auto_compress = true;
 	option->compress_module = NULL;
 	option->compress_level = 6;
+
+	// filters
+	option->filters = NULL;
+	option->nb_filters = 0;
 
 	// local file selections
 	option->files = NULL;
@@ -344,6 +348,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_exclude_tag_all,
 		opt_exclude_tag_under,
 		opt_exclude_vcs,
+		opt_filter,
+		opt_filter_help,
+		opt_filter_option,
 		opt_full_version,
 		opt_function,
 		opt_group,
@@ -390,6 +397,9 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "extract",              0, 0, opt_extract },
 		{ "file",                 1, 0, opt_file },
 		{ "files-from",           1, 0, opt_files_from },
+		{ "filter",               1, 0, opt_filter },
+		{ "filter-help",          1, 0, opt_filter_help },
+		{ "filter-option",        1, 0, opt_filter_option },
 		{ "format",               1, 0, opt_format },
 		{ "full-version",         0, 0, opt_full_version },
 		{ "function",             1, 0, opt_function },
@@ -536,6 +546,24 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 			case opt_files_from:
 				option->files = mtar_pattern_add_include_from_file(option->files, &option->nb_files, pattern_engine, option->working_directory, include_pattern_option, optarg, option);
 				break;
+
+			case opt_filter:
+				option->filters = mtar_filter_add(option->filters, &option->nb_filters, optarg);
+				break;
+
+			case opt_filter_help:
+				mtar_filter_show_help(optarg);
+				return 1;
+
+			case opt_filter_option:
+				if (option->nb_filters > 0) {
+					struct mtar_filters * last_filter = option->filters + (option->nb_filters - 1);
+					last_filter->option = optarg;
+					break;
+				} else {
+					mtar_verbose_printf("Error: there is no filter specified\n");
+					return 2;
+				}
 
 			case opt_format:
 				option->format = optarg;
@@ -736,6 +764,16 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("--no-auto-compress : do not use archive suffix to determine the compression program");
 	mtar_verbose_print_help("-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
 	mtar_verbose_print_help("--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
+	mtar_verbose_print_flush(4, 1);
+
+	mtar_verbose_printf("  Filters:\n");
+	mtar_verbose_print_help("--filter=FILTER * : Add a filter");
+	mtar_verbose_print_help("--filter-help=FILTER * : Show option of FITLER");
+	mtar_verbose_print_help("--filter-option=option * : Comma separated option of current filter");
+	mtar_verbose_print_flush(4, 1);
+
+	mtar_verbose_printf("  Where FILTER is one of the following:\n");
+	mtar_filter_show_description();
 	mtar_verbose_print_flush(4, 1);
 
 	mtar_verbose_printf("  Local file selection:\n");

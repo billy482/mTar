@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 19:26:16 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 20:18:51 +0100                           *
 \***************************************************************************/
 
 // O_RDONLY, O_RDWR, O_TRUNC
@@ -48,8 +48,25 @@ static unsigned int mtar_filter_nb_filters = 0;
 
 static void mtar_filter_exit(void) __attribute__((destructor));
 static struct mtar_filter * mtar_filter_get(const char * module);
+static struct mtar_io_reader * mtar_filter_get_readers(struct mtar_io_reader * io, const struct mtar_option * option);
+static struct mtar_io_writer * mtar_filter_get_writers(struct mtar_io_writer * io, const struct mtar_option * option);
 static const char * mtar_filter_get_module(const char * filename);
 
+
+struct mtar_filters * mtar_filter_add(struct mtar_filters * filters, unsigned int * nb_filter, const char * filter_name) {
+	void * new_addr = realloc(filters, (*nb_filter + 1) * sizeof(struct mtar_filters));
+	if (new_addr == NULL)
+		return filters;
+
+	filters = new_addr;
+	struct mtar_filters * last_filter = filters + *nb_filter;
+	(*nb_filter)++;
+
+	last_filter->name = filter_name;
+	last_filter->option = NULL;
+
+	return filters;
+}
 
 void mtar_filter_exit() {
 	free(mtar_filter_filters);
@@ -92,12 +109,14 @@ struct mtar_io_reader * mtar_filter_get_reader2(struct mtar_io_reader * io, cons
 	if (io == NULL || option == NULL)
 		return NULL;
 
+	io = mtar_filter_get_readers(io, option);
+
 	if (option->compress_module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
 		if (filter == NULL || filter->new_reader == NULL)
 			return NULL;
 
-		return filter->new_reader(io, option);
+		return filter->new_reader(io, option, NULL);
 	}
 
 	return io;
@@ -108,6 +127,11 @@ struct mtar_io_reader * mtar_filter_get_reader3(const char * filename, const str
 		return NULL;
 
 	struct mtar_io_reader * io = mtar_io_reader_get_file(filename, O_RDONLY, option);
+	if (io == NULL)
+		return NULL;
+
+	io = mtar_filter_get_readers(io, option);
+
 	const char * module = mtar_filter_get_module(filename);
 
 	if (module != NULL) {
@@ -115,7 +139,26 @@ struct mtar_io_reader * mtar_filter_get_reader3(const char * filename, const str
 		if (filter == NULL || filter->new_reader == NULL)
 			return 0;
 
-		return filter->new_reader(io, option);
+		return filter->new_reader(io, option, NULL);
+	}
+
+	return io;
+}
+
+static struct mtar_io_reader * mtar_filter_get_readers(struct mtar_io_reader * io, const struct mtar_option * option) {
+	if (io == NULL || option == NULL)
+		return io;
+
+	unsigned int i, j;
+	for (i = 0, j = option->nb_filters - 1; i < option->nb_filters; i++, j--) {
+		struct mtar_filter * filter = mtar_filter_get(option->filters[j].name);
+
+		if (filter != NULL && filter->new_reader != NULL) {
+			struct mtar_io_reader * new_io = filter->new_reader(io, option, option->filters[j].option);
+
+			if (new_io != NULL)
+				io = new_io;
+		}
 	}
 
 	return io;
@@ -171,12 +214,14 @@ struct mtar_io_writer * mtar_filter_get_writer2(struct mtar_io_writer * io, cons
 	if (io == NULL || option == NULL)
 		return NULL;
 
+	io = mtar_filter_get_writers(io, option);
+
 	if (option->compress_module != NULL) {
 		struct mtar_filter * filter = mtar_filter_get(option->compress_module);
 		if (filter == NULL || filter->new_writer == NULL)
 			return NULL;
 
-		return filter->new_writer(io, option);
+		return filter->new_writer(io, option, NULL);
 	}
 
 	return io;
@@ -187,6 +232,11 @@ struct mtar_io_writer * mtar_filter_get_writer3(const char * filename, const str
 		return NULL;
 
 	struct mtar_io_writer * io = mtar_io_writer_get_file(filename, O_RDWR | O_TRUNC, option);
+	if (io == NULL)
+		return NULL;
+
+	io = mtar_filter_get_writers(io, option);
+
 	const char * module = mtar_filter_get_module(filename);
 
 	if (module != NULL) {
@@ -194,7 +244,26 @@ struct mtar_io_writer * mtar_filter_get_writer3(const char * filename, const str
 		if (filter == NULL || filter->new_writer == NULL)
 			return NULL;
 
-		return filter->new_writer(io, option);
+		return filter->new_writer(io, option, NULL);
+	}
+
+	return io;
+}
+
+static struct mtar_io_writer * mtar_filter_get_writers(struct mtar_io_writer * io, const struct mtar_option * option) {
+	if (io == NULL || option == NULL)
+		return io;
+
+	unsigned int i, j;
+	for (i = 0, j = option->nb_filters - 1; i < option->nb_filters; i++, j--) {
+		struct mtar_filter * filter = mtar_filter_get(option->filters[j].name);
+
+		if (filter != NULL && filter->new_reader != NULL) {
+			struct mtar_io_writer * new_io = filter->new_writer(io, option, option->filters[j].option);
+
+			if (new_io != NULL)
+				io = new_io;
+		}
 	}
 
 	return io;
@@ -228,11 +297,22 @@ void mtar_filter_register(struct mtar_filter * filter) {
 
 void mtar_filter_show_description() {
 	mtar_loader_load_all("filter");
-	mtar_verbose_printf("\nList of available backend filters :\n");
 
 	unsigned int i;
 	for (i = 0; i < mtar_filter_nb_filters; i++)
 		mtar_filter_filters[i]->show_description();
+}
+
+void mtar_filter_show_help(const char * filter) {
+	struct mtar_filter * f = mtar_filter_get(filter);
+
+	if (f != NULL && f->show_help != NULL) {
+		f->show_help();
+	} else if (f != NULL) {
+		mtar_verbose_printf("No help for filter available: %s\n", filter);
+	} else {
+		mtar_verbose_printf("No filter found named: %s\n", filter);
+	}
 }
 
 void mtar_filter_show_version() {

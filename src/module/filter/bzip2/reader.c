@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 12:21:49 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 20:26:28 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzDecompress, BZ2_bzDecompressEnd, BZ2_bzDecompressInit
@@ -185,7 +185,7 @@ static ssize_t mtar_filter_bzip2_reader_read(struct mtar_io_reader * io, void * 
 	return mtar_filter_bzip2_reader_convert_total_out(&self->strm) - previous_pos;
 }
 
-struct mtar_io_reader * mtar_filter_bzip2_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_reader * mtar_filter_bzip2_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused)), const char * parameters __attribute__((unused))) {
 	struct mtar_filter_bzip2_reader * self = malloc(sizeof(struct mtar_filter_bzip2_reader));
 	self->io = io;
 	self->closed = false;

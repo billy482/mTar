@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 20 Oct 2012 13:21:06 +0200                           *
+*  Last modified: Sat, 17 Nov 2012 20:31:03 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_XZ_H__
@@ -35,8 +35,8 @@
 
 #include <mtar/filter.h>
 
-struct mtar_io_reader * mtar_filter_xz_new_reader(struct mtar_io_reader * io, const struct mtar_option * option);
-struct mtar_io_writer * mtar_filter_xz_new_writer(struct mtar_io_writer * io, const struct mtar_option * option);
+struct mtar_io_reader * mtar_filter_xz_new_reader(struct mtar_io_reader * io, const struct mtar_option * option, const char * parameters);
+struct mtar_io_writer * mtar_filter_xz_new_writer(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters);
 
 #endif
 

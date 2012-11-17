@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 15:03:22 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 20:31:25 +0100                           *
 \***************************************************************************/
 
 // lzma_code, lzma_end, lzma_stream_decoder
@@ -179,7 +179,7 @@ static ssize_t mtar_filter_xz_reader_read(struct mtar_io_reader * io, void * dat
 	return self->strm.total_out - previous_pos;
 }
 
-struct mtar_io_reader * mtar_filter_xz_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_reader * mtar_filter_xz_new_reader(struct mtar_io_reader * io, const struct mtar_option * option __attribute__((unused)), const char * parameters __attribute__((unused))) {
 	struct mtar_filter_xz_reader * self = malloc(sizeof(struct mtar_filter_xz_reader));
 	self->io = io;
 	self->closed = false;

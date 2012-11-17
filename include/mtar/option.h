@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 15:08:51 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 11:56:54 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_OPTION_H__
@@ -80,6 +80,13 @@ struct mtar_option {
 	bool auto_compress;
 	const char * compress_module;
 	unsigned short compress_level;
+
+	// filters
+	struct mtar_filters {
+		const char * name;
+		const char * option;
+	} * filters;
+	unsigned int nb_filters;
 
 	// local file selections
 	struct mtar_pattern_include ** files;

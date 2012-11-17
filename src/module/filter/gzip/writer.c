@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 15:01:32 +0100                           *
+*  Last modified: Sat, 17 Nov 2012 20:30:32 +0100                           *
 \***************************************************************************/
 
 // bool
@@ -186,7 +186,7 @@ static struct mtar_io_reader * mtar_filter_gzip_writer_reopen_for_reading(struct
 
 	struct mtar_io_reader * in = self->io->ops->reopen_for_reading(self->io, option);
 	if (in != NULL)
-		return mtar_filter_gzip_new_reader(in, option);
+		return mtar_filter_gzip_new_reader(in, option, NULL);
 
 	return NULL;
 }
@@ -212,7 +212,7 @@ static ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const v
 	return length;
 }
 
-struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option __attribute__((unused))) {
+struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option __attribute__((unused)), const char * parameters __attribute__((unused))) {
 	struct mtar_filter_gzip_writer * self = malloc(sizeof(struct mtar_filter_gzip_writer));
 	self->io = io;
 	self->closed = false;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 07 May 2012 21:19:08 +0200                           *
+*  Last modified: Sat, 17 Nov 2012 11:37:50 +0100                           *
 \***************************************************************************/
 
 #ifndef __MTAR_FILTER_P_H__
@@ -35,7 +35,9 @@
 
 #include <mtar/filter.h>
 
+struct mtar_filters * mtar_filter_add(struct mtar_filters * filters, unsigned int * nb_filter, const char * filter_name);
 void mtar_filter_show_description(void);
+void mtar_filter_show_help(const char * filter);
 void mtar_filter_show_version(void);
 
 #endif
