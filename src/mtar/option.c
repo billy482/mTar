@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 17 Nov 2012 11:45:53 +0100                           *
+*  Last modified: Sun, 18 Nov 2012 11:55:17 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -265,7 +265,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'M':
-					option->multi_volume = 1;
+					option->multi_volume = true;
 					break;
 
 				case 't':
@@ -290,7 +290,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 					break;
 
 				case 'W':
-					option->verify = 1;
+					option->verify = true;
 					break;
 
 				case 'x':
@@ -629,7 +629,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case opt_multi_volume:
-				option->multi_volume = 1;
+				option->multi_volume = true;
 				break;
 
 			case opt_no_null:
@@ -688,7 +688,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				break;
 
 			case opt_verify:
-				option->verify = 1;
+				option->verify = true;
 				break;
 
 			case opt_version:
@@ -718,44 +718,44 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("-x, --extract, --get : extract files from an archive");
 	mtar_verbose_print_help("--function FUNCTION * : use FUNCTION as action");
 	mtar_verbose_print_help("--function help=FUNCTION * : show specific help from function FUNCTION");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Where FUNCTION is one of:\n");
 	mtar_function_show_description();
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Overwrite control:\n");
 	mtar_verbose_print_help("--recursive-unlink : empty hierarchies prior to extracting directory");
 	mtar_verbose_print_help("-U, --unlink-first : remove each file prior to extracting over it");
 	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Handling of file attributes:\n");
 	mtar_verbose_print_help("--atime-preserve : preserve access times on dumped files");
 	mtar_verbose_print_help("--group=NAME : force NAME as group for added files");
 	mtar_verbose_print_help("--mode=CHANGES : force (symbolic) mode CHANGES for added files");
 	mtar_verbose_print_help("--owner=NAME : force NAME as owner for added files");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Device selection and switching:\n");
 	mtar_verbose_print_help("-f, --file=ARCHIVE : use ARCHIVE file or device ARCHIVE");
 	mtar_verbose_print_help("-L, --tape-length=NUMBER : change tape after writing NUMBER x 1024 bytes");
 	mtar_verbose_print_help("-M, --multi-volume : create/list/extract multi-volume archive");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Device blocking:\n");
 	mtar_verbose_print_help("-b, --blocking-factor=BLOCKS : BLOCKS x 512 bytes per record");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Archive format selection:\n");
 	mtar_verbose_print_help("-H, --format=FORMAT : use FORMAT as tar format");
 	mtar_verbose_print_help("--no-format-detection * : disable detection of format. --format disable also format dectection");
 	mtar_verbose_print_help("-V, --label=TEXT : create archive with volume name TEXT");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Where FORMAT is one of the following:\n");
 	mtar_format_show_description();
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Compression options:\n");
 	mtar_verbose_print_help("-a, --auto-compress : use archive suffix to determine the compression program");
@@ -764,17 +764,17 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("--no-auto-compress : do not use archive suffix to determine the compression program");
 	mtar_verbose_print_help("-z, --gzip, --gunzip, --ungzip : filter the archive through gzip");
 	mtar_verbose_print_help("--compression-level=LEVEL * : Set the level of compression (1 <= LEVEL <= 9)");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Filters:\n");
 	mtar_verbose_print_help("--filter=FILTER * : Add a filter");
 	mtar_verbose_print_help("--filter-help=FILTER * : Show option of FITLER");
 	mtar_verbose_print_help("--filter-option=option * : Comma separated option of current filter");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Where FILTER is one of the following:\n");
 	mtar_filter_show_description();
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Local file selection:\n");
 	mtar_verbose_print_help("--add-file=FILE : add given FILE to the archive (useful if its name starts with a dash)");
@@ -795,15 +795,15 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("--null : -T or -X reads null-terminated names");
 	mtar_verbose_print_help("--pattern-engine=ENGINE * : use ENGINE to match filename");
 	mtar_verbose_print_help("--recursion : recurse into directories (default)");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Where ENGINE is one of the following:\n");
 	mtar_pattern_show_description();
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Informative output:\n");
 	mtar_verbose_print_help("-v, --verbose : verbosely list files processed");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Other options:\n");
 	mtar_verbose_print_help("-?, --help : give this help list");
@@ -812,7 +812,7 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("--list-formats * : list available format");
 	mtar_verbose_print_help("--list-functions * : list available function");
 	mtar_verbose_print_help("--list-ios * : list available io backend");
-	mtar_verbose_print_flush(4, 1);
+	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("Parameters marked with * do not exist into gnu tar\n");
 }

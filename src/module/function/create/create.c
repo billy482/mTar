@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 14:46:10 +0100                           *
+*  Last modified: Sun, 18 Nov 2012 11:51:42 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -652,7 +652,7 @@ static void mtar_function_create_show_help() {
 	mtar_verbose_print_help("-z, --gzip : filter the archive through gzip");
 	mtar_verbose_print_help("-C, --directory=DIR : change to directory DIR before creating archive");
 	mtar_verbose_print_help("-v, --verbose : verbosely list files processed");
-	mtar_verbose_print_flush(4, 0);
+	mtar_verbose_print_flush(4, false);
 }
 
 static void mtar_function_create_show_version() {

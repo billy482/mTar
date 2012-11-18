@@ -95,7 +95,7 @@ void mtar_verbose_init() {
 	signal(SIGWINCH, mtar_verbose_update_size);
 }
 
-void mtar_verbose_print_flush(int tab_level, int new_line) {
+void mtar_verbose_print_flush(int tab_level, bool new_line) {
 	unsigned int i;
 	unsigned int width = mtar_verbose_terminal_width - max_left_width - 7;
 	for (i = 0; i < nb_lines; i++) {

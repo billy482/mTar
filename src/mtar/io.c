@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 19:27:16 +0100                           *
+*  Last modified: Sun, 18 Nov 2012 11:52:07 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -202,7 +202,7 @@ void mtar_io_show_description() {
 	unsigned int i;
 	for (i = 0; i < mtar_io_nbIos; i++)
 		mtar_io_ios[i]->show_description();
-	mtar_verbose_print_flush(2, 0);
+	mtar_verbose_print_flush(2, false);
 }
 
 void mtar_io_show_version() {

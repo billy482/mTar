@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 22 Oct 2012 22:53:46 +0200                           *
+*  Last modified: Sun, 18 Nov 2012 11:49:55 +0100                           *
 \***************************************************************************/
 
 // BZ2_bzlibVersion
@@ -42,6 +42,7 @@
 
 static void mtar_filter_bzip2_init(void) __attribute__((constructor));
 static void mtar_filter_bzip2_show_description(void);
+static void mtar_filter_bzip2_show_help(void);
 static void mtar_filter_bzip2_show_version(void);
 
 static struct mtar_filter mtar_filter_bzip2 = {
@@ -51,6 +52,7 @@ static struct mtar_filter mtar_filter_bzip2 = {
 	.new_writer       = mtar_filter_bzip2_new_writer,
 
 	.show_description = mtar_filter_bzip2_show_description,
+	.show_help        = mtar_filter_bzip2_show_help,
 	.show_version     = mtar_filter_bzip2_show_version,
 
 	.api_level        = {
@@ -70,6 +72,17 @@ static void mtar_filter_bzip2_init() {
 
 static void mtar_filter_bzip2_show_description() {
 	mtar_verbose_print_help("bzip2 : filter from/to compressed data (using libbz2: v%s)", BZ2_bzlibVersion());
+}
+
+static void mtar_filter_bzip2_show_help() {
+	mtar_verbose_printf("  bzip2: filter from/to compressed data (version: " MTAR_VERSION ") (using libbz2: v%s)\n", BZ2_bzlibVersion());
+
+	mtar_verbose_printf("    Reader:\n");
+	mtar_verbose_printf("      No option available\n");
+
+	mtar_verbose_printf("    Writer: \n");
+	mtar_verbose_print_help("compression-level: an integer between 0 and 9");
+	mtar_verbose_print_flush(6, false);
 }
 
 static void mtar_filter_bzip2_show_version() {
