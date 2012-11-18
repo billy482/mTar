@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Wed, 24 Oct 2012 22:48:13 +0200                           *
+*  Last modified: Sun, 18 Nov 2012 12:03:29 +0100                           *
 \***************************************************************************/
 
 // lzma_version_string
@@ -42,6 +42,7 @@
 
 static void mtar_filter_xz_init(void) __attribute__((constructor));
 static void mtar_filter_xz_show_description(void);
+static void mtar_filter_xz_show_help(void);
 static void mtar_filter_xz_show_version(void);
 
 static struct mtar_filter mtar_filter_xz = {
@@ -51,6 +52,7 @@ static struct mtar_filter mtar_filter_xz = {
 	.new_writer       = mtar_filter_xz_new_writer,
 
 	.show_description = mtar_filter_xz_show_description,
+	.show_help        = mtar_filter_xz_show_help,
 	.show_version     = mtar_filter_xz_show_version,
 
 	.api_level        = {
@@ -72,9 +74,19 @@ static void mtar_filter_xz_show_description() {
 	mtar_verbose_print_help("xz : filter from/to compressed data (using liblzma: v%s)", lzma_version_string());
 }
 
+static void mtar_filter_xz_show_help(void) {
+	mtar_verbose_printf("  xz: filter from/to compressed data (version: " MTAR_VERSION ") (using liblzma: v%s)\n", lzma_version_string());
+
+	mtar_verbose_printf("    Reader:\n");
+	mtar_verbose_printf("      No option available\n");
+
+	mtar_verbose_printf("    Writer: \n");
+	mtar_verbose_print_help("compression-level: an integer between 0 and 9");
+	mtar_verbose_print_flush(6, false);
+}
+
 static void mtar_filter_xz_show_version() {
 	mtar_verbose_printf("  xz: filter from/to compressed data (version: " MTAR_VERSION ") (using liblzma: v%s)\n", lzma_version_string());
 	mtar_verbose_printf("      SHA1 of source files: " MTAR_FILTER_XZ_SRCSUM "\n");
 }
-
 

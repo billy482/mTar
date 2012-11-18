@@ -27,15 +27,19 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Mon, 12 Nov 2012 15:09:19 +0100                           *
+*  Last modified: Sun, 18 Nov 2012 12:04:41 +0100                           *
 \***************************************************************************/
 
 // lzma_code, lzma_easy_encoder, lzma_end
 #include <lzma.h>
 // bool
 #include <stdbool.h>
-// free, malloc
+// free, getsubopt, malloc
 #include <stdlib.h>
+// sscanf
+#include <stdio.h>
+// strdup
+#include <string.h>
 // bzero
 #include <strings.h>
 
@@ -213,7 +217,38 @@ static ssize_t mtar_filter_xz_writer_write(struct mtar_io_writer * io, const voi
 	return length;
 }
 
-struct mtar_io_writer * mtar_filter_xz_new_writer(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters __attribute__((unused))) {
+struct mtar_io_writer * mtar_filter_xz_new_writer(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters) {
+	int level = option->compress_level;
+
+	if (parameters != NULL) {
+		enum {
+			compression_level = 0,
+		};
+		char * const token[] = {
+			[compression_level] = "compression-level",
+			NULL,
+		};
+
+		char * param = strdup(parameters);
+		size_t sparam = strlen(param);
+		char * value;
+		while (*param != '\0') {
+			switch (getsubopt(&param, token, &value)) {
+				case compression_level:
+					if (value != NULL) {
+						int val = 6;
+						sscanf(value, "%d", &val);
+
+						level = val >= 0 && val <= 9 ? val : 6;
+					} else {
+						level = 6;
+					}
+					break;
+			}
+		}
+		free(param - sparam);
+	}
+
 	struct mtar_filter_xz_writer * self = malloc(sizeof(struct mtar_filter_xz_writer));
 	self->io = io;
 	self->closed = false;
@@ -223,7 +258,7 @@ struct mtar_io_writer * mtar_filter_xz_new_writer(struct mtar_io_writer * io, co
 
 	// init data
 	bzero(&self->strm, sizeof(lzma_stream));
-	lzma_ret ret = lzma_easy_encoder(&self->strm, option->compress_level, LZMA_CHECK_CRC64);
+	lzma_ret ret = lzma_easy_encoder(&self->strm, level, LZMA_CHECK_CRC64);
 	if (ret != LZMA_OK) {
 		free(self);
 		return NULL;

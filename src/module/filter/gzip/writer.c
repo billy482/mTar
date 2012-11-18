@@ -27,13 +27,17 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sat, 17 Nov 2012 20:30:32 +0100                           *
+*  Last modified: Sun, 18 Nov 2012 12:04:51 +0100                           *
 \***************************************************************************/
 
 // bool
 #include <stdbool.h>
-// free, malloc
+// free, getsubopt, malloc
 #include <stdlib.h>
+// sscanf
+#include <stdio.h>
+// strdup
+#include <string.h>
 // time
 #include <time.h>
 // crc32, deflate, deflateEnd, deflateInit2
@@ -212,7 +216,38 @@ static ssize_t mtar_filter_gzip_writer_write(struct mtar_io_writer * io, const v
 	return length;
 }
 
-struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option __attribute__((unused)), const char * parameters __attribute__((unused))) {
+struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, const struct mtar_option * option, const char * parameters) {
+	int level = option->compress_level;
+
+	if (parameters != NULL) {
+		enum {
+			compression_level = 0,
+		};
+		char * const token[] = {
+			[compression_level] = "compression-level",
+			NULL,
+		};
+
+		char * param = strdup(parameters);
+		size_t sparam = strlen(param);
+		char * value;
+		while (*param != '\0') {
+			switch (getsubopt(&param, token, &value)) {
+				case compression_level:
+					if (value != NULL) {
+						int val = 6;
+						sscanf(value, "%d", &val);
+
+						level = val >= 0 && val <= 9 ? val : 6;
+					} else {
+						level = 6;
+					}
+					break;
+			}
+		}
+		free(param - sparam);
+	}
+
 	struct mtar_filter_gzip_writer * self = malloc(sizeof(struct mtar_filter_gzip_writer));
 	self->io = io;
 	self->closed = false;
@@ -233,7 +268,7 @@ struct mtar_io_writer * mtar_filter_gzip_new_writer(struct mtar_io_writer * io, 
 
 	self->crc32 = crc32(0, Z_NULL, 0);
 
-	int err = deflateInit2(&self->gz_stream, option->compress_level, Z_DEFLATED, -MAX_WBITS, option->compress_level, Z_DEFAULT_STRATEGY);
+	int err = deflateInit2(&self->gz_stream, level, Z_DEFLATED, -MAX_WBITS, option->compress_level, Z_DEFAULT_STRATEGY);
 	if (err) {
 		free(self);
 		return NULL;

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 23 Oct 2012 09:42:36 +0200                           *
+*  Last modified: Sun, 18 Nov 2012 12:00:05 +0100                           *
 \***************************************************************************/
 
 // zlibVersion
@@ -42,6 +42,7 @@
 
 static void mtar_filter_gzip_init(void) __attribute__((constructor));
 static void mtar_filter_gzip_show_description(void);
+static void mtar_filter_gzip_show_help(void);
 static void mtar_filter_gzip_show_version(void);
 
 static struct mtar_filter mtar_filter_gzip = {
@@ -51,6 +52,7 @@ static struct mtar_filter mtar_filter_gzip = {
 	.new_writer       = mtar_filter_gzip_new_writer,
 
 	.show_description = mtar_filter_gzip_show_description,
+	.show_help        = mtar_filter_gzip_show_help,
 	.show_version     = mtar_filter_gzip_show_version,
 
 	.api_level        = {
@@ -70,6 +72,17 @@ static void mtar_filter_gzip_init() {
 
 static void mtar_filter_gzip_show_description() {
 	mtar_verbose_print_help("gzip : filter from/to compressed data (using zlib: v%s)", zlibVersion());
+}
+
+static void mtar_filter_gzip_show_help(void) {
+	mtar_verbose_printf("  gzip: filter from/to compressed data (version: " MTAR_VERSION ") (using zlib: v%s)\n", zlibVersion());
+
+	mtar_verbose_printf("    Reader:\n");
+	mtar_verbose_printf("      No option available\n");
+
+	mtar_verbose_printf("    Writer: \n");
+	mtar_verbose_print_help("compression-level: an integer between 0 and 9");
+	mtar_verbose_print_flush(6, false);
 }
 
 static void mtar_filter_gzip_show_version() {
