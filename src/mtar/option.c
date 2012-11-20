@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 20 Nov 2012 20:52:10 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 22:46:14 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -750,7 +750,7 @@ void mtar_option_show_help() {
 
 	mtar_verbose_printf("  Archive format selection:\n");
 	mtar_verbose_print_help("-H, --format=FORMAT : use FORMAT as tar format");
-	mtar_verbose_print_help("--no-format-detection * : disable detection of format. --format disable also format dectection");
+	mtar_verbose_print_help("--no-format-detection * : disable detection of format, --format disable also format dectection");
 	mtar_verbose_print_help("-V, --label=TEXT : create archive with volume name TEXT");
 	mtar_verbose_print_flush(4, true);
 

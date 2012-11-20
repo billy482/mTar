@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 18:53:23 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 22:30:23 +0100                           *
 \***************************************************************************/
 
 // free
@@ -251,11 +251,11 @@ static int mtar_function_list_select_volume(struct mtar_function_list_param * pa
 }
 
 static void mtar_function_list_show_description() {
-	mtar_verbose_print_help("list : List files from tar archive");
+	mtar_verbose_print_help("list : list the contents of an archive");
 }
 
 static void mtar_function_list_show_help() {
-	mtar_verbose_printf("  List files from tar archive\n");
+	mtar_verbose_printf("  list the contents of an archive\n");
 	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
 	mtar_verbose_printf("    -j, --bzip2         : filter the archive through bzip2\n");
@@ -264,7 +264,7 @@ static void mtar_function_list_show_help() {
 }
 
 static void mtar_function_list_show_version() {
-	mtar_verbose_printf("  list: List files from tar archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("  list: list the contents of an archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("        SHA1 of source files: " MTAR_FUNCTION_LIST_SRCSUM "\n");
 }
 

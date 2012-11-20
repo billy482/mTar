@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Tue, 20 Nov 2012 17:48:09 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 22:31:21 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -425,11 +425,11 @@ static int mtar_function_extract_select_volume(struct mtar_function_extract_para
 }
 
 static void mtar_function_extract_show_description() {
-	mtar_verbose_print_help("extract : Extract files from tar archive");
+	mtar_verbose_print_help("extract : extract files from an archive");
 }
 
 static void mtar_function_extract_show_help() {
-	mtar_verbose_printf("  List files from tar archive\n");
+	mtar_verbose_printf("  extract files from an archive\n");
 	mtar_verbose_printf("    -f, --file=ARCHIVE  : use ARCHIVE file or device ARCHIVE\n");
 	mtar_verbose_printf("    -H, --format FORMAT : use FORMAT as tar format\n");
 	mtar_verbose_printf("    -j, --bzip2         : filter the archive through bzip2\n");
@@ -439,7 +439,7 @@ static void mtar_function_extract_show_help() {
 }
 
 static void mtar_function_extract_show_version() {
-	mtar_verbose_printf("  extract: Extract files from tar archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("  extract: extract files from an archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("           SHA1 of source files: " MTAR_FUNCTION_EXTRACT_SRCSUM "\n");
 }
 

@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 18 Nov 2012 11:51:42 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 22:25:23 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -635,11 +635,11 @@ static int mtar_function_create_select_volume(struct mtar_function_create_param 
 }
 
 static void mtar_function_create_show_description() {
-	mtar_verbose_print_help("create : Create new archive");
+	mtar_verbose_print_help("create : create a new archive");
 }
 
 static void mtar_function_create_show_help() {
-	mtar_verbose_printf("  Create new archive\n");
+	mtar_verbose_printf("  Create a new archive\n");
 	mtar_verbose_print_help("-W, --verify : attempt to verify the archive after writing it");
 	mtar_verbose_print_help("--atime-preserve : preserve access times on dumped files");
 	mtar_verbose_print_help("--group=NAME : force NAME as group for added files");
@@ -656,7 +656,7 @@ static void mtar_function_create_show_help() {
 }
 
 static void mtar_function_create_show_version() {
-	mtar_verbose_printf("  create: create new archive (version: " MTAR_VERSION ")\n");
+	mtar_verbose_printf("  create: create a new archive (version: " MTAR_VERSION ")\n");
 	mtar_verbose_printf("          SHA1 of source files: " MTAR_FUNCTION_CREATE_SRCSUM "\n");
 }
 
