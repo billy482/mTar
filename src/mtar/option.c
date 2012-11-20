@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Sun, 18 Nov 2012 11:55:17 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 20:52:10 +0100                           *
 \***************************************************************************/
 
 // getopt_long
@@ -353,6 +353,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		opt_filter_option,
 		opt_full_version,
 		opt_function,
+		opt_function_help,
 		opt_group,
 		opt_list_filters,
 		opt_list_formats,
@@ -403,6 +404,7 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 		{ "format",               1, 0, opt_format },
 		{ "full-version",         0, 0, opt_full_version },
 		{ "function",             1, 0, opt_function },
+		{ "function-help",        1, 0, opt_function_help },
 		{ "get",                  0, 0, opt_extract },
 		{ "group",                1, 0, opt_group },
 		{ "gunzip",               0, 0, opt_gzip },
@@ -575,14 +577,13 @@ int mtar_option_parse(struct mtar_option * option, int argc, char ** argv) {
 				return 1;
 
 			case opt_function:
-				if (!strncmp(optarg, "help=", 5)) {
-					mtar_option_show_version();
-					mtar_function_show_help(optarg + 5);
-					return 1;
-				} else {
-					option->do_work = mtar_function_get(optarg);
-				}
+				option->do_work = mtar_function_get(optarg);
 				break;
+
+			case opt_function_help:
+				mtar_option_show_version();
+				mtar_function_show_help(optarg);
+				return 1;
 
 			case opt_group:
 				option->group = optarg;
@@ -717,7 +718,7 @@ void mtar_option_show_help() {
 	mtar_verbose_print_help("-t, --list : list the contents of an archive");
 	mtar_verbose_print_help("-x, --extract, --get : extract files from an archive");
 	mtar_verbose_print_help("--function FUNCTION * : use FUNCTION as action");
-	mtar_verbose_print_help("--function help=FUNCTION * : show specific help from function FUNCTION");
+	mtar_verbose_print_help("--function-help FUNCTION * : show specific help from function FUNCTION");
 	mtar_verbose_print_flush(4, true);
 
 	mtar_verbose_printf("  Where FUNCTION is one of:\n");
