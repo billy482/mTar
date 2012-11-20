@@ -27,9 +27,11 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 15 Nov 2012 18:52:57 +0100                           *
+*  Last modified: Tue, 20 Nov 2012 17:48:09 +0100                           *
 \***************************************************************************/
 
+// errno
+#include <errno.h>
 // fstatat, futimesat, linkat, openat, symlinkat, unlinkat
 #include <fcntl.h>
 // bool
@@ -185,7 +187,8 @@ static int mtar_function_extract(const struct mtar_option * option) {
 							mtar_verbose_printf("Error while unlinking (%s) because %m\n", header.link);
 						else
 							failed = -1;
-					}
+					} else
+						failed = -1;
 				}
 
 				if (header.link != NULL && !(header.mode & S_IFMT)) {
@@ -198,12 +201,23 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					if (mknodat(dir_fd, header.path, S_IFCHR, header.dev))
 						mtar_verbose_printf("Error while creating character device (%s %02x:%02x) because %m\n", header.path, (unsigned int) header.dev >> 8, (unsigned int) header.dev & 0xFF);
 				} else if (S_ISDIR(header.mode)) {
-					if (mkdirat(dir_fd, header.path, header.mode))
+					if (mkdirat(dir_fd, header.path, header.mode) && errno != EEXIST)
 						mtar_verbose_printf("Error while creating directory (%s) because %m\n", header.path);
 				} else if (S_ISBLK(header.mode)) {
 					if (mknodat(dir_fd, header.path, S_IFBLK, header.dev))
 						mtar_verbose_printf("Error while creating block device (%s %02x:%02x) because %m\n", header.path, (unsigned int) header.dev >> 8, (unsigned int) header.dev & 0xFF);
 				} else if (S_ISREG(header.mode)) {
+					if (!faccessat(dir_fd, header.path, F_OK, AT_SYMLINK_NOFOLLOW)) {
+						failed = unlinkat(dir_fd, header.path, 0);
+						if (!failed)
+							failed = -1;
+						else {
+							mtar_verbose_printf("Error while unlinking file (%s) because %m\n", header.path);
+							failed = 5;
+							break;
+						}
+					}
+
 					int fd = openat(dir_fd, header.path, O_CREAT | O_TRUNC | O_WRONLY, header.mode);
 
 					if (fd < 0) {
