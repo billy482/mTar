@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 20:45:12 +0100                           *
+*  Last modified: Thu, 10 Jan 2013 15:17:40 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -57,12 +57,18 @@
 struct mtar_format_mtf_reader {
 	struct mtar_io_reader * io;
 
+	char * file_name;
+	ssize_t file_offset;
 	ssize_t file_size;
+	time_t file_mtime;
 
 	struct mtar_hashtable * directories;
 
 	uid_t user;
 	gid_t group;
+
+	uint32_t last_dirb_id;
+	uint32_t last_file_id;
 };
 
 static bool mtar_format_mtf_reader_check_header(const struct mtar_format_mtf_descriptor_block * block);
@@ -125,6 +131,8 @@ static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {
 	if (self->io != NULL)
 		self->io->ops->free(self->io);
 
+	free(self->file_name);
+
 	mtar_hashtable_free(self->directories);
 	self->directories = NULL;
 
@@ -134,6 +142,22 @@ static void mtar_format_mtf_reader_free(struct mtar_format_reader * f) {
 
 static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(struct mtar_format_reader * f, struct mtar_format_header * header) {
 	struct mtar_format_mtf_reader * self = f->data;
+
+	if (self->file_offset < self->file_size) {
+		mtar_format_init_header(header);
+		header->path = strdup(self->file_name);
+		header->position = self->file_offset;
+		header->size = self->file_size;
+		header->mode = 0644 | S_IFREG;
+		header->mtime = self->file_mtime;
+
+		header->uid = self->user;
+		mtar_file_uid2name(header->uname, 32, self->user);
+		header->gid = self->group;
+		mtar_file_gid2name(header->gname, 32, self->group);
+
+		return mtar_format_header_ok;
+	}
 
 	for (;;) {
 		char buffer[1024];
@@ -197,9 +221,12 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 				header->gid = self->group;
 				mtar_file_gid2name(header->gname, 32, self->group);
 
+				self->file_offset = 0;
 				self->file_size = 0;
 
 				self->io->ops->forward(self->io, 1024 - sblock - sdirb - dirb.directory_name.size);
+
+				self->last_dirb_id = dirb.directory_id;
 
 				return mtar_format_header_ok;
 
@@ -257,9 +284,11 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 
 				mtar_format_init_header(header);
 				asprintf(&header->path, "%s/%s", dir_name, path);
+				free(self->file_name);
+				self->file_name = strdup(header->path);
 				header->size = strm.type == mtar_format_mtf_stream_stan ? strm.stream_length : 0;
 				header->mode = 0644 | S_IFREG;
-				header->mtime = mtar_format_mtf_reader_get_time(file.last_modification_time);
+				self->file_mtime = header->mtime = mtar_format_mtf_reader_get_time(file.last_modification_time);
 
 				header->uid = self->user;
 				mtar_file_uid2name(header->uname, 32, self->user);
@@ -269,7 +298,11 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_get_header(s
 				free(dir_id);
 				free(path);
 
+				self->file_offset = 0;
 				self->file_size = header->size;
+
+				self->last_dirb_id = file.directory_id;
+				self->last_file_id = file.file_id;
 
 				return mtar_format_header_ok;
 
@@ -508,7 +541,13 @@ static void mtar_format_mtf_reader_next_header(struct mtar_format_mtf_reader * s
 		self->io->ops->forward(self->io, strm.stream_length);
 }
 
-static void mtar_format_mtf_reader_next_volume(struct mtar_format_reader * f __attribute__((unused)), struct mtar_io_reader * next_volume __attribute__((unused))) {
+static void mtar_format_mtf_reader_next_volume(struct mtar_format_reader * f, struct mtar_io_reader * next_volume) {
+	struct mtar_format_mtf_reader * self = f->data;
+
+	if (self->io != NULL)
+		self->io->ops->free(self->io);
+
+	self->io = next_volume;
 }
 
 static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void * data, ssize_t length) {
@@ -517,17 +556,19 @@ static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void *
 	if (data == NULL)
 		return -1;
 
-	if (self->file_size < 1)
-		return 0;
+	if (self->file_offset + length > self->file_size)
+		length = self->file_size - self->file_offset;
 
-	if (length > self->file_size)
-		length = self->file_size;
+	if (length < 1)
+		return 0;
 
 	ssize_t nb_read = self->io->ops->read(self->io, data, length);
 	if (nb_read > 0)
-		self->file_size -= nb_read;
+		self->file_offset += nb_read;
 
-	if (self->file_size == 0)
+	if (nb_read == 0)
+		mtar_verbose_printf("End of tape reached, current: { directory: %u, file: %u }\n", self->last_dirb_id, self->last_file_id);
+	else if (self->file_size == self->file_offset)
 		mtar_format_mtf_reader_next_header(self);
 
 	return nb_read;
@@ -536,21 +577,27 @@ static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void *
 static enum mtar_format_reader_header_status mtar_format_mtf_reader_skip_file(struct mtar_format_reader * f) {
 	struct mtar_format_mtf_reader * self = f->data;
 
-	if (self->file_size == 0)
+	if (self->file_size == self->file_offset)
 		return mtar_format_header_ok;
 
 	if (self->file_size > 0) {
-		off_t next_pos = self->io->ops->position(self->io) + self->file_size;
-		off_t new_pos = self->io->ops->forward(self->io, self->file_size);
+		off_t current_pos = self->io->ops->position(self->io);
+		ssize_t remain = self->file_size - self->file_offset;
+		off_t next_pos = current_pos + remain;
+		off_t new_pos = self->io->ops->forward(self->io, remain);
 		if (new_pos == (off_t) -1)
 			return mtar_format_header_error;
 
-		if (next_pos > new_pos)
+		if (next_pos > new_pos) {
+			self->file_offset += new_pos - current_pos;
+
+			mtar_verbose_printf("End of tape reached, current: { directory: %u, file: %u }\n", self->last_dirb_id, self->last_file_id);
 			return mtar_format_header_end_of_tape;
+		}
 
 		mtar_format_mtf_reader_next_header(self);
 
-		self->file_size = 0;
+		self->file_offset = self->file_size;
 	}
 
 	return mtar_format_header_ok;
@@ -563,12 +610,17 @@ struct mtar_format_reader * mtar_format_mtf_new_reader(struct mtar_io_reader * i
 	struct mtar_format_mtf_reader * self = malloc(sizeof(struct mtar_format_mtf_reader));
 	self->io = io;
 
+	self->file_name = NULL;
+	self->file_offset = 0;
 	self->file_size = 0;
+	self->file_mtime = 0;
 
 	self->directories = mtar_hashtable_new2(mtar_util_compute_hash_string, mtar_util_basic_free);
 
 	self->user = geteuid();
 	self->group = getegid();
+
+	self->last_dirb_id = self->last_file_id = 0;
 
 	struct mtar_format_reader * reader = malloc(sizeof(struct mtar_format_reader));
 	reader->ops = &mtar_format_mtf_reader_ops;
