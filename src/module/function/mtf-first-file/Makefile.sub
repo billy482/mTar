@@ -1,0 +1,9 @@
+MTAR_FUNCTION_MTF_FIRST_FILE_SRC_DIR		:= src/module/function/mtf-first-file
+
+MTAR_FUNCTION_MTF_FIRST_FILE_BIN			:= lib/libfunction-mtf-first-file.so
+MTAR_FUNCTION_MTF_FIRST_FILE_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FUNCTION_MTF_FIRST_FILE_LD				:= -shared
+
+MTAR_FUNCTION_MTF_FIRST_FILE_CHCKSUM_FILE	:= mtar-function-mtf-first-file.chcksum
+
+BIN_SYMS									+= MTAR_FUNCTION_MTF_FIRST_FILE
