@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 Jan 2013 12:51:33 +0100                           *
+*  Last modified: Fri, 11 Jan 2013 10:11:48 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -207,7 +207,7 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					if (mknodat(dir_fd, header.path, S_IFBLK, header.dev))
 						mtar_verbose_printf("Error while creating block device (%s %02x:%02x) because %m\n", header.path, (unsigned int) header.dev >> 8, (unsigned int) header.dev & 0xFF);
 				} else if (S_ISREG(header.mode)) {
-					if (!faccessat(dir_fd, header.path, F_OK, AT_SYMLINK_NOFOLLOW)) {
+					if (header.position == 0 && !faccessat(dir_fd, header.path, F_OK, AT_SYMLINK_NOFOLLOW)) {
 						failed = unlinkat(dir_fd, header.path, 0);
 						if (!failed)
 							failed = -1;
@@ -218,7 +218,7 @@ static int mtar_function_extract(const struct mtar_option * option) {
 						}
 					}
 
-					int fd = openat(dir_fd, header.path, O_CREAT | O_TRUNC | O_WRONLY, header.mode);
+					int fd = openat(dir_fd, header.path, O_CREAT | O_WRONLY | O_APPEND, header.mode);
 
 					if (fd < 0) {
 						mtar_verbose_printf("Error while opening file (%s) because %m\n", header.path);
@@ -226,7 +226,7 @@ static int mtar_function_extract(const struct mtar_option * option) {
 						continue;
 					} else {
 						char buffer[4096];
-						ssize_t nb_total_read = 0;
+						ssize_t nb_total_read = header.position;
 						bool cont = true;
 
 						while (nb_total_read < header.size && cont) {
