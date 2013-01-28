@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2013, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 11 Jan 2013 13:13:49 +0100                           *
+*  Last modified: Mon, 28 Jan 2013 17:56:52 +0100                           *
 \***************************************************************************/
 
 // {,u}int*_t
@@ -172,7 +172,7 @@ static void mtar_function_mtf_first_file_init() {
 }
 
 static void mtar_function_mtf_first_file_show_description() {
-	mtar_verbose_print_help("mtf-first-file: Find id of first file found into archive\n");
+	mtar_verbose_print_help("mtf-first-file: Find id of first file found into archive");
 }
 
 static void mtar_function_mtf_first_file_show_help() {

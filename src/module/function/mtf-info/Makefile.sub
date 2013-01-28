@@ -1,0 +1,9 @@
+MTAR_FUNCTION_MTF_INFO_SRC_DIR			:= src/module/function/mtf-info
+
+MTAR_FUNCTION_MTF_INFO_BIN				:= lib/libfunction-mtf-info.so
+MTAR_FUNCTION_MTF_INFO_CFLAG			:= -fPIC -fvisibility=hidden
+MTAR_FUNCTION_MTF_INFO_LD				:= -shared
+
+MTAR_FUNCTION_MTF_INFO_CHCKSUM_FILE		:= mtar-function-mtf-info.chcksum
+
+BIN_SYMS								+= MTAR_FUNCTION_MTF_INFO
