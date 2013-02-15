@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 11 Jan 2013 10:11:48 +0100                           *
+*  Last modified: Fri, 15 Feb 2013 10:49:54 +0100                           *
 \***************************************************************************/
 
 // errno
@@ -38,7 +38,7 @@
 #include <stdbool.h>
 // free
 #include <stdlib.h>
-// strerror
+// strdup, strerror
 #include <string.h>
 // fstatat
 #include <sys/stat.h>
@@ -69,6 +69,13 @@ struct mtar_function_extract_param {
 
 	const char * filename;
 	unsigned int i_volume;
+
+	struct list_dirs {
+		char * dirname;
+		struct timespec mtime[2];
+
+		struct list_dirs * previous;
+	} * last_dir;
 
 	const struct mtar_option * option;
 };
@@ -106,6 +113,8 @@ static int mtar_function_extract(const struct mtar_option * option) {
 
 		.filename = option->filename,
 		.i_volume = 1,
+
+		.last_dir = NULL,
 
 		.option = option,
 	};
@@ -299,8 +308,17 @@ static int mtar_function_extract(const struct mtar_option * option) {
 					{ .tv_sec = header.mtime, .tv_nsec = 0 },
 					{ .tv_sec = header.mtime, .tv_nsec = 0 },
 				};
-				if (utimensat(dir_fd, header.path, times, AT_SYMLINK_NOFOLLOW))
-					mtar_verbose_printf("Warning, failed to restore modified time of %s because %m\n", header.path);
+				if (S_ISDIR(header.mode)) {
+					struct list_dirs * dir = malloc(sizeof(struct list_dirs));
+					dir->dirname = strdup(header.path);
+					dir->mtime[0] = times[0];
+					dir->mtime[1] = times[1];
+					dir->previous = param.last_dir;
+					param.last_dir = dir;
+				} else {
+					if (utimensat(dir_fd, header.path, times, AT_SYMLINK_NOFOLLOW))
+						mtar_verbose_printf("Warning, failed to restore modified time of %s because %m\n", header.path);
+				}
 
 				break;
 
@@ -329,6 +347,17 @@ static int mtar_function_extract(const struct mtar_option * option) {
 		}
 
 		mtar_format_free_header(&header);
+	}
+
+	while (param.last_dir != NULL) {
+		struct list_dirs * dir = param.last_dir;
+		param.last_dir = dir->previous;
+
+		if (utimensat(dir_fd, dir->dirname, dir->mtime, AT_SYMLINK_NOFOLLOW))
+			mtar_verbose_printf("Warning, failed to restore modified time of %s because %m\n", dir->dirname);
+
+		free(dir->dirname);
+		free(dir);
 	}
 
 	close(dir_fd);
