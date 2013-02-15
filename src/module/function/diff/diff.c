@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Fri, 16 Nov 2012 16:24:16 +0100                           *
+*  Last modified: Fri, 15 Feb 2013 16:57:53 +0100                           *
 \***************************************************************************/
 
 // fstatat, openat
@@ -220,12 +220,12 @@ static int mtar_function_diff_select_volume(struct mtar_function_diff_param * pa
 						param->format->ops->next_volume(param->format, next_reader);
 						param->i_volume++;
 						free(line);
-						return 0;
+						return -1;
 					} else if (next_reader != NULL) {
 						param->format = mtar_format_get_reader2(next_reader, param->option);
 						param->i_volume++;
 						free(line);
-						return 0;
+						return -1;
 					}
 				}
 				return 0;
@@ -243,12 +243,12 @@ static int mtar_function_diff_select_volume(struct mtar_function_diff_param * pa
 						param->format->ops->next_volume(param->format, next_reader);
 						param->i_volume++;
 						free(line);
-						return 0;
+						return -1;
 					} else if (next_reader != NULL) {
 						param->format = mtar_format_get_reader2(next_reader, param->option);
 						param->i_volume++;
 						free(line);
-						return 0;
+						return -1;
 					}
 				}
 				break;
