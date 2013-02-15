@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 Jan 2013 12:46:45 +0100                           *
+*  Last modified: Fri, 15 Feb 2013 15:02:38 +0100                           *
 \***************************************************************************/
 
 // free
@@ -187,12 +187,12 @@ static int mtar_function_list_select_volume(struct mtar_function_list_param * pa
 						param->format->ops->next_volume(param->format, next_reader);
 						param->i_volume++;
 						free(line);
-						return -1;
+						return 0;
 					} else if (next_reader != NULL) {
 						param->format = mtar_format_get_reader2(next_reader, param->option);
 						param->i_volume++;
 						free(line);
-						return -1;
+						return 0;
 					}
 				}
 				return 0;
