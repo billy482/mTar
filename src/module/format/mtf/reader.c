@@ -27,7 +27,7 @@
 *                                                                           *
 *  -----------------------------------------------------------------------  *
 *  Copyright (C) 2012, Clercin guillaume <clercin.guillaume@gmail.com>      *
-*  Last modified: Thu, 10 Jan 2013 15:17:40 +0100                           *
+*  Last modified: Sat, 16 Feb 2013 18:08:37 +0100                           *
 \***************************************************************************/
 
 #define _GNU_SOURCE
@@ -566,9 +566,7 @@ static ssize_t mtar_format_mtf_reader_read(struct mtar_format_reader * f, void *
 	if (nb_read > 0)
 		self->file_offset += nb_read;
 
-	if (nb_read == 0)
-		mtar_verbose_printf("End of tape reached, current: { directory: %u, file: %u }\n", self->last_dirb_id, self->last_file_id);
-	else if (self->file_size == self->file_offset)
+	if (self->file_size == self->file_offset)
 		mtar_format_mtf_reader_next_header(self);
 
 	return nb_read;
@@ -591,7 +589,6 @@ static enum mtar_format_reader_header_status mtar_format_mtf_reader_skip_file(st
 		if (next_pos > new_pos) {
 			self->file_offset += new_pos - current_pos;
 
-			mtar_verbose_printf("End of tape reached, current: { directory: %u, file: %u }\n", self->last_dirb_id, self->last_file_id);
 			return mtar_format_header_end_of_tape;
 		}
 
