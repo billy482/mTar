@@ -38,7 +38,7 @@ endif
 
 
 # compilation flags
-CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR}) -pthread
+CFLAGS		:= -std=gnu99 -pipe -O0 -ggdb3 -Wall -Wextra -Wabi -Werror-implicit-function-declaration -Wmissing-prototypes $(addprefix -I,${INCLUDE_DIR}) -pthread -D_FILE_OFFSET_BITS=64
 LDFLAGS		:= -pthread
 
 CSCOPE_OPT	:= -b -R -s src -U -I include
